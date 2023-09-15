@@ -3,6 +3,7 @@ from tkinter import ttk
 import sv_ttk
 from ctypes import *
 import colors
+import scan
 
 class GUI:
     def __init__(self, root):
@@ -10,8 +11,7 @@ class GUI:
         root.title("INDRA")
         root.geometry("1200x675")
         root.resizable(False, False)
-        root.grid_columnconfigure(0, weight=1)
-        root.grid_rowconfigure(0, weight=1)
+        # root.grid_columnconfigure(0, weight=1)
         sv_ttk.set_theme("dark")
         
         # change the Icon in the title bar
@@ -33,27 +33,27 @@ class GUI:
         
         # TOP BOX ---------------------------------------------------------------
 
-        self.top_box = ttk.Frame(root, padding=(3, 3, 12, 12), style="box.TFrame")
-        self.top_box.pack(fill=tkinter.X, expand=True)
-        self.top_box.grid(
-            row=0, column=0, sticky="nwe", padx=5, pady=5
-        )
+        # Grey box up top 
+        self.top_box = ttk.Frame(root, style="box.TFrame")
+        self.top_box.pack(side="top", fill="x", expand=False, pady=5, padx=5, ipadx=5)
+        #self.top_box.grid_columnconfigure(0, weight=1)
         
-        greet_button = ttk.Button(self.top_box, text="Greet", command=self.greet)
-        greet_button.grid(row=0, column=0, pady=5, padx=5)
+        # invisible frame to hold the menu items
+        menu_frame = ttk.Frame(self.top_box)
+        menu_frame.pack(side="top", pady=5)
+        
+        # menu items left -> right
+        scan_button = ttk.Button(menu_frame, text="Scan", command=scan.scan)
+        scan_button.pack(side="left")
 
-        close_button = ttk.Button(self.top_box, text="Close", command=root.quit)
-        close_button.grid(row=0, column=1, pady=5)
-        
+        modules_dropdown = ttk.Button(menu_frame, text="Close", command=root.quit)
+        modules_dropdown.pack(side="left")
         # END TOP BOX ----------------------------------------------------------
         
         # LEFT BOX --------------------------------------------------------------
         
-        self.side_box = ttk.Frame(root, padding=(3, 3, 12, 12), style="box.TFrame")
-        self.side_box.grid(
-            row=1, column=0, sticky="", padx=5, pady=5,
-            columnspan=2, rowspan=4
-        )
+        self.side_box = ttk.Frame(root, padding=(5, 5, 10, 10), style="box.TFrame")
+        self.side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5)
         
         close_button = ttk.Button(self.side_box, text="Close", command=root.quit)
         close_button.grid(row=0, column=0, pady=5)
