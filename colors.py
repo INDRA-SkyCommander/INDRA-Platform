@@ -1,0 +1,11 @@
+
+
+WHITE = "#FFFFFF"
+BLACK = "#000000"
+GREY = "#2F332E"
+LIGHT_GREY = "#33302E"
+GREEN = "#263328"
+ORANGE = "#663011"
+    
+    
+    
