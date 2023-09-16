@@ -1,4 +1,4 @@
-import GUI
+import GUI as GUI
 
 # This is the main file and entry point for the program.
 # This guard ensures that the code is only executed when this file is run directly.

@@ -1,9 +1,10 @@
+import os
 import tkinter
-from tkinter import ttk
+from tkinter import StringVar, Tk, ttk
 import sv_ttk
 from ctypes import *
-import colors
-import scan
+import colors as colors
+import scan as scan
 
 class GUI:
     def __init__(self, root):
@@ -15,7 +16,7 @@ class GUI:
         sv_ttk.set_theme("dark")
         
         # change the Icon in the title bar
-        root.iconbitmap("high_res_icon.ico")    
+        root.iconbitmap(os.path.dirname(__file__) + "\\..\\media\\high_res_icon.ico")    
         
         #NOT CURRENTLY WORKING. I'LL FIX IT LATER
         # get the window handle from windows api
@@ -29,25 +30,36 @@ class GUI:
 
         frame_style = ttk.Style()
         frame_style.configure("box.TFrame", background=colors.LIGHT_GREY)
+
+        button_style = ttk.Style()
+        button_style.configure("button.TButton", background=colors.SLATE)
         
         
         # TOP BOX ---------------------------------------------------------------
 
         # Grey box up top 
         self.top_box = ttk.Frame(root, style="box.TFrame")
-        self.top_box.pack(side="top", fill="x", expand=False, pady=5, padx=5, ipadx=5)
+        self.top_box.pack(side="top",
+                          fill="x",
+                          expand=False,
+                          pady=5, padx=5, ipadx=5)
         #self.top_box.grid_columnconfigure(0, weight=1)
         
         # invisible frame to hold the menu items
-        menu_frame = ttk.Frame(self.top_box)
+        menu_frame = ttk.Frame(self.top_box, style="box.TFrame")
         menu_frame.pack(side="top", pady=5)
         
         # menu items left -> right
-        scan_button = ttk.Button(menu_frame, text="Scan", command=scan.scan)
+        scan_button = ttk.Button(menu_frame,
+                                text="Scan",
+                                command=scan.scan,
+                                style="button.TButton")
         scan_button.pack(side="left")
 
-        modules_dropdown = ttk.Button(menu_frame, text="Close", command=root.quit)
-        modules_dropdown.pack(side="left")
+        variable = StringVar(root)
+        variable.set("one")
+        modules_dropdown = ttk.OptionMenu(menu_frame, variable, "Enumerate", "One", "Two", "Three")
+        modules_dropdown.pack(side="left", padx=5)
         # END TOP BOX ----------------------------------------------------------
         
         # LEFT BOX --------------------------------------------------------------
