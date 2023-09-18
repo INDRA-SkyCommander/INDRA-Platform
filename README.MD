@@ -1,7 +1,7 @@
 
 <!-- Banner GIF -->
 <img src="media\Drone_Banner.gif" width=30% />
-
+![](https://github.com/INDRA-SkyCommander/INDRA-Platform/blob/main/media/Drone_Banner.gif)
 
 ### Dependencies 
 Run the following command from the same directory as "requirements.txt"
