@@ -1,7 +1,6 @@
 
 <!-- Banner GIF -->
-<img src="https://github.com/INDRA-SkyCommander/INDRA-Platform/blob/main/media/Drone_Banner.gif" width=30% />
-![](https://github.com/INDRA-SkyCommander/INDRA-Platform/blob/main/media/Drone_Banner.gif)
+<img src="https://media.giphy.com/media/YWUvOugDNUBS0MTqkv/giphy-downsized-large.gif" width=30% />
 
 ### Dependencies 
 Run the following command from the same directory as "requirements.txt"
