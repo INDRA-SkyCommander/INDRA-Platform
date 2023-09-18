@@ -1,6 +1,6 @@
 
 <!-- Banner GIF -->
-<img src="1,500 drones creating magic in the air - Imgur(1).gif" width=30% />
+<img src="Drone_Banner.gif" width=30% />
 
 
 ### Dependencies 
