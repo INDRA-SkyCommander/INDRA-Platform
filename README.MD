@@ -1,6 +1,6 @@
 
 <!-- Banner GIF -->
-<img src="Drone_Banner.gif" width=30% />
+<img src="media\Drone_Banner.gif" width=30% />
 
 
 ### Dependencies 
