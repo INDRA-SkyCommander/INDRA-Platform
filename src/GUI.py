@@ -6,11 +6,14 @@ from ctypes import *
 import colors as colors
 import scan as scan
 import exploit as exploit
+import indra_util as indra_util
 
 
 
-class GUI:   
-    scan_results = "" 
+class MainGUI:   
+    
+    host_list_var = None
+    terminal_output_var = None
     
     def __init__(self, root):
         self.root = root
@@ -33,7 +36,11 @@ class GUI:
         #                                     35,
         #                                     byref(c_int(bar_color)),
         #                                     sizeof(c_int))
-
+        
+        self.host_list_var = StringVar()
+        self.terminal_output_var = StringVar()
+        self.terminal_output_var.set("")
+        
         frame_style = ttk.Style()
         frame_style.configure("box.TFrame", background=colors.LIGHT_GREY)
         
@@ -111,7 +118,7 @@ class GUI:
         self.side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5,)
         
         
-        
+        # Host List title
         host_list_label = ttk.Label(self.side_box, text="Host List")
         host_list_label.configure(anchor="center")
         host_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
@@ -121,10 +128,39 @@ class GUI:
         self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")
         
         
-        self.host_list_data_label = tkinter.Text(self.inner_side_box, width=20)
-        self.host_list_data_label.insert(END, scan.get_scan_results())
-        self.host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        # Host List - List of IPs
+        host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
+        host_list_data_label.configure(anchor="center")
+        host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         
         
         # END LEFT BOX ----------------------------------------------------------
         
+        # TERMINAL BOX ----------------------------------------------------------
+    
+        # Grey box on the bottom
+        self.bottom_box = ttk.Frame(root, style="box.TFrame")
+        self.bottom_box.pack(side="bottom",
+                          fill="x",
+                          expand=False,
+                          pady=5, padx=5, ipadx=5)
+        self.bottom_box.grid_columnconfigure(0, weight=1)
+ 
+        # Terminal title
+        host_list_label = ttk.Label(self.bottom_box, text="Terminal Output")
+        host_list_label.configure(anchor="center")
+        host_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50)
+        
+        # grey bow around terminal output
+        self.inner_bottom_box = ttk.Frame(self.bottom_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
+        self.inner_bottom_box.grid(row=1, column=0, pady=[10,20], padx=[30,30], sticky="n")
+        
+        # Terminal output
+        terminal_output_label = ttk.Label(self.inner_bottom_box, width=20, textvariable=self.terminal_output_var)
+        terminal_output_label.configure(anchor="center")
+        terminal_output_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        # END TERMINAL BOX ------------------------------------------------------
+
+        indra_util.terminal_out(root, self.terminal_output_var, self.terminal_output_var)
+        scan.get_scan_results(root, self.host_list_var)
+        root.mainloop()

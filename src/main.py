@@ -5,7 +5,5 @@ import scan
 # This guard ensures that the code is only executed when this file is run directly.
 if __name__ == "__main__":
     root = GUI.tkinter.Tk()
-    main_gui = GUI.GUI(root)
+    main_gui = GUI.MainGUI(root)
     
-    
-    root.mainloop()

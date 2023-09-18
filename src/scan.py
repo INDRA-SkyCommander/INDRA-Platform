@@ -1,5 +1,6 @@
 import os
 import random
+from tkinter import END
 
 import GUI
 
@@ -19,12 +20,16 @@ def scan():
                 f.write("\n")
                 
 
-def get_scan_results():
+def get_scan_results(root, var):
     print("Getting scan results...")
     file_path=os.path.dirname(__file__) + "\\..\\data\\scan_results.txt"
     
     results = ""
     
     with open(file_path, "r") as f:
-        results = f.read()
+        var.set(f.read())
+    
+    
+    root.after(500, lambda: get_scan_results(root, var))
+    print(results)
     return results
