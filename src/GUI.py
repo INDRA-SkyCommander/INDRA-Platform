@@ -1,17 +1,23 @@
 import os
 import tkinter
-from tkinter import StringVar, Tk, ttk
+from tkinter import END, StringVar, Tk, TkVersion, ttk
 import sv_ttk
 from ctypes import *
 import colors as colors
 import scan as scan
+import exploit as exploit
 
-class GUI:
+
+
+class GUI:   
+    scan_results = "" 
+    
     def __init__(self, root):
         self.root = root
         root.title("INDRA")
         root.geometry("1200x675")
         root.resizable(False, False)
+        root.update_idletasks()
         # root.grid_columnconfigure(0, weight=1)
         sv_ttk.set_theme("dark")
         
@@ -30,9 +36,22 @@ class GUI:
 
         frame_style = ttk.Style()
         frame_style.configure("box.TFrame", background=colors.LIGHT_GREY)
+        
+        inner_frame_style = ttk.Style()
+        inner_frame_style.configure("inner_box.TFrame", background=colors.SLATE)
 
         button_style = ttk.Style()
-        button_style.configure("button.TButton", background=colors.SLATE)
+        button_style.configure("button.TButton", background=colors.SLATE, focuscolor=colors.SLATE)
+        button_style.map("button.TButton", background=[("active", colors.SLATE)])
+        
+        exploit_button_style = ttk.Style()
+        exploit_button_style.configure("exploit_button.TButton", foreground=colors.ORANGE)
+        
+        dropdown_style = ttk.Style()
+        dropdown_style.configure("dropdown.TOptionsMenu", background=colors.SLATE)
+        
+        label_style = ttk.Style()
+        label_style.configure("label.TLabel", background=colors.SLATE, foreground=colors.WHITE)
         
         
         # TOP BOX ---------------------------------------------------------------
@@ -50,27 +69,62 @@ class GUI:
         menu_frame.pack(side="top", pady=5)
         
         # menu items left -> right
+        
+        # SCAN BUTTON
         scan_button = ttk.Button(menu_frame,
                                 text="Scan",
                                 command=scan.scan,
                                 style="button.TButton")
         scan_button.pack(side="left")
+        print(scan_button.cget("style"))
 
+        # MODULES DROPDOWN
         variable = StringVar(root)
-        variable.set("one")
-        modules_dropdown = ttk.OptionMenu(menu_frame, variable, "Enumerate", "One", "Two", "Three")
+        variable.set("")
+        modules_dropdown = ttk.OptionMenu(menu_frame, variable, "Modules", "Hack", "Destroy", "Enihilate")
         modules_dropdown.pack(side="left", padx=5)
+        
+        # OPTIONS DROPDOWN
+        variable = StringVar(root)
+        variable.set("")
+        options_dropdown = ttk.OptionMenu(menu_frame, variable, "Options", "This", "That", "Some other thing")
+        options_dropdown.pack(side="left", padx=5)
+        
+        # EXPLOIT BUTTON
+        exploit_button = tkinter.Button(menu_frame,
+                                text="Exploit",
+                                command=exploit.pwn,
+                                bg=colors.ORANGE,
+                                relief="flat",
+                                activebackground=colors.ORANGE,
+                                highlightcolor=colors.LIGHT_ORANGE,
+                                justify="center",
+                                font=("Segoe UI", 10))
+        exploit_button.pack(side="left", padx=5)
+        
         # END TOP BOX ----------------------------------------------------------
         
         # LEFT BOX --------------------------------------------------------------
         
+        # Grey box on the left
         self.side_box = ttk.Frame(root, padding=(5, 5, 10, 10), style="box.TFrame")
-        self.side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5)
+        self.side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5,)
         
-        close_button = ttk.Button(self.side_box, text="Close", command=root.quit)
-        close_button.grid(row=0, column=0, pady=5)
+        
+        
+        host_list_label = ttk.Label(self.side_box, text="Host List")
+        host_list_label.configure(anchor="center")
+        host_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
+        
+        
+        self.inner_side_box = ttk.Frame(self.side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
+        self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")
+        
+        
+        self.host_list_data_label = tkinter.Text(self.inner_side_box, width=20)
+        self.host_list_data_label.insert(END, scan.get_scan_results())
+        self.host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        
         
         # END LEFT BOX ----------------------------------------------------------
-
-    def greet(self):
-        print("Greetings!")
+        

@@ -7,6 +7,7 @@ LIGHT_GREY = "#33302E"
 SLATE = "#758184"
 GREEN = "#263328"
 ORANGE = "#663011"
+LIGHT_ORANGE = "#99552e"
     
     
     
