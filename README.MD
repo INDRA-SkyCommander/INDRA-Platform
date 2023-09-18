@@ -1,6 +1,6 @@
 
 <!-- Banner GIF -->
-<img src="https://media.giphy.com/media/YWUvOugDNUBS0MTqkv/giphy-downsized-large.gif" width=30% />
+<img src="https://media.giphy.com/media/UGWpLb1b4KddktMz0y/giphy.gif" width=100% />
 
 ### Dependencies 
 Run the following command from the same directory as "requirements.txt"
