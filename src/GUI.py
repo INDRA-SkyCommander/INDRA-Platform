@@ -88,7 +88,7 @@ class MainGUI:
         # MODULES DROPDOWN
         variable = StringVar(root)
         variable.set("")
-        modules_dropdown = ttk.OptionMenu(menu_frame, variable, "Modules", "Hack", "Destroy", "Enihilate")
+        modules_dropdown = ttk.OptionMenu(menu_frame, variable, "Modules", "Hack", "Destroy", "Annihilate")
         modules_dropdown.pack(side="left", padx=5)
         
         # OPTIONS DROPDOWN

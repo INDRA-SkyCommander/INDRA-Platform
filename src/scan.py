@@ -3,21 +3,36 @@ import random
 from tkinter import END
 
 import GUI
+from format import *
 
 def scan():
     print("Beep boop. Scanning....")
 
-    i = random.randint(0,15)
+    cell_list = [[]]
+        
+    file_path=os.path.dirname(__file__) + "\\..\\data\\scan_results.txt"
 
-    if i > 6:
-        print("Wow! There's definitely a drone here!")
-        
-        file_path=os.path.dirname(__file__) + "\\..\\data\\scan_results.txt"
-        
-        with open(file_path, "w") as f:
-            for j in range(0,i):
-                f.write(".".join(map(str, (random.randint(0, 255) for _ in range(4)))))
-                f.write("\n")
+    scan_file_path=os.path.dirname(__file__) + "\\..\\data\\monitorscan2.txt"
+
+    with open(scan_file_path,"r") as f:
+       cell_list = get_cells(f.read())
+
+    #Writes a new file that outputs the names and addresses of the scanned targets
+    with open(file_path, "w") as f:
+
+        #iterates through each cell in the list
+        #each cell contains an list of values outputted by the scan
+        for cell in cell_list:
+            
+            #if the name of the address has no name, change it to no name
+            strname = get_name(cell)
+            if strname == "":
+                strname = "N/A"
+            
+            #Write the contents to the file, which is read by the GUI
+            f.write(strname + " - ")
+            f.write(get_address(cell))
+            f.write("\n\n")
                 
 
 def get_scan_results(root, var):
@@ -32,4 +47,5 @@ def get_scan_results(root, var):
     
     root.after(500, lambda: get_scan_results(root, var))
     print(results)
+
     return results
