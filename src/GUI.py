@@ -12,8 +12,12 @@ import indra_util as indra_util
 
 class MainGUI:   
     
-    host_list_var = None
+    host_list_update = True
     terminal_output_var = None
+    selected_host = None
+    
+    
+    
     
     def __init__(self, root):
         self.root = root
@@ -80,7 +84,7 @@ class MainGUI:
         # SCAN BUTTON
         scan_button = ttk.Button(menu_frame,
                                 text="Scan",
-                                command=scan.scan,
+                                command=scan.scan(),
                                 style="button.TButton")
         scan_button.pack(side="left")
         print(scan_button.cget("style"))
@@ -129,10 +133,23 @@ class MainGUI:
         
         
         # Host List - List of IPs
-        host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
-        host_list_data_label.configure(anchor="center")
-        host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        # host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
+        # host_list_data_label.configure(anchor="center")
+        # host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         
+        
+        # list box of IPs
+        self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=50)
+        self.host_list_data_box.configure(justify="left",
+                                     font=("Segoe UI", 10),
+                                     highlightcolor=colors.LIGHT_ORANGE,
+                                     fg=colors.WHITE,
+                                     selectbackground=colors.LIGHT_ORANGE,
+                                     selectforeground=colors.WHITE,
+                                     highlightthickness=0,
+                                     borderwidth=0,
+                                     relief="flat",)
+        self.host_list_data_box.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         
         # END LEFT BOX ----------------------------------------------------------
         
@@ -151,7 +168,7 @@ class MainGUI:
         host_list_label.configure(anchor="center")
         host_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50)
         
-        # grey bow around terminal output
+        # grey box around terminal output
         self.inner_bottom_box = ttk.Frame(self.bottom_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
         self.inner_bottom_box.grid(row=1, column=0, pady=[10,20], padx=[30,30], sticky="n")
         
@@ -159,8 +176,14 @@ class MainGUI:
         terminal_output_label = ttk.Label(self.inner_bottom_box, width=20, textvariable=self.terminal_output_var)
         terminal_output_label.configure(anchor="center")
         terminal_output_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        
         # END TERMINAL BOX ------------------------------------------------------
 
         indra_util.terminal_out(root, self.terminal_output_var, self.terminal_output_var)
-        scan.get_scan_results(root, self.host_list_var)
+        scan.get_scan_results(root, self.host_list_data_box)
         root.mainloop()
+        
+
+    def fill_host_list(self, host_list_file, host_list_box):
+        for line in host_list_file:
+            host_list_box.insert(END, line)

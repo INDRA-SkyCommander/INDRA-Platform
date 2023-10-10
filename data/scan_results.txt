@@ -1,7 +1,5 @@
 WVU.Guest - D4:DC:09:5D:3D:33
 
-WVU.Encrypted - D4:DC:09:5D:3D:34
-
 WVU.Encrypted - D4:DC:09:5D:3A:C4
 
 N/A - D4:DC:09:92:58:D1
