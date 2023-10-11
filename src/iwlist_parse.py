@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-#
-# iwlistparse.py
+# Original Author
 # Hugo Chargois - 17 jan. 2010 - v.0.1
 # Parses the output of iwlist scan into a table
 
