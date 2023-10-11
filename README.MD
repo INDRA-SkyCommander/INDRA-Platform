@@ -5,7 +5,7 @@
 ### Dependencies 
 Run the following command from the same directory as "requirements.txt"
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 ### Dev Notes
