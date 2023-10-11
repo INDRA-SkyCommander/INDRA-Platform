@@ -7,14 +7,15 @@ from iwlist_parse import *
 
 def scan():
     print("Beep boop. Scanning....")
-    
+
     GUI.MainGUI.host_list_update = True
 
     cell_list = [[]]
         
-    file_path=os.path.dirname(__file__) + "\\..\\data\\scan_results.txt"
+    file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
+    os.system("iwlist wlan0 scan > ../data/monitorscan2.txt")
 
-    scan_file_path=os.path.dirname(__file__) + "\\..\\data\\monitorscan2.txt"
+    scan_file_path=os.path.dirname(__file__) + "/../data/monitorscan2.txt"
 
     with open(scan_file_path,"r") as f:
        cell_list = get_cells(f.read())
@@ -34,12 +35,12 @@ def scan():
             #Write the contents to the file, which is read by the GUI
             f.write(strname + " - ")
             f.write(get_address(cell))
-            f.write("\n\n")
+            f.write("\n")
             
                 
 
 def get_scan_results(root, list_box):
-    file_path=os.path.dirname(__file__) + "\\..\\data\\scan_results.txt"
+    file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
     
     results = ""
     

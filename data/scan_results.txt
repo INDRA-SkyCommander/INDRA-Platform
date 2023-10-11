@@ -1,20 +1,53 @@
-WVU.Guest - D4:DC:09:5D:3D:33
-
-WVU.Encrypted - D4:DC:09:5D:3D:34
-
+eduroam - D4:DC:09:5D:4D:B2
+WVU.Guest - D4:DC:09:5D:4D:B3
 WVU.Encrypted - D4:DC:09:5D:3A:C4
-
-N/A - D4:DC:09:92:58:D1
-
-N/A - D4:DC:09:5D:3A:C1
-
-WVU.Guest - D4:DC:09:5D:3A:C3
-
+WVU.Guest - D4:DC:09:5D:3D:33
 N/A - D4:DC:09:5D:3D:31
-
+WVU.Guest - D4:DC:09:5D:3A:C3
+N/A - D4:DC:09:5D:4D:B1
+N/A - D4:DC:09:5D:20:21
+eduroam - D4:DC:09:5D:20:22
+WVU.Guest - D4:DC:09:5D:20:23
+WVU.Encrypted - D4:DC:09:5D:20:24
+N/A - D4:DC:09:5D:49:C1
+eduroam - D4:DC:09:5D:49:C2
+WVU.Guest - D4:DC:09:5D:49:C3
+WVU.Encrypted - D4:DC:09:5D:49:C4
+N/A - 5C:5B:35:E4:7D:81
+eduroam - 5C:5B:35:E4:7D:82
+WVU.Guest - 5C:5B:35:E4:7D:83
+WVU.Encrypted - 5C:5B:35:E4:7D:84
+N/A - 5C:5B:35:E4:12:15
+eduroam - 5C:5B:35:E4:12:16
+N/A - D4:DC:09:5D:3D:11
+eduroam - D4:DC:09:5D:3D:12
+WVU.Guest - D4:DC:09:5D:3D:13
+WVU.Encrypted - D4:DC:09:5D:3D:14
+N/A - D4:DC:09:5D:49:A1
+eduroam - D4:DC:09:5D:49:A2
+WVU.Guest - D4:DC:09:5D:49:A3
+WVU.Encrypted - D4:DC:09:5D:49:A4
+N/A - 5C:5B:35:E4:7D:61
+eduroam - 5C:5B:35:E4:7D:62
+WVU.Guest - 5C:5B:35:E4:7D:63
+WVU.Encrypted - 5C:5B:35:E4:7D:64
+N/A - D4:DC:09:5D:20:01
+eduroam - D4:DC:09:5D:20:02
+WVU.Guest - D4:DC:09:5D:20:03
+WVU.Encrypted - D4:DC:09:5D:20:04
+iPhone fan - 9E:35:5F:02:3D:38
+eduroam - D4:DC:09:5D:3A:C2
+WVU.Encrypted - 5C:5B:35:E4:12:18
+N/A - D4:DC:09:5D:3A:C1
+N/A - 5C:5B:35:E5:96:05
+eduroam - 5C:5B:35:E5:96:06
+WVU.Guest - 5C:5B:35:E5:96:07
+N/A - D4:DC:09:92:41:C1
+WVU.Guest - 5C:5B:35:E4:12:17
+WVU.Encrypted - D4:DC:09:5D:3D:34
+WVU.Encrypted - D4:DC:09:5D:4D:B4
 eduroam - D4:DC:09:5D:3D:32
-
-eduroam - D4:DC:09:92:58:D2
-
-TELLO-F17756 - 34:D2:62:F1:77:56
-
+N/A - D4:DC:09:92:5E:11
+eduroam - D4:DC:09:92:5E:12
+WVU.Guest - D4:DC:09:92:5E:13
+WVU.Encrypted - D4:DC:09:92:5E:14

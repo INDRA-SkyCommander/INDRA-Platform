@@ -28,7 +28,7 @@ class MainGUI:
         sv_ttk.set_theme("dark")
         
         # change the Icon in the title bar
-        root.iconbitmap(os.path.dirname(__file__) + "\\..\\media\\high_res_icon.ico")    
+        #root.iconbitmap(os.path.dirname(__file__) + "/../media/high_res_icon.ico")
         
         #NOT CURRENTLY WORKING. I'LL FIX IT LATER
         # get the window handle from windows api
