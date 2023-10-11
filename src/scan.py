@@ -3,7 +3,7 @@ import random
 from tkinter import END
 
 import GUI
-from format import *
+from iwlist_parse import *
 
 def scan():
     print("Beep boop. Scanning....")
