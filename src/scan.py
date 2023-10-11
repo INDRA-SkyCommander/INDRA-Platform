@@ -39,16 +39,18 @@ def scan():
                 
 
 def get_scan_results(root, list_box):
-    print("Getting scan results...")
     file_path=os.path.dirname(__file__) + "\\..\\data\\scan_results.txt"
     
     results = ""
     
     if GUI.MainGUI.host_list_update == True:
+        print("Updating host list...")
         with open(file_path, "r") as f:        
             for line in f:
                 list_box.insert(END, line)
             GUI.MainGUI.host_list_update = False
+            
+    
     
     root.after(500, lambda: get_scan_results(root, list_box))
     print(results)

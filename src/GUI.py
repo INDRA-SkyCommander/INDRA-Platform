@@ -17,9 +17,8 @@ class MainGUI:
     selected_host = None
     
     
-    
-    
     def __init__(self, root):
+        
         self.root = root
         root.title("INDRA")
         root.geometry("1200x675")
@@ -44,6 +43,7 @@ class MainGUI:
         self.host_list_var = StringVar()
         self.terminal_output_var = StringVar()
         self.terminal_output_var.set("")
+        self.current_target = StringVar(root, name="current_target")
         
         frame_style = ttk.Style()
         frame_style.configure("box.TFrame", background=colors.LIGHT_GREY)
@@ -84,7 +84,7 @@ class MainGUI:
         # SCAN BUTTON
         scan_button = ttk.Button(menu_frame,
                                 text="Scan",
-                                command=scan.scan(),
+                                command=lambda: scan.scan(),
                                 style="button.TButton")
         scan_button.pack(side="left")
         print(scan_button.cget("style"))
@@ -124,7 +124,9 @@ class MainGUI:
         
         # Host List title
         host_list_label = ttk.Label(self.side_box, text="Host List")
-        host_list_label.configure(anchor="center")
+        host_list_label.configure(anchor="center",
+                                  font=("default", 16, "bold"),
+                                  foreground=colors.WHITE)
         host_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
         
         
@@ -139,7 +141,7 @@ class MainGUI:
         
         
         # list box of IPs
-        self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=50)
+        self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=30)
         self.host_list_data_box.configure(justify="left",
                                      font=("Segoe UI", 10),
                                      highlightcolor=colors.LIGHT_ORANGE,
@@ -148,11 +150,43 @@ class MainGUI:
                                      selectforeground=colors.WHITE,
                                      highlightthickness=0,
                                      borderwidth=0,
+                                     selectmode="single",
                                      relief="flat",)
         self.host_list_data_box.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         
         # END LEFT BOX ----------------------------------------------------------
         
+        
+        
+        # CENTER BOX ------------------------------------------------------------
+        self.center_box = ttk.Frame(root, style="box.TFrame")
+        self.center_box.pack(side="top",
+                          fill="x",
+                          expand=False,
+                          pady=5, padx=5, ipadx=5)
+        
+        # invisible frame to hold items
+        center_frame = ttk.Frame(self.center_box, style="box.TFrame")
+        center_frame.pack(side="top", pady=5)
+        
+        info_label = ttk.Label(center_frame, text="Information")
+        info_label.configure(anchor="center",
+                             font=("default", 16, "bold"),
+                             foreground=colors.WHITE)
+        info_label.grid(row=0, column=0, pady=5, padx=[250,250], ipadx=80, sticky="n")
+        
+        self.Target_label = ttk.Label(center_frame, text=f"Target: {self.current_target}")
+        self.Target_label.configure(anchor="center",
+                             font=("default", 12),
+                             foreground=colors.WHITE)
+        self.Target_label.grid(row=1, column=0, pady=5, padx=[30,30], ipadx=50, sticky="nw")
+        
+        
+        
+        # END CENTER BOX --------------------------------------------------------
+        
+        
+
         # TERMINAL BOX ----------------------------------------------------------
     
         # Grey box on the bottom
@@ -179,8 +213,11 @@ class MainGUI:
         
         # END TERMINAL BOX ------------------------------------------------------
 
-        indra_util.terminal_out(root, self.terminal_output_var, self.terminal_output_var)
-        scan.get_scan_results(root, self.host_list_data_box)
+        indra_util.updateables(root,
+                               terminal_output_var=self.terminal_output_var,
+                               host_list_data_box=self.host_list_data_box,
+                               current_target=self.current_target,
+                               target_label=self.Target_label)
         root.mainloop()
         
 
