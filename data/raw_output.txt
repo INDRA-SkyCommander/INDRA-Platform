@@ -631,4 +631,3 @@ wlan0     Scan completed :
                        Preauthentication Supported
                     Quality=0/100  Signal level=32/100  
                     Extra:fm=0001
-

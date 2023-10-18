@@ -14,10 +14,13 @@ def update_info(root, list_box, target_label):
     print(string)
     print("test")
     
-    #root.setvar(name="current_target", value=string)
+    
+    target_info(root, target_label, string)
+    root.after(500, lambda: update_info(root, list_box, target_label))
+    
+def target_info(root, target_label, string):
     target_label.configure(text=f"Target: {string}")
     target_label.update()
-    root.after(500, lambda: update_info(root, list_box, target_label))
     
 def updateables(root, **kwargs):
     terminal_out(root, kwargs.get("terminal_output_var"), kwargs.get("terminal_output_var"))
