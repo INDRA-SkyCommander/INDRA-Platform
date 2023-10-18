@@ -13,9 +13,9 @@ def scan():
     cell_list = [[]]
         
     file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
-    os.system("iwlist wlan0 scan > ../data/monitorscan2.txt")
+    os.system("iwlist wlan0 scan > ../data/raw_output.txt")
 
-    scan_file_path=os.path.dirname(__file__) + "/../data/monitorscan2.txt"
+    scan_file_path=os.path.dirname(__file__) + "/../data/raw_output.txt"
 
     with open(scan_file_path,"r") as f:
        cell_list = get_cells(f.read())
