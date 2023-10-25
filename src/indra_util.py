@@ -13,32 +13,32 @@ def update_info(root, list_box, target_label, target_info_label):
     string = list_box.get(ACTIVE)
     print(f"Active target: {string}")
     
-    get_target_info(string)
-    
     target_info(root, target_label, target_info_label, string)
     root.after(500, lambda: update_info(root, list_box, target_label, target_info_label))
     
 def target_info(root, target_label, target_info_label, string):
+
+    info_list = get_target_info(string)
+
     target_label.configure(text=f"Target: {string}")
     target_label.update()
     
-    target_info_label.configure(text="Quality: \n"\
-                                    "Channel: \n"\
-                                    "Signal Level: \n"\
-                                    "Encryption: ")
+    target_info_label.configure(text=f"Quality: {info_list[2]}\n"\
+                                    f"Channel: {info_list[3]}\n"\
+                                    f"Signal Level: {info_list[4]}\n"\
+                                    f"Encryption: {info_list[5]}")
     
 def get_target_info(cell_name):
     info_dictionary = scan.cell_info
-    
-    for i in info_dictionary:
-        print(i) 
-    
+
     
     print(f"looking for {cell_name}")
-    if cell_name in info_dictionary:
-        print(f"Target info: {info_dictionary[cell_name]}")
+
+    if cell_name.strip() in info_dictionary:
+        return info_dictionary[cell_name.strip()]
     else: 
         print("Target not found")
+        return ['','','','','','']
     
     
 def updateables(root, **kwargs):
