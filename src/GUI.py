@@ -87,7 +87,6 @@ class MainGUI:
                                 command=lambda: scan.scan(),
                                 style="button.TButton")
         scan_button.pack(side="left")
-        print(scan_button.cget("style"))
 
         # MODULES DROPDOWN
         variable = StringVar(root)
@@ -181,6 +180,16 @@ class MainGUI:
                              foreground=colors.WHITE)
         self.Target_label.grid(row=1, column=0, pady=5, padx=[30,30], ipadx=50, sticky="nw")
         
+        self.Target_info_label = ttk.Label(center_frame,
+                                           text="Quality: \n"\
+                                                "Channel: \n"\
+                                                "Signal Level: \n"\
+                                                "Encryption: ")
+        self.Target_info_label.configure(anchor="center",
+                                font=("default", 12),
+                                foreground=colors.WHITE)
+        self.Target_info_label.grid(row=2, column=0, pady=5, padx=[30,30], ipadx=50, sticky="nw")
+        
         
         
         # END CENTER BOX --------------------------------------------------------
@@ -217,7 +226,8 @@ class MainGUI:
                                terminal_output_var=self.terminal_output_var,
                                host_list_data_box=self.host_list_data_box,
                                current_target=self.current_target,
-                               target_label=self.Target_label)
+                               target_label=self.Target_label,
+                               target_info_label=self.Target_info_label)
         root.mainloop()
         
 

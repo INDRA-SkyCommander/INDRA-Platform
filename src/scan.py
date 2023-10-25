@@ -5,13 +5,15 @@ from tkinter import END
 import GUI
 from iwlist_parse import *
 
+cell_info = {}
+
 def scan():
     print("Beep boop. Scanning....")
 
     GUI.MainGUI.host_list_update = True
 
     cell_list = [[]]
-    cell_info = {}
+    
         
     scan_results_file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
     #os.system("iwlist wlan0 scan > ../data/raw_output.txt")
@@ -33,7 +35,13 @@ def scan():
             if strname == "":
                 strname = "N/A"
                 
-            target_name = strname + " - " + get_address(cell)
+            target_address = get_address(cell)
+                
+            target_name = strname + " - " + target_address
+            
+            
+            
+            print(f"Adding {target_name} to dictionary")
             
             cell_info[target_name] = [get_name(cell), get_address(cell), get_quality(cell), get_channel(cell), get_signal_level(cell), get_encryption(cell)]
             
