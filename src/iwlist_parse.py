@@ -41,7 +41,12 @@ def get_quality(cell):
     return str(int(round(float(quality[0]) / float(quality[1]) * 100))).rjust(3) + " %"
 
 def get_channel(cell):
-    return matching_line(cell,"Channel:")
+    #the channel is a bit more tricky to get since it is next to Frequency, which we don't care about.
+    #so we first must take the line and split it by the spaces, but only once
+    #then we ONLY want the channel number, so we remove everything around it, and then return
+    splitchannel = matching_line(cell,"Frequency:").split(" ",1)
+    choppedchannel = splitchannel[1].removeprefix("GHz (Channel").removesuffix(")")
+    return choppedchannel
 
 def get_signal_level(cell):
     # Signal level is on same line as Quality data so a bit of ugly
