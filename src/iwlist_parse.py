@@ -44,9 +44,16 @@ def get_channel(cell):
     #the channel is a bit more tricky to get since it is next to Frequency, which we don't care about.
     #so we first must take the line and split it by the spaces, but only once
     #then we ONLY want the channel number, so we remove everything around it, and then return
-    splitchannel = matching_line(cell,"Frequency:").split(" ",1)
-    choppedchannel = splitchannel[1].removeprefix("GHz (Channel").removesuffix(")")
-    return choppedchannel
+    channelfinal = ""
+    frequency_line = matching_line(cell,"Frequency:")
+
+    #we have to first check if there is a channel at all, because some devices don't have one
+    if not "Channel" in frequency_line:
+        channelfinal = "N/A"
+    else:    
+        splitchannel = frequency_line.split(" ",1)
+        channelfinal = splitchannel[1].removeprefix("GHz (Channel").removesuffix(")")
+    return channelfinal
 
 def get_signal_level(cell):
     # Signal level is on same line as Quality data so a bit of ugly
