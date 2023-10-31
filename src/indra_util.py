@@ -39,9 +39,17 @@ def get_target_info(cell_name):
     else: 
         print("Target not found")
         return ['','','','','','']
+#Executes the scan if toggle is on, otherwise runs itself again after [interval] amount of time
+def toggle_scan_executor(root, interval):
+    print("Checking for toggle scan")
+    if (GUI.MainGUI.switch):
+        print("This is the toggle scanning")
+        root.after(interval, lambda: scan.scan())
+    root.after(interval, lambda: toggle_scan_executor(root, interval))
     
-    
+
 def updateables(root, **kwargs):
     terminal_out(root, kwargs.get("terminal_output_var"), kwargs.get("terminal_output_var"))
     update_info(root, kwargs.get("host_list_data_box"), kwargs.get("target_label"), kwargs.get("target_info_label"))
     scan.get_scan_results(root, kwargs.get("host_list_data_box"))
+    toggle_scan_executor(root, kwargs.get("interval"))

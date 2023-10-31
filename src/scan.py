@@ -53,8 +53,12 @@ def scan():
             f.write("\n")
             
         return cell_info
-            
-            
+#Helper function to mimic a reverse circuit lightswitch, might be moved to GUI.py later
+def live_toggle():
+    if(GUI.MainGUI.switch):
+        GUI.MainGUI.switch = False
+    else:
+        GUI.MainGUI.switch = True
                 
 
 def get_scan_results(root, list_box):

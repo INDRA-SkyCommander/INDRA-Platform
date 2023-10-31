@@ -15,7 +15,8 @@ class MainGUI:
     host_list_update = True
     terminal_output_var = None
     selected_host = None
-    
+    switch = False
+    interval = 1000
     
     def __init__(self, root):
         
@@ -87,6 +88,13 @@ class MainGUI:
                                 command=lambda: scan.scan(),
                                 style="button.TButton")
         scan_button.pack(side="left")
+
+        # TOGGLE SCAN BUTTON
+        togglescanon_button = ttk.Button(menu_frame,
+                                text="Toggle Scan",
+                                command= lambda: scan.live_toggle(),
+                                style="button.TButton")
+        togglescanon_button.pack(side="left")
 
         # MODULES DROPDOWN
         variable = StringVar(root)
@@ -227,7 +235,9 @@ class MainGUI:
                                host_list_data_box=self.host_list_data_box,
                                current_target=self.current_target,
                                target_label=self.Target_label,
-                               target_info_label=self.Target_info_label)
+                               target_info_label=self.Target_info_label,
+                               interval=self.interval
+                               )
         root.mainloop()
         
 
