@@ -10,7 +10,8 @@ import indra_util as indra_util
 
 
 
-class MainGUI:   
+class MainGUI:
+       
     
     host_list_update = True
     terminal_output_var = None
@@ -19,7 +20,11 @@ class MainGUI:
     interval = 1000
     
     def __init__(self, root):
-        
+        """Initializes the Graphical User Interface of the INDRA Software
+
+        Args:
+            root (Object): The object that contains the top level of the initialization function
+        """
         self.root = root
         root.title("INDRA")
         root.geometry("1200x675")
@@ -97,6 +102,8 @@ class MainGUI:
         togglescan_button.pack(side="left")
         #Helper function to assist TOGGLE SCAN BUTTON in flipping switch
         def live_toggle():
+            """Helper function that sets the switch variable present in the MainGUI class to False if True, and True of False
+            """
             if(MainGUI.switch):
                 MainGUI.switch = False
             else:
@@ -248,5 +255,11 @@ class MainGUI:
         
 
     def fill_host_list(self, host_list_file, host_list_box):
+        """Will populate the INDRA software's host_list_box tkinter widget with the host_list_file Object
+
+        Args:
+            host_list_file (Object): Contains the file path to the formatted host list
+            host_list_box (Tkinter): A tkinter widget that displays the currently available targets
+        """
         for line in host_list_file:
             host_list_box.insert(END, line)
