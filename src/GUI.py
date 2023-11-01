@@ -90,11 +90,17 @@ class MainGUI:
         scan_button.pack(side="left")
 
         # TOGGLE SCAN BUTTON
-        togglescanon_button = ttk.Button(menu_frame,
+        togglescan_button = ttk.Button(menu_frame,
                                 text="Toggle Scan",
-                                command= lambda: scan.live_toggle(),
+                                command= lambda: live_toggle(),
                                 style="button.TButton")
-        togglescanon_button.pack(side="left")
+        togglescan_button.pack(side="left")
+        #Helper function to assist TOGGLE SCAN BUTTON in flipping switch
+        def live_toggle():
+            if(MainGUI.switch):
+                MainGUI.switch = False
+            else:
+                MainGUI.switch = True
 
         # MODULES DROPDOWN
         variable = StringVar(root)
