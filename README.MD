@@ -70,17 +70,17 @@ top_box = ttk.Frame(root, padding=(3, 3, 12, 12), style="box.TFrame")
 	git clone https://github.com/aircrack-ng/rtl8812au
     ```
 	
-5. From within the directory you cloned the git repository in the previous step, run the following command in your terminal. This will take a while.
+5. From within the directory of the git repository cloned in the previous step, run the following command in your terminal. This will take a while.
 	```terminal
 	make
     ```
 
-6. Restart KALI to complete driver installation.
-
-7. To complete installation of Aircrack, run the following commmand
+6. To complete installation of Aircrack, run the following commmand within the same directory
 	```terminal
 	sudo make install
     ```
+
+7. Restart KALI to complete driver installation.
 
 8. To check for completion of the Aircrack installation, run the following command. If it works, a list of available devices will be shown. If not, none will be available.
 	```terminal
