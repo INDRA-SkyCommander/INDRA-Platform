@@ -110,15 +110,25 @@ class MainGUI:
                 MainGUI.switch = True
 
         # MODULES DROPDOWN
-        variable = StringVar(root)
-        variable.set("")
-        modules_dropdown = ttk.OptionMenu(menu_frame, variable, "Modules", "Hack", "Destroy", "Annihilate")
+        selected_module = StringVar(root)
+        selected_module.set("")
+        modules_dropdown = ttk.Combobox(menu_frame, 
+                                        textvariable = selected_module, 
+                                        values = ["Hack", "Destroy", "Annihilate"],
+                                        state = 'readonly',
+                                        )
+        modules_dropdown.set("Modules")
         modules_dropdown.pack(side="left", padx=5)
         
         # OPTIONS DROPDOWN
-        variable = StringVar(root)
-        variable.set("")
-        options_dropdown = ttk.OptionMenu(menu_frame, variable, "Options", "This", "That", "Some other thing")
+        selected_option = StringVar(root)
+        selected_option.set("")
+        options_dropdown = ttk.Combobox(menu_frame, 
+                                        textvariable = selected_option, 
+                                        values = ["This", "That", "Some other thing"],
+                                        state = 'readonly',
+                                        )
+        options_dropdown.set("Options")
         options_dropdown.pack(side="left", padx=5)
         
         # EXPLOIT BUTTON
