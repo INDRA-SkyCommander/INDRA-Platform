@@ -20,7 +20,7 @@ def terminal_out(root, var, value):
     root.after(500, lambda: terminal_out(root, var, value))
 
 def update_info(root, list_box, target_label, target_info_label):
-     """
+    """
         Updates information based on the active selection in a set list
 
 
