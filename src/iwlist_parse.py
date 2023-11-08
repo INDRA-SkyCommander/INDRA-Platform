@@ -219,6 +219,18 @@ columns = ["Name", "Address", "Quality", "Signal", "Channel", "Encryption"]
 
 
 def matching_line(lines, keyword):
+    """
+    Returns the first matching line in a list of lines.
+
+    This function searches a list of lines for a line that matches a given keyword.
+    
+    Args:
+        lines (list of str): A list of strings, typically lines of text from an iwlist scan.
+        keyword (str): The keyword to search for in each line.
+
+    Returns:
+        str or None: The first line that contains the specified keyword, or None if no match is found.
+    """
     """Returns the first matching line in a list of lines. See match()"""
     for line in lines:
         matching = match(line, keyword)
@@ -228,6 +240,21 @@ def matching_line(lines, keyword):
 
 
 def match(line, keyword):
+    """
+    Match and extract a substring from a line.
+
+    This function checks if the beginning of the input 'line' (with leading whitespaces stripped)
+    matches the provided 'keyword'. If there's a match, it returns the portion of 'line' that comes
+    after the 'keyword', effectively extracting that part. If there's no match, it returns None.
+
+    Parameters:
+        line (str): The input line to be matched and potentially extracted.
+        keyword (str): The keyword to look for at the start of the line.
+
+    Returns:
+        str or None: If 'keyword' matches the start of 'line', the function returns the
+        substring of 'line' that follows the 'keyword'. If there's no match, it returns None.
+    """
     """If the first part of line (modulo blanks) matches keyword,
     returns the end of that line. Otherwise returns None"""
     line = line.lstrip()
@@ -239,6 +266,23 @@ def match(line, keyword):
 
 
 def parse_cell(cell):
+    """P
+    arses the output of 'iwlist scan' into a dictionary, applying rules to the
+    input text describing a cell.
+
+    This method takes a text description of a wireless network cell as produced
+    by 'iwlist scan' and applies a set of predefined rules to extract relevant
+    information into a dictionary. The dictionary will contain key-value pairs
+    for attributes such as SSID, signal strength, encryption, etc.
+
+    Parameters:
+        cell (str): A text description of a wireless network cell obtained from
+            'iwlist scan'.
+
+    Returns:
+        dict: A dictionary containing parsed information from the input text.
+            The keys represent attributes, and the values are the extracted data.
+    """
     """Applies the rules to the bunch of text describing a cell and returns the
     corresponding dictionary"""
     parsed_cell = {}
