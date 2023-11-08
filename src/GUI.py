@@ -86,29 +86,35 @@ class MainGUI:
         menu_frame.pack(side="top", pady=5)
         
         # menu items left -> right
-        
-        # SCAN BUTTON
-        scan_button = ttk.Button(menu_frame,
-                                text="Scan",
-                                command=lambda: scan.scan(),
-                                style="button.TButton")
-        scan_button.pack(side="left")
-
         # TOGGLE SCAN BUTTON
-        togglescan_button = ttk.Button(menu_frame,
+        togglescan_button = tkinter.Button(menu_frame,
                                 text="Toggle Scan",
-                                command= lambda: live_toggle(),
-                                style="button.TButton")
-        togglescan_button.pack(side="left")
+                                command=lambda: live_toggle(),
+                                relief="flat",
+                                background = colors.TKINTER_SLATE,
+                                justify="center",
+                                font=("Segoe UI", 10))
+        togglescan_button.pack(side="left", padx=5)
         #Helper function to assist TOGGLE SCAN BUTTON in flipping switch
         def live_toggle():
             """Helper function that sets the switch variable present in the MainGUI class to False if True, and True of False
             """
             if(MainGUI.switch):
                 MainGUI.switch = False
+                togglescan_button.config(bg = colors.TKINTER_SLATE,
+                                         activebackground = colors.TKINTER_SLATE)
             else:
                 MainGUI.switch = True
-
+                togglescan_button.config(bg = colors.ORANGE,
+                                         activebackground=colors.ORANGE)
+                
+        # SCAN BUTTON
+        scan_button = ttk.Button(menu_frame,
+                                text="Scan",
+                                command=lambda: scan.scan(),
+                                style="button.TButton")
+        scan_button.pack(side="left")
+        
         # MODULES DROPDOWN
         selected_module = StringVar(root)
         selected_module.set("")
