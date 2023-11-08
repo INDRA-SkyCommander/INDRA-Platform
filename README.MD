@@ -2,6 +2,13 @@
 <!-- Banner GIF -->
 <img src="https://media.giphy.com/media/UGWpLb1b4KddktMz0y/giphy.gif" width=100% />
 
+### Documentation
+Browse to the following location in a web browser:
+```
+file:///home/kali/Indra/INDRA-Platform/doxygen/html/namespaces.html
+``` 
+
+
 ### Dependencies 
 Run the following command from the same directory as "requirements.txt"
 ```bash
