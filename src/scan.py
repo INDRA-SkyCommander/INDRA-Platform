@@ -8,6 +8,18 @@ from iwlist_parse import *
 cell_info = {}
 
 def scan():
+    """
+    This method responsible for going into the OS shell and scanning for networks using the WIFI card, and outputting the raw data to a file. 
+    This data is then parsed into a new file for use in the GUI
+
+    Args:
+        None
+    
+    Returns:
+        cell_info: A dictionary which holds all the necessary information of the different networks. Including the MAC address, SSID, and channel.
+    """
+
+
     print("Beep boop. Scanning....")
 
     GUI.MainGUI.host_list_update = True
@@ -55,6 +67,17 @@ def scan():
         return cell_info
 
 def get_scan_results(root, list_box):
+    """
+    This method is responsible for updating the list of hosts on the GUI itself.
+
+    Args: 
+        root: root window
+        list_box: A list on the GUI that is meant for displaying the scanned hosts
+
+    Returns
+        results (str): Returns a list of hosts from the scan results file
+
+    """
     file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
     
     results = ""
