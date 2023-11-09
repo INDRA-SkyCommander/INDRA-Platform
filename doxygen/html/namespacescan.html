@@ -108,7 +108,14 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<pre class="fragment">This method is responsible for updating the list of hosts on the GUI itself.
 
+Args: 
+    root: root window
+    list_box: A list on the GUI that is meant for displaying the scanned hosts
+
+Returns
+    results (str): Returns a list of hosts from the scan results file, which contains the SSID and MAC address of every available host</pre> 
 </div>
 </div>
 <a id="a636bed54879ac734708b772aea6c4c2f" name="a636bed54879ac734708b772aea6c4c2f"></a>
@@ -125,7 +132,17 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<pre class="fragment">This method is responsible for going into the OS shell and scanning for networks using the WIFI card. It then outputs the raw data to a file. 
+This data is then parsed into a new file and new information for use in the GUI
 
+Args:
+    None
+
+Returns:
+    cell_info: A dictionary which holds all the necessary information of the different hosts.
+    The cell_info dictionary has a key with the name of the hosts and the mac address in the format "SSID - &lt;MAC ADDRESS&gt;". The key values are as follows:
+    The name of the cell, the MAC address, the quality, the channel, the signal level, and the encryption type. This is used in the GUI later to list the info of every host.
+</pre> 
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>

@@ -9,14 +9,16 @@ cell_info = {}
 
 def scan():
     """
-    This method responsible for going into the OS shell and scanning for networks using the WIFI card, and outputting the raw data to a file. 
-    This data is then parsed into a new file for use in the GUI
+    This method is responsible for going into the OS shell and scanning for networks using the WIFI card. It then outputs the raw data to a file. 
+    This data is then parsed into a new file and new information for use in the GUI
 
     Args:
         None
     
     Returns:
-        cell_info: A dictionary which holds all the necessary information of the different networks. Including the MAC address, SSID, and channel.
+        cell_info: A dictionary which holds all the necessary information of the different hosts.
+        The cell_info dictionary has a key with the name of the hosts and the mac address in the format "SSID - <MAC ADDRESS>". The key values are as follows:
+        The name of the cell, the MAC address, the quality, the channel, the signal level, and the encryption type. This is used in the GUI later to list the info of every host.
     """
 
 
@@ -75,7 +77,7 @@ def get_scan_results(root, list_box):
         list_box: A list on the GUI that is meant for displaying the scanned hosts
 
     Returns
-        results (str): Returns a list of hosts from the scan results file
+        results (str): Returns a list of hosts from the scan results file, which contains the SSID and MAC address of every available host
 
     """
     file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
