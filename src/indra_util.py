@@ -94,6 +94,8 @@ def toggle_scan_executor(root, interval):
         root.after(interval, lambda: scan.scan())
     root.after(interval, lambda: toggle_scan_executor(root, interval))
     
+    
+    
 def updateables(root, **kwargs):
     """
         Updates various elements in the GUI

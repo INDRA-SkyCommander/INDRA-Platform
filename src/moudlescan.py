@@ -5,20 +5,16 @@ modulespath = "../modules"
 
 modulelist = listdir(modulespath)
 
+python_modules = []
+
+print(modulelist)
+
 for module in modulelist:
-    module.strip()
-    print(module)
-    modulelist.remove(module)
-    if ".py" in module:
-        module = module.removesuffix(".py")
-        modulelist.append(module)
+    
+    if module.endswith(".py"):
+        python_modules.append(module.removesuffix(".py"))
+    
+print(python_modules)
 
-        
-
-           
-
-
-
-#print(modulelist)
 
 
