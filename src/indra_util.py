@@ -2,6 +2,7 @@ from tkinter import ACTIVE
 import GUI
 import main
 import scan
+import modulescan
 
 def terminal_out(root, var, value):
     """
@@ -94,7 +95,13 @@ def toggle_scan_executor(root, interval):
         root.after(interval, lambda: scan.scan())
     root.after(interval, lambda: toggle_scan_executor(root, interval))
     
+ 
+def module_scan(root, module_dropdown):
     
+      module_list = modulescan.get_modules()
+      print(f"HERE HERE HERE HERE: {module_list}")
+      module_dropdown['values'] = module_list
+       
     
 def updateables(root, **kwargs):
     """
@@ -108,3 +115,4 @@ def updateables(root, **kwargs):
     update_info(root, kwargs.get("host_list_data_box"), kwargs.get("target_label"), kwargs.get("target_info_label"))
     scan.get_scan_results(root, kwargs.get("host_list_data_box"))
     toggle_scan_executor(root, kwargs.get("interval"))
+    module_scan(root, kwargs.get("module_dropdown"))

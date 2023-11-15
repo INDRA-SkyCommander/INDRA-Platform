@@ -118,13 +118,13 @@ class MainGUI:
         # MODULES DROPDOWN
         selected_module = StringVar(root)
         selected_module.set("")
-        modules_dropdown = ttk.Combobox(menu_frame, 
+        self.modules_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_module, 
-                                        values = ["Hack", "Destroy", "Annihilate"],
-                                        state = 'readonly',
+                                        values = [],
+                                        state='readonly',
                                         )
-        modules_dropdown.set("Modules")
-        modules_dropdown.pack(side="left", padx=5)
+        self.modules_dropdown.set("Modules")
+        self.modules_dropdown.pack(side="left", padx=5)
         
         # OPTIONS DROPDOWN
         selected_option = StringVar(root)
@@ -265,8 +265,8 @@ class MainGUI:
                                current_target=self.current_target,
                                target_label=self.Target_label,
                                target_info_label=self.Target_info_label,
-                               interval=self.interval
-                               )
+                               interval=self.interval,
+                               module_dropdown=self.modules_dropdown)
         root.mainloop()
         
 
