@@ -18,6 +18,7 @@ class MainGUI:
     selected_host = None
     switch = False
     interval = 1000
+    packets = 10000
     
     def __init__(self, root):
         """Initializes the Graphical User Interface of the INDRA Software

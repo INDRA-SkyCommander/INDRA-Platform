@@ -42,6 +42,7 @@ def update_info(root, list_box, target_label, target_info_label):
             target_info_label: label to display target information
     """
 
+    global current_target 
     current_target = list_box.get(ACTIVE)
     print(f"Active target: {current_target}")
     
@@ -59,6 +60,7 @@ def target_info(root, target_label, target_info_label, current_target):
             string: specific target name
     """
 
+    global target_info_list
     target_info_list = get_target_info(current_target)
 
 
