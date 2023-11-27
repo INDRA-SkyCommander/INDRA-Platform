@@ -117,7 +117,7 @@ class MainGUI:
         
         # MODULES DROPDOWN
         selected_module = StringVar(root)
-        selected_module.set("")
+        # selected_module.set("")
         self.modules_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_module, 
                                         values = [],
@@ -125,6 +125,8 @@ class MainGUI:
                                         )
         self.modules_dropdown.set("Modules")
         self.modules_dropdown.pack(side="left", padx=5)
+
+
         
         # OPTIONS DROPDOWN
         selected_option = StringVar(root)
@@ -140,7 +142,7 @@ class MainGUI:
         # EXPLOIT BUTTON
         exploit_button = tkinter.Button(menu_frame,
                                 text="Exploit",
-                                command=exploit.pwn,
+                                command=lambda: exploit.run_exploit(selected_module.get()),
                                 bg=colors.ORANGE,
                                 relief="flat",
                                 activebackground=colors.ORANGE,
@@ -253,7 +255,7 @@ class MainGUI:
         self.inner_bottom_box.grid(row=1, column=0, pady=[10,20], padx=[30,30], sticky="n")
         
         # Terminal output
-        terminal_output_label = ttk.Label(self.inner_bottom_box, width=20, textvariable=self.terminal_output_var)
+        terminal_output_label = ttk.Label(self.inner_bottom_box, width=20, textvariable=self.terminal_output_var.get())
         terminal_output_label.configure(anchor="center")
         terminal_output_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         

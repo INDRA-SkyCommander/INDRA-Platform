@@ -1,9 +1,12 @@
-from os import listdir
+import os
+
 
 modulelist = []
-modulespath = "../modules"
+modulespath = os.path.dirname(__file__) + "/../modules/"
 
-modulelist = listdir(modulespath)
+print(modulespath)
+
+modulelist = os.listdir(modulespath)
 
 python_modules = []
 

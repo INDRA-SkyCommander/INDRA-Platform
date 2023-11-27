@@ -3,6 +3,16 @@ import GUI
 import main
 import scan
 import modulescan
+import exploit
+
+current_target = ""
+target_info_list = []
+
+def get_target():
+    return current_target
+
+def get_info():
+    return target_info_list
 
 def terminal_out(root, var, value):
     """
@@ -32,13 +42,13 @@ def update_info(root, list_box, target_label, target_info_label):
             target_info_label: label to display target information
     """
 
-    string = list_box.get(ACTIVE)
-    print(f"Active target: {string}")
+    current_target = list_box.get(ACTIVE)
+    print(f"Active target: {current_target}")
     
-    target_info(root, target_label, target_info_label, string)
+    target_info(root, target_label, target_info_label, current_target)
     root.after(500, lambda: update_info(root, list_box, target_label, target_info_label))
 
-def target_info(root, target_label, target_info_label, string):
+def target_info(root, target_label, target_info_label, current_target):
     """
          Updates target information labels based on provided string
 
@@ -49,15 +59,16 @@ def target_info(root, target_label, target_info_label, string):
             string: specific target name
     """
 
-    info_list = get_target_info(string)
+    target_info_list = get_target_info(current_target)
 
-    target_label.configure(text=f"Target: {string}")
+
+    target_label.configure(text=f"Target: {current_target}")
     target_label.update()
     
-    target_info_label.configure(text=f"Quality: {info_list[2]}\n"\
-                                    f"Channel: {info_list[3]}\n"\
-                                    f"Signal Level: {info_list[4]}\n"\
-                                    f"Encryption: {info_list[5]}")
+    target_info_label.configure(text=f"Quality: {target_info_list[2]}\n"\
+                                    f"Channel: {target_info_list[3]}\n"\
+                                    f"Signal Level: {target_info_list[4]}\n"\
+                                    f"Encryption: {target_info_list[5]}")
     
 def get_target_info(cell_name):
     """
@@ -99,8 +110,8 @@ def toggle_scan_executor(root, interval):
 def module_scan(root, module_dropdown):
     
       module_list = modulescan.get_modules()
-      print(f"HERE HERE HERE HERE: {module_list}")
       module_dropdown['values'] = module_list
+
        
     
 def updateables(root, **kwargs):
