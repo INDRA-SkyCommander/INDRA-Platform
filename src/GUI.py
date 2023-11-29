@@ -135,14 +135,36 @@ class MainGUI:
 
         
         # OPTIONS DROPDOWN
+        def show_option(event):
+            options_str = options_dropdown.get()
+            def show_options_label():
+                    option_info_label.grid(row=0, column=0, pady=5, padx=[25,25], ipadx=60, sticky="n")
+                    option_info_label.config(text =f"Option: {options_str}")
+                    
+            match options_dropdown.get():
+                # case "Packets":
+                #     show_options_label()
+                #     option_interval.grid(row=1, column=0)
+                case "Interval":
+                    show_options_label()
+                    option_interval.grid(row=1, column=0)
+                case _:
+                    def remove_options():
+                        option_interval.grid_remove()
+                        option_info_label.grid_remove()
+                    
+                    remove_options()
+                    
+            
         selected_option = StringVar(root)
         selected_option.set("")
         options_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_option, 
-                                        values = ["Packets", "That", "Some other thing"],
+                                        values = ["Interval", "Packets", "Hide Options"],
                                         state = 'readonly',
                                         )
         options_dropdown.set("Options")
+        options_dropdown.bind("<<ComboboxSelected>>", show_option)
         options_dropdown.pack(side="left", padx=5)
         
         # EXPLOIT BUTTON
@@ -235,6 +257,26 @@ class MainGUI:
                                 foreground=colors.WHITE)
         self.Target_info_label.grid(row=2, column=0, pady=5, padx=[30,30], ipadx=50, sticky="nw")
         
+        # Center bottom frame to hold options
+        center_frame_bottom = ttk.Frame(self.center_box, style="box.TFrame")
+        center_frame_bottom.pack(side="bottom", pady=5)
+        
+        # OPTIONS LABEL
+        option_info_label = ttk.Label(center_frame_bottom, text="Options")
+        option_info_label.configure(anchor="center",
+                             font=("default", 16, "bold"),
+                             foreground=colors.WHITE)
+        
+        
+        # INTERVAL OPTION
+        option_interval = tkinter.Scale(center_frame_bottom,
+                                    variable = self.interval,
+                                    from_= 1000,
+                                    to= 100000,
+                                    orient="horizontal",
+                                    length = 400
+                                    )
+        
         
         
         # END CENTER BOX --------------------------------------------------------
@@ -288,7 +330,7 @@ class MainGUI:
         for line in host_list_file:
             host_list_box.insert(END, line)
     
-            # Helper function to obtain options
+    # Helper function to obtain options
     def get_module_options():
         """Returns a list containing options to be outputted to the module_input_data.json file
 
