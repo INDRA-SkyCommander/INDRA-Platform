@@ -12,13 +12,18 @@ import indra_util as indra_util
 
 class MainGUI:
        
-    
+    # Declare variables
+    global module_options
+    module_options = []
     host_list_update = True
     terminal_output_var = None
     selected_host = None
     switch = False
     interval = 1000
     packets = 10000
+    
+    # Add module-required variables to options list
+    module_options.append(packets)
     
     def __init__(self, root):
         """Initializes the Graphical User Interface of the INDRA Software
@@ -134,7 +139,7 @@ class MainGUI:
         selected_option.set("")
         options_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_option, 
-                                        values = ["This", "That", "Some other thing"],
+                                        values = ["Packets", "That", "Some other thing"],
                                         state = 'readonly',
                                         )
         options_dropdown.set("Options")
@@ -282,3 +287,12 @@ class MainGUI:
         """
         for line in host_list_file:
             host_list_box.insert(END, line)
+    
+            # Helper function to obtain options
+    def get_module_options():
+        """Returns a list containing options to be outputted to the module_input_data.json file
+
+        Returns:
+            list: List of option variables to be outputted to the module_input_data.json file
+        """
+        return module_options
