@@ -6,4 +6,3 @@ import scan
 if __name__ == "__main__":
     root = GUI.tkinter.Tk()
     main_gui = GUI.MainGUI(root)
-    
