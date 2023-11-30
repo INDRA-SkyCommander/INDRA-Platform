@@ -30,7 +30,7 @@ def scan():
     
         
     scan_results_file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
-    os.system("iwlist wlan0 scan > data/raw_output.txt")
+    #os.system("iwlist wlan0 scan > data/raw_output.txt")
     #os.system("airmon-ng start wlan0")
 
     raw_file_path=os.path.dirname(__file__) + "/../data/raw_output.txt"
