@@ -143,18 +143,21 @@ class MainGUI:
                 event (_type_): Binding for options ComboBox (see options_dropdown)
             """
             options_str = options_dropdown.get()
-            
+            option_info_label.grid(row=0, column=0, pady=5, padx=[25,25], ipadx=60, sticky="n")
+
             match options_dropdown.get():
                 # case "Packets":
                 #     show_options_label()
                 #     option_interval.grid(row=1, column=0)
-                case "Interval":
-                    option_interval.grid(row=1, column=0)
+                # case "Interval":
+                #     option_interval.grid(row=1, column=0)
+                case "Reset Network Adapter":
+                    #os.system("sudo service networking restart")
+                    os.system("sudo service NetworkManager restart")
                 case _:
                     option_interval.grid_remove()
                     option_info_label.grid_remove()
                     
-            option_info_label.grid(row=0, column=0, pady=5, padx=[25,25], ipadx=60, sticky="n")
             option_info_label.config(text =f"Option: {options_str}")
                     
             
@@ -162,11 +165,11 @@ class MainGUI:
         selected_option.set("")
         options_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_option, 
-                                        values = ["Interval", "Packets", "Hide Options"],
+                                        values = ["Interval", "Packets", "Reset Network Adapter", "Hide Options"],
                                         state = 'readonly',
                                         )
         options_dropdown.set("Options")
-        # options_dropdown.bind("<<ComboboxSelected>>", show_option)
+        options_dropdown.bind("<<ComboboxSelected>>", show_option)
         options_dropdown.pack(side="left", padx=5)
         
         # EXPLOIT BUTTON
