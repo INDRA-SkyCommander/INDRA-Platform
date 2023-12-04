@@ -136,24 +136,26 @@ class MainGUI:
         
         # OPTIONS DROPDOWN
         def show_option(event):
+            """
+            Will show the desired option based on the currently selected ComboBox item (see options_dropdown)
+
+            Args:
+                event (_type_): Binding for options ComboBox (see options_dropdown)
+            """
             options_str = options_dropdown.get()
-            def show_options_label():
-                    option_info_label.grid(row=0, column=0, pady=5, padx=[25,25], ipadx=60, sticky="n")
-                    option_info_label.config(text =f"Option: {options_str}")
-                    
+            
             match options_dropdown.get():
                 # case "Packets":
                 #     show_options_label()
                 #     option_interval.grid(row=1, column=0)
                 case "Interval":
-                    show_options_label()
                     option_interval.grid(row=1, column=0)
                 case _:
-                    def remove_options():
-                        option_interval.grid_remove()
-                        option_info_label.grid_remove()
+                    option_interval.grid_remove()
+                    option_info_label.grid_remove()
                     
-                    remove_options()
+            option_info_label.grid(row=0, column=0, pady=5, padx=[25,25], ipadx=60, sticky="n")
+            option_info_label.config(text =f"Option: {options_str}")
                     
             
         selected_option = StringVar(root)
@@ -164,7 +166,7 @@ class MainGUI:
                                         state = 'readonly',
                                         )
         options_dropdown.set("Options")
-        options_dropdown.bind("<<ComboboxSelected>>", show_option)
+        # options_dropdown.bind("<<ComboboxSelected>>", show_option)
         options_dropdown.pack(side="left", padx=5)
         
         # EXPLOIT BUTTON

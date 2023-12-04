@@ -101,7 +101,7 @@ def toggle_scan_executor(root, interval):
             root: root window
             interval: time interval for checking the toggle and executing the scan
     """
-
+    interval = GUI.MainGUI.interval
     if (GUI.MainGUI.switch):
         root.after(interval, lambda: scan.scan())
     root.after(interval, lambda: toggle_scan_executor(root, interval))
