@@ -57,7 +57,7 @@ top_box = ttk.Frame(root, padding=(3, 3, 12, 12), style="box.TFrame")
 
 0. BEFORE RUNNING THESE COMMANDS MAKE SURE YOUR KALI IS UPDATED BY RUNNING THIS COMMAND IN TERMINAL
 	```terminal
-		sudo apt get dist-upgrade -y
+		sudo apt-get dist-upgrade -y
 	```
 
 1. Run this command in terminal to install appropriate drivers
