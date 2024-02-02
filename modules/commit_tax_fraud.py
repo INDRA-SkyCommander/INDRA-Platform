@@ -1,1 +1,0 @@
-print("*Subverts the IRS's best attempts to perform a robust audit*")
