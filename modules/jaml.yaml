@@ -1,0 +1,6 @@
+ # Enter Jammer transmit power in dBm (Min = -40dBm, Max = 13dBm) | default = 6dBm
+ power: 13
+ # Enter channel jamming duration in sec | default = 10s
+ t_jamming: 360
+ freq: 2462 # This option only applies to constant jammer
+ 
