@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ###################################################################################
 # Importing Libraries
 ###################################################################################
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     freq = options.get("freq")
     t_jamming = options.get("t_jamming")
 
-    jam(freq, waveform, power, t_jamming)
+    jam(freq, power, t_jamming)
 
-    else:
+else:
         print("invalid jammer selection")
