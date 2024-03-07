@@ -10,18 +10,34 @@ file:///home/kali/Indra/INDRA-Platform/doxygen/html/namespaces.html
 
 
 ### Dependencies 
-Run the following command from the same directory as "requirements.txt"
+Run the following commands to ensure that all of the correct requirements are installed
 ```bash
-python3 -m pip install -r requirements.txt
+sudo apt-get install python3.11
 ```
+```bash
+sudo apt install pip
+```
+```bash
+sudo apt-get install python3-tk
+```
+```bash
+sudo pip3 install sv_ttk
+```
+```bash
+sudo apt-get install hackrf libhackrf-dev libhackrf0
+```
+```bash
+sudo apt install gnuradio
+```
+```bash
+sudo apt install gr-osmosdr
+```
+
 
 ### Dev Notes
 
 #### Package dependencies
-At the end of your development session, before pushing your changes, run the following command to package up all of the dependencies and output them to "requirements.txt"
-```bash
-pip freeze > requirements.txt
-```
+At the end of your development session, before pushing your changes, update dependencies if any additional requirements are added. In further iterations a bash script will be supplied to install these requirements.
 
 #### GUI
 * TKinter is being used to create the GUI, but TKinter looks very outdated. As a simple workaround for this, a theme is being used to easily update the look of the GUI. 
@@ -51,13 +67,16 @@ top_box = ttk.Frame(root, padding=(3, 3, 12, 12), style="box.TFrame")
 
 8. Once USB device added, start up the virtual machine to have access to the data on the USB device.
 
-#### KALI PROJECT DEPENDENCIES SETUP
-* Setting up Project Dependencies on a KALI Virtual Machine
-* This setup can be used to verify KALI is correctly set up and able to run application
+#### UBUNTU 20.04.3 LTS PROJECT DEPENDENCIES SETUP
+* Setting up Project Dependencies on a Ubuntu 20.04.3 LTS Virtual Machine
+* This setup can be used to verify Ubuntu is correctly set up and able to run application
 
-0. BEFORE RUNNING THESE COMMANDS MAKE SURE YOUR KALI IS UPDATED BY RUNNING THIS COMMAND IN TERMINAL
+0. BEFORE RUNNING THESE COMMANDS MAKE SURE YOUR UBUNTU IS UPDATED BY RUNNING THIS COMMAND IN TERMINAL
 	```terminal
-		sudo apt-get dist-upgrade -y
+		sudo apt-get update -y
+	```
+	```terminal
+		sudo apt upgrade -y
 	```
 
 1. Run this command in terminal to install appropriate drivers
@@ -65,10 +84,10 @@ top_box = ttk.Frame(root, padding=(3, 3, 12, 12), style="box.TFrame")
 	sudo apt install realtek-rtl88xxau-dkms
     ```
 
-2. Restart KALI to complete driver installation.
+2. Restart Ubuntu to complete driver installation.
 
 3. Run this command in terminal to complete dkms installation after restart. 
 	```terminal 
 	sudo apt install dkms
 	```
-4. Restart KALI to complete driver installation.
+4. Restart Ubuntu to complete driver installation.
