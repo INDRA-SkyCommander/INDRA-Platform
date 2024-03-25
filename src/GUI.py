@@ -7,7 +7,8 @@ import colors as colors
 import scan as scan
 import exploit as exploit
 import indra_util as indra_util
-
+import threading
+import time
 
 
 class MainGUI:
@@ -40,9 +41,9 @@ class MainGUI:
         sv_ttk.set_theme("dark")
         
         # change the Icon in the title bar
-        #root.iconbitmap(os.path.dirname(__file__) + "/../media/high_res_icon.ico")
+        # root.iconbitmap(os.path.dirname(__file__) + "/../media/high_res_icon.ico")
         
-        #NOT CURRENTLY WORKING. I'LL FIX IT LATER
+        # NOT CURRENTLY WORKING. I'LL FIX IT LATER
         # get the window handle from windows api
         # HWND = windll.user32.GetParent(root.winfo_id())
         # #set attributes to the window handle
@@ -115,9 +116,10 @@ class MainGUI:
                                          activebackground=colors.ORANGE)
                 
         # SCAN BUTTON
+        # start scan thread when pressed
         scan_button = ttk.Button(menu_frame,
                                 text="Scan",
-                                command=lambda: scan.scan(),
+                                command=lambda: scanThread.start(),
                                 style="button.TButton")
         scan_button.pack(side="left")
         
@@ -322,8 +324,9 @@ class MainGUI:
                                target_info_label=self.Target_info_label,
                                interval=self.interval,
                                module_dropdown=self.modules_dropdown)
-        root.mainloop()
         
+        root.mainloop() 
+            
 
     def fill_host_list(self, host_list_file, host_list_box):
         """Will populate the INDRA software's host_list_box tkinter widget with the host_list_file Object
@@ -343,3 +346,7 @@ class MainGUI:
             list: List of option variables to be outputted to the module_input_data.json file
         """
         return module_options
+    
+
+# Create threads
+scanThread = threading.Thread(target=scan.scan)
