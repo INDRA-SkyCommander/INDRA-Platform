@@ -129,7 +129,6 @@ class MainGUI:
                                          activebackground = colors.TKINTER_SLATE)
             else:
                 MainGUI.scanToggle = True
-                MainGUI.toggleScanThread.start()
                 togglescan_button.config(bg = colors.ORANGE,
                                          activebackground=colors.ORANGE)
                 
@@ -224,9 +223,9 @@ class MainGUI:
         
         
         # Host List - List of IPs
-        host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
-        host_list_data_label.configure(anchor="center")
-        host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        # host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
+        # host_list_data_label.configure(anchor="center")
+        # host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         
         
         # list box of IPs
@@ -339,6 +338,8 @@ class MainGUI:
                                target_info_label=self.Target_info_label,
                                interval=self.interval,
                                module_dropdown=self.modules_dropdown)
+        
+        MainGUI.toggleScanThread.start()
         
         root.mainloop() 
             

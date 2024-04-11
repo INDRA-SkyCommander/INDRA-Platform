@@ -85,7 +85,6 @@ def get_scan_results(root, list_box):
     results = ""
     
     if GUI.MainGUI.host_list_update == True:
-        print("Updating host list...")
         list_box.delete(0, END)
         with open(file_path, "r") as f:        
             for line in f:

@@ -1,2 +1,4 @@
 *.pyc
 modules/module_input_data.json
+data/raw_output.txt
+data/scan_results.txt

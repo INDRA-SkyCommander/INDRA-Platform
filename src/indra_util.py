@@ -28,9 +28,10 @@ def update_info(root, list_box, target_label, target_info_label):
 
     global current_target 
     current_target = list_box.get(ACTIVE)
-    print(f"Active target: {current_target}")
     
     target_info(root, target_label, target_info_label, current_target)
+    root.after(500, lambda: update_info(root, list_box, target_label, target_info_label))
+
 
 def target_info(root, target_label, target_info_label, current_target):
     """
@@ -67,13 +68,9 @@ def get_target_info(cell_name):
     """
     info_dictionary = scan.cell_info
 
-
-    print(f"looking for {cell_name}")
-
     if cell_name.strip() in info_dictionary:
         return info_dictionary[cell_name.strip()]
     else: 
-        print("Target not found")
         return ['','','','','','']
 
 def toggle_scan_executor(root, interval):
@@ -94,7 +91,6 @@ def module_scan(root, module_dropdown):
       module_list = modulescan.get_modules()
       module_dropdown['values'] = module_list
 
-       
     
 def updateables(root, **kwargs):
     """
