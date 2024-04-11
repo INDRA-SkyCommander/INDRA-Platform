@@ -150,7 +150,7 @@ class MainGUI:
                                         )
         self.modules_dropdown.set("Modules")
         self.modules_dropdown.pack(side="left", padx=5)
-        
+
         # OPTIONS DROPDOWN
         def show_option(event):
             """
@@ -189,10 +189,14 @@ class MainGUI:
         options_dropdown.bind("<<ComboboxSelected>>", show_option)
         options_dropdown.pack(side="left", padx=5)
         
+        def runExploitThread():
+            exploitThread = threading.Thread(target=exploit.run_exploit(selected_module))
+            exploitThread.start()
+
         # EXPLOIT BUTTON
         exploit_button = tkinter.Button(menu_frame,
                                 text="Exploit",
-                                command=lambda: exploit.run_exploit(selected_module.get()),
+                                command=lambda: runExploitThread(),
                                 bg=colors.ORANGE,
                                 relief="flat",
                                 activebackground=colors.ORANGE,
