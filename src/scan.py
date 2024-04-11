@@ -21,17 +21,15 @@ def scan():
         The name of the cell, the MAC address, the quality, the channel, the signal level, and the encryption type. This is used in the GUI later to list the info of every host.
     """
 
+    print("Beep boop. Scanning...")
 
-    print("Beep boop. Scanning....")
+    os.system("iwlist wlan0 scan > data/raw_output.txt")
 
     GUI.MainGUI.host_list_update = True
 
     cell_list = [[]]
     
-        
     scan_results_file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
-    os.system("iwlist wlan0 scan > data/raw_output.txt")
-    #os.system("airmon-ng start wlan0")
 
     raw_file_path=os.path.dirname(__file__) + "/../data/raw_output.txt"
 
@@ -55,7 +53,6 @@ def scan():
             target_name = strname + " - " + target_address
             
             
-            
             print(f"Adding {target_name} to dictionary")
             
             cell_info[target_name] = [get_name(cell), get_address(cell), get_quality(cell), get_channel(cell), get_signal_level(cell), get_encryption(cell)]
@@ -66,7 +63,9 @@ def scan():
             #Write the contents to the file, which is read by the GUI
             f.write(target_name)
             f.write("\n")
-            
+        
+        GUI.MainGUI.scanning = False
+        
         return cell_info
 
 def get_scan_results(root, list_box):
@@ -92,10 +91,12 @@ def get_scan_results(root, list_box):
             for line in f:
                 list_box.insert(END, line)
             GUI.MainGUI.host_list_update = False
-            
     
-    
-    root.after(500, lambda: get_scan_results(root, list_box))
-    print(results)
+
+    # prevent console from constantly printing whitespace
+    if results != '':
+        print(results)
+
+    root.after(1000, lambda: get_scan_results(root, list_box))
 
     return results

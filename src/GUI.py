@@ -22,6 +22,24 @@ class MainGUI:
     switch = False
     interval = 1000
     packets = 10000
+    scanToggle = False
+    scanning = False
+
+    # workaround for running the same thread multiple times
+    def runScanThread():
+        scanThread = threading.Thread(target=scan.scan)
+        scanThread.start()
+        
+    def infScanThread():
+        if MainGUI.scanToggle and not MainGUI.scanning:
+            MainGUI.scanning = True
+            infiniteScanThread = threading.Thread(target=MainGUI.runScanThread)
+            infiniteScanThread.start()
+        time.sleep(1)
+        MainGUI.infScanThread()
+            
+ 
+    toggleScanThread = threading.Thread(target=infScanThread)
     
     # Add module-required variables to options list
     module_options.append(packets)
@@ -102,16 +120,16 @@ class MainGUI:
                                 justify="center",
                                 font=("Segoe UI", 10))
         togglescan_button.pack(side="left", padx=5)
+
         #Helper function to assist TOGGLE SCAN BUTTON in flipping switch
         def live_toggle():
-            """Helper function that sets the switch variable present in the MainGUI class to False if True, and True of False
-            """
-            if(MainGUI.switch):
-                MainGUI.switch = False
+            if(MainGUI.scanToggle):
+                MainGUI.scanToggle = False
                 togglescan_button.config(bg = colors.TKINTER_SLATE,
                                          activebackground = colors.TKINTER_SLATE)
             else:
-                MainGUI.switch = True
+                MainGUI.scanToggle = True
+                MainGUI.toggleScanThread.start()
                 togglescan_button.config(bg = colors.ORANGE,
                                          activebackground=colors.ORANGE)
                 
@@ -119,7 +137,7 @@ class MainGUI:
         # start scan thread when pressed
         scan_button = ttk.Button(menu_frame,
                                 text="Scan",
-                                command=lambda: scanThread.start(),
+                                command=lambda: MainGUI.runScanThread(),
                                 style="button.TButton")
         scan_button.pack(side="left")
         
@@ -133,8 +151,6 @@ class MainGUI:
                                         )
         self.modules_dropdown.set("Modules")
         self.modules_dropdown.pack(side="left", padx=5)
-
-
         
         # OPTIONS DROPDOWN
         def show_option(event):
@@ -208,9 +224,9 @@ class MainGUI:
         
         
         # Host List - List of IPs
-        # host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
-        # host_list_data_label.configure(anchor="center")
-        # host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
+        host_list_data_label.configure(anchor="center")
+        host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         
         
         # list box of IPs
@@ -289,7 +305,6 @@ class MainGUI:
         # END CENTER BOX --------------------------------------------------------
         
         
-
         # TERMINAL BOX ----------------------------------------------------------
     
         # Grey box on the bottom
@@ -346,7 +361,3 @@ class MainGUI:
             list: List of option variables to be outputted to the module_input_data.json file
         """
         return module_options
-    
-
-# Create threads
-scanThread = threading.Thread(target=scan.scan)
