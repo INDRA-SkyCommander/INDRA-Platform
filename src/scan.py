@@ -7,7 +7,7 @@ from iwlist_parse import *
 
 cell_info = {}
 
-def scan():
+def scan(interface):
     """
     This method is responsible for going into the OS shell and scanning for networks using the WIFI card. It then outputs the raw data to a file. 
     This data is then parsed into a new file and new information for use in the GUI
@@ -23,7 +23,11 @@ def scan():
 
     print("Beep boop. Scanning...")
 
-    os.system("iwlist wlan0 scan > data/raw_output.txt")
+    # default to wlan0
+    if interface == '':
+        interface = 'wlan0'
+
+    os.system(f'iwlist {interface} scan > data/raw_output.txt')
 
     GUI.MainGUI.host_list_update = True
 
@@ -32,6 +36,11 @@ def scan():
     scan_results_file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
 
     raw_file_path=os.path.dirname(__file__) + "/../data/raw_output.txt"
+
+    # if new results are blank, don't overwrite previous results with blank results
+    if os.stat(raw_file_path).st_size == 0:
+        GUI.MainGUI.scanning = False
+        return
 
     with open(raw_file_path,"r") as f:
        cell_list = get_cells(f.read())
@@ -67,6 +76,7 @@ def scan():
         GUI.MainGUI.scanning = False
         
         return cell_info
+
 
 def get_scan_results(root, list_box):
     """

@@ -1,4 +1,5 @@
 import os
+import subprocess
 import tkinter
 from tkinter import END, StringVar, Tk, TkVersion, ttk
 import sv_ttk
@@ -23,19 +24,25 @@ class MainGUI:
     interval = 1000
     packets = 10000
     scanToggle = False
-    scanning = False
+    isScanning = False
+    scanningInterface = ''
+    autoScanningCooldown = 12
 
     # workaround for running the same thread multiple times
     def runScanThread():
-        scanThread = threading.Thread(target=scan.scan)
+        MainGUI.isScanning = True
+        scanThread = threading.Thread(target=scan.scan, args=(MainGUI.scanningInterface,))
         scanThread.start()
-        
+    
+    # scan over and over. utilize cooldown timer to prevent scanning overlap
+    # anything less than a 10 sec cooldown is way too chaotic and overwhelms the usb wifi
     def infScanThread():
-        if MainGUI.scanToggle and not MainGUI.scanning:
-            MainGUI.scanning = True
+        if MainGUI.scanToggle and not MainGUI.isScanning:
+            MainGUI.isScanning = True
             infiniteScanThread = threading.Thread(target=MainGUI.runScanThread)
             infiniteScanThread.start()
-        time.sleep(1)
+        time.sleep(MainGUI.autoScanningCooldown)
+        MainGUI.isScanning = False
         MainGUI.infScanThread()
             
  
@@ -110,7 +117,9 @@ class MainGUI:
         menu_frame = ttk.Frame(self.top_box, style="box.TFrame")
         menu_frame.pack(side="top", pady=5)
         
+
         # menu items left -> right
+
         # TOGGLE SCAN BUTTON
         togglescan_button = tkinter.Button(menu_frame,
                                 text="Toggle Scan",
@@ -121,7 +130,7 @@ class MainGUI:
                                 font=("Segoe UI", 10))
         togglescan_button.pack(side="left", padx=5)
 
-        #Helper function to assist TOGGLE SCAN BUTTON in flipping switch
+        # TOGGLE SCAN
         def live_toggle():
             if(MainGUI.scanToggle):
                 MainGUI.scanToggle = False
@@ -139,7 +148,29 @@ class MainGUI:
                                 command=lambda: MainGUI.runScanThread(),
                                 style="button.TButton")
         scan_button.pack(side="left")
+
+
+        # INTERFACES SELECTION
+            
+        def show_interfaces(event):
+            getInterfaces()
+            MainGUI.scanningInterface = interface_dropdown.get()  
         
+        def getInterfaces():
+            output = subprocess.check_output('ifconfig | cut -d " " -f1', shell=True, text=True).strip()
+            return [interface.replace(':', '') for interface in output.splitlines() if interface]
+
+        selected_interface = StringVar(root)
+        selected_interface.set('wlan0')
+        interface_dropdown = ttk.Combobox(menu_frame, 
+                                        values = getInterfaces(),
+                                        state = 'readonly',
+                                        )
+        interface_dropdown.set('wlan0')
+        interface_dropdown.bind("<<ComboboxSelected>>", show_interfaces)
+        interface_dropdown.pack(side="left", padx=5)
+        
+
         # MODULES DROPDOWN
         selected_module = StringVar(root)
         # selected_module.set("")
@@ -168,8 +199,8 @@ class MainGUI:
                 #     option_interval.grid(row=1, column=0)
                 # case "Interval":
                 #     option_interval.grid(row=1, column=0)
-                case "Reset Network Adapter":
-                    #os.system("sudo service networking restart")
+                case "Restart Network Adapter":
+                    print('Restarting Network Adapter')
                     os.system("sudo service NetworkManager restart")
                 case _:
                     option_interval.grid_remove()
@@ -182,27 +213,28 @@ class MainGUI:
         selected_option.set("")
         options_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_option, 
-                                        values = ["Interval", "Packets", "Reset Network Adapter", "Hide Options"],
+                                        values = ["Interval", "Packets", "Restart Network Adapter"],
                                         state = 'readonly',
                                         )
         options_dropdown.set("Options")
         options_dropdown.bind("<<ComboboxSelected>>", show_option)
         options_dropdown.pack(side="left", padx=5)
-        
+
+
         def runExploitThread():
-            exploitThread = threading.Thread(target=exploit.run_exploit(selected_module))
+            exploitThread = threading.Thread(target=exploit.run_exploit, args=(selected_module.get(),))
             exploitThread.start()
 
         # EXPLOIT BUTTON
         exploit_button = tkinter.Button(menu_frame,
-                                text="Exploit",
+                                text="EXPLOIT",
                                 command=lambda: runExploitThread(),
                                 bg=colors.ORANGE,
                                 relief="flat",
                                 activebackground=colors.ORANGE,
                                 highlightcolor=colors.LIGHT_ORANGE,
                                 justify="center",
-                                font=("Segoe UI", 10))
+                                font=("Segoe UI", 30))
         exploit_button.pack(side="left", padx=5)
         
         # END TOP BOX ----------------------------------------------------------
@@ -223,14 +255,7 @@ class MainGUI:
         
         
         self.inner_side_box = ttk.Frame(self.side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
-        self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")
-        
-        
-        # Host List - List of IPs
-        # host_list_data_label = ttk.Label(self.inner_side_box, width=20, textvariable=self.host_list_var)
-        # host_list_data_label.configure(anchor="center")
-        # host_list_data_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
-        
+        self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")   
         
         # list box of IPs
         self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=30)
