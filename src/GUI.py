@@ -237,6 +237,27 @@ class MainGUI:
                                 font=("Segoe UI", 30))
         exploit_button.pack(side="left", padx=5)
         
+        # VIDEO INTERCEPTION BUTTON
+        video_interception_button = tkinter.Button(menu_frame,
+                                           text="Video Interception",
+                                           command=lambda: video_interception_thread(),  # Call the function/thread
+                                           bg=colors.TKINTER_SLATE,  # Match the existing button background
+                                           relief="flat",
+                                           activebackground=colors.TKINTER_SLATE,
+                                           highlightcolor=colors.LIGHT_ORANGE,  # Optional, for hover effect
+                                           justify="center",
+                                           font=("Segoe UI", 10))  # Font size to match other buttons
+        video_interception_button.pack(side="left", padx=5)  # Packing to add to the menu frame
+        
+        # The button above needs to actualy needs to run something example below 
+        #def video_interception_thread():
+        # TO DO: Implement the video interception logic here
+        # This could involve starting a new thread, calling an external function, etc.
+        #print("Video Interception Button Clicked. Implement functionality here.")
+        # Example: Start a new thread
+        # video_interception_thread = threading.Thread(target=your_video_interception_function)
+        # video_interception_thread.start()
+
         # END TOP BOX ----------------------------------------------------------
         
         # LEFT BOX --------------------------------------------------------------
