@@ -202,9 +202,15 @@ class MainGUI:
                 case "Restart Network Adapter":
                     print('Restarting Network Adapter')
                     os.system("sudo service NetworkManager restart")
+                case "Video Interception":
+                 # Run Video Interception exploit when "Video Interception" is selected
+                    def run_video_interception_exploit():
+                        exploitThread = threading.Thread(target=exploit.run_video_interception_exploit)
+                        exploitThread.start()
                 case _:
                     option_interval.grid_remove()
                     option_info_label.grid_remove()
+
                     
             option_info_label.config(text =f"Option: {options_str}")
                     
@@ -213,7 +219,7 @@ class MainGUI:
         selected_option.set("")
         options_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_option, 
-                                        values = ["Interval", "Packets", "Restart Network Adapter"],
+                                        values = ["Interval", "Packets", "Restart Network Adapter", "Video Interception"],
                                         state = 'readonly',
                                         )
         options_dropdown.set("Options")
