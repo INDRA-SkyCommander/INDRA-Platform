@@ -9,6 +9,7 @@ TKINTER_SLATE = "#292929"
 GREEN = "#263328"
 ORANGE = "#663011"
 LIGHT_ORANGE = "#99552e"
+RED = "#330000"
     
     
     

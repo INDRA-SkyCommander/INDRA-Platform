@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import tkinter
 from tkinter import END, StringVar, Tk, TkVersion, ttk
@@ -10,6 +11,7 @@ import exploit as exploit
 import indra_util as indra_util
 import threading
 import time
+from PIL import Image, ImageTk
 
 
 class MainGUI:
@@ -116,7 +118,6 @@ class MainGUI:
         # invisible frame to hold the menu items
         menu_frame = ttk.Frame(self.top_box, style="box.TFrame")
         menu_frame.pack(side="top", pady=5)
-        
 
         # menu items left -> right
 
@@ -202,6 +203,9 @@ class MainGUI:
                 case "Restart Network Adapter":
                     print('Restarting Network Adapter')
                     os.system("sudo service NetworkManager restart")
+                case "Stop Monitor Mode":
+                    print('Stopping Monitor Mode')
+                    os.system("sudo airmon-ng stop wlan0")    
                 case _:
                     option_interval.grid_remove()
                     option_info_label.grid_remove()
@@ -213,7 +217,7 @@ class MainGUI:
         selected_option.set("")
         options_dropdown = ttk.Combobox(menu_frame, 
                                         textvariable = selected_option, 
-                                        values = ["Interval", "Packets", "Restart Network Adapter"],
+                                        values = ["Interval", "Packets", "Restart Network Adapter", "Stop Monitor Mode"],
                                         state = 'readonly',
                                         )
         options_dropdown.set("Options")
@@ -332,7 +336,6 @@ class MainGUI:
         
         # END CENTER BOX --------------------------------------------------------
         
-        
         # TERMINAL BOX ----------------------------------------------------------
     
         # Grey box on the bottom
@@ -369,9 +372,16 @@ class MainGUI:
                                module_dropdown=self.modules_dropdown)
         
         MainGUI.toggleScanThread.start()
-        
-        root.mainloop() 
-            
+
+        def videoPlayer():
+            image_folder = "./data/images"  # Adjust this to your image folder path
+            self.image_player = ImagePlayer(root, image_folder=image_folder, frame_rate=2)
+            self.image_player.stop()
+            self.image_player.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+
+        videoPlayer()       
+
+        root.mainloop()       
 
     def fill_host_list(self, host_list_file, host_list_box):
         """Will populate the INDRA software's host_list_box tkinter widget with the host_list_file Object
@@ -391,3 +401,98 @@ class MainGUI:
             list: List of option variables to be outputted to the module_input_data.json file
         """
         return module_options
+    
+# Image Player class for gui video player    
+import os
+import shutil
+from PIL import Image, ImageTk
+from tkinter import ttk
+
+
+class ImagePlayer(ttk.Frame):
+    """
+    A widget to display images from a folder at a specific frame rate.
+    """
+
+    def __init__(self, parent, image_folder, frame_rate=2):
+        super().__init__(parent)
+        self.image_folder = image_folder
+        self.frame_rate = frame_rate
+        self.images = []  # List of all images in the folder
+        self.new_images = []  # List of newly added images
+        self.current_image_index = 0
+        self.paused = True
+
+        self.label = ttk.Label(self)
+        self.label.pack(expand=True, fill="both")
+
+        self._clear_folder()
+        self.load_images()
+        self.monitor_folder()
+
+    def _clear_folder(self):
+        """Clears the contents of the image folder."""
+        if os.path.exists(self.image_folder):
+            for filename in os.listdir(self.image_folder):
+                file_path = os.path.join(self.image_folder, filename)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)  # Remove file or symbolic link
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)  # Remove folder
+                except Exception as e:
+                    print(f"Failed to clear {file_path}. Reason: {e}")
+
+    def load_images(self):
+        """Loads all images from the folder and identifies new images."""
+        all_images = [
+            os.path.join(self.image_folder, f)
+            for f in sorted(os.listdir(self.image_folder))
+            if f.lower().endswith(('.png', '.jpg', '.jpeg'))
+        ]
+        # Identify new images by excluding already loaded ones
+        new_images = [img for img in all_images if img not in self.images]
+        self.images.extend(new_images)  # Update the full list of images
+        self.new_images.extend(new_images)  # Keep track of only new images
+
+    def monitor_folder(self):
+        """
+        Continuously checks for newly added images in the folder.
+        If new images are found, they are added to the playback list.
+        """
+        self.load_images()
+        if self.new_images and self.paused:
+            self.start()
+        self.after(1000, self.monitor_folder)  # Check every second
+
+    def play_images(self):
+        """Plays only the newly added images one by one at the specified frame rate."""
+        if not self.paused and self.new_images:
+            img_path = self.new_images.pop(0)  # Pop the first image in the new list
+            try:
+                img = Image.open(img_path)
+                img = img.resize((730, 300))  # Resize to fit
+                img = ImageTk.PhotoImage(img)
+                self.label.config(image=img)
+                self.label.image = img
+                self.after(int(1000 / self.frame_rate), self.play_images)
+            except Exception as e:
+                print(f"Error displaying {img_path}: {e}")
+        else:
+            self.stop()
+
+    def start(self):
+        """Starts or resumes playback for newly added images."""
+        self.paused = False
+        self.play_images()
+
+    def stop(self):
+        """Pauses playback."""
+        self.paused = True
+
+    def toggle_playback(self):
+        """Toggles between play and pause."""
+        if self.paused:
+            self.start()
+        else:
+            self.stop()
