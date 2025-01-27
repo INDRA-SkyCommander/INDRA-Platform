@@ -27,9 +27,13 @@ class MainGUI:
     isScanning = False
     scanningInterface = ''
     autoScanningCooldown = 12
+    filter = True
 
     # workaround for running the same thread multiple times
-    def runScanThread():
+    #if true: filter by naming convention for drone name
+    def runScanThread(filter_status = False):
+            
+        filter = filter_status
         MainGUI.isScanning = True
         scanThread = threading.Thread(target=scan.scan, args=(MainGUI.scanningInterface,))
         scanThread.start()
@@ -130,6 +134,8 @@ class MainGUI:
                                 font=("Segoe UI", 10))
         togglescan_button.pack(side="left", padx=5)
 
+
+
         # TOGGLE SCAN
         def live_toggle():
             if(MainGUI.scanToggle):
@@ -149,6 +155,17 @@ class MainGUI:
                                 style="button.TButton")
         scan_button.pack(side="left")
 
+        #filter button
+        filter_button = ttk.Button(menu_frame,text = "Scan & filter", command=lambda:MainGUI.runScanThread(True))
+        filter_button.pack(side="left")
+
+        # SCAN BUTTON
+        # start scan thread when pressed
+        filter_button = ttk.Button(menu_frame,
+                                text="Filter",
+                                command=lambda: MainGUI.runScanThread(True),
+                                style="button.TButton")
+        scan_button.pack(side="left")
 
         # INTERFACES SELECTION
             

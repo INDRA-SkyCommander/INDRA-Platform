@@ -4,6 +4,7 @@ from tkinter import END
 
 import GUI
 from iwlist_parse import *
+import json
 
 cell_info = {}
 
@@ -20,6 +21,12 @@ def scan(interface):
         The cell_info dictionary has a key with the name of the hosts and the mac address in the format "SSID - <MAC ADDRESS>". The key values are as follows:
         The name of the cell, the MAC address, the quality, the channel, the signal level, and the encryption type. This is used in the GUI later to list the info of every host.
     """
+    def pull_filter_term(): 
+        file_path = os.path.dirname(__file__) +"/../data/filter.json"
+        data = "meh"
+        with open(file_path, "r") as file: 
+            data = json.load(file)
+        return data['term']
 
     print("Beep boop. Scanning...")
 
@@ -69,10 +76,18 @@ def scan(interface):
             for item in cell_info[target_name]:
                 print(item)
             
-            #Write the contents to the file, which is read by the GUI
-            f.write(target_name)
-            f.write("\n")
-        
+            #Write the contents to the file, which is read by the GUI. decide position based on filter boolean
+
+            if filter:
+
+                with open(scan_results_file_path, "a") as f:
+                    if pull_filter_term() in (cell_info[target_name][0]) :
+                        f.write(target_name + "\n")
+            #normal
+            else:
+                f.write(target_name + "\n")
+
+
         GUI.MainGUI.scanning = False
         
         return cell_info
@@ -93,7 +108,8 @@ def get_scan_results(root, list_box):
     file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
     
     results = ""
-    
+    #build filtering in somewhere in this function
+
     if GUI.MainGUI.host_list_update == True:
         list_box.delete(0, END)
         with open(file_path, "r") as f:        
