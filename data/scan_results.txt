@@ -1,16 +1,1 @@
-WVU.Encrypted - 24:1F:BD:5E:AB:22
-WVU.Encrypted - 24:1F:BD:5E:63:E2
-WVU.Encrypted - 24:1F:BD:5E:89:62
-WVU.Encrypted - 24:1F:BD:60:93:A2
-WVU.Encrypted - 24:1F:BD:60:7E:22
-WVU.Encrypted - 24:1F:BD:5E:9C:22
-WVU.Encrypted - 24:1F:BD:60:98:22
-WVU.Encrypted - B4:2D:56:80:B4:94
-WVU.Encrypted - 24:1F:BD:5E:86:22
-WVU.Guest - 24:1F:BD:5E:AB:13
-WVU.Encrypted - 24:1F:BD:60:8F:22
-WVU.Encrypted - 24:1F:BD:60:7A:22
-WVU.Encrypted - 24:1F:BD:5E:AB:E2
-WVU.Encrypted - 24:1F:BD:72:55:11
-WVU.Encrypted - 24:1F:BD:5E:7C:22
-WVU.Encrypted - 48:9B:D5:F7:74:31
+

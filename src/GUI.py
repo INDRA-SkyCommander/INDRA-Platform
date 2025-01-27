@@ -159,6 +159,16 @@ class MainGUI:
         filter_button = ttk.Button(menu_frame,text = "Scan & filter", command=lambda:MainGUI.runScanThread(True))
         filter_button.pack(side="left")
 
+        # scan dropdown, logic isn't fully there 
+        scan_dropdown = StringVar(root)
+        # selected_module.set("")
+        self.scan_dropdown = ttk.Combobox(menu_frame, 
+                                        values = ["ARP Poisioning", "etc"],
+                                        state='readonly',
+                                        )
+        self.scan_dropdown.set("Scan Options")
+        self.scan_dropdown.pack(side="left", padx=5)
+
         # SCAN BUTTON
         # start scan thread when pressed
         filter_button = ttk.Button(menu_frame,
