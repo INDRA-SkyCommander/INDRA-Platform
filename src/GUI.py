@@ -1,7 +1,7 @@
 import os
 import subprocess
 import tkinter
-from tkinter import END, StringVar, Tk, TkVersion, ttk
+from tkinter import END, StringVar, Text, Tk, TkVersion, ttk
 import sv_ttk
 from ctypes import *
 import colors as colors
@@ -11,6 +11,11 @@ import indra_util as indra_util
 import threading
 import time
 
+import tkinter as tk
+from tkinter import ttk
+
+from iwlist_parse import *
+import json
 
 class MainGUI:
        
@@ -155,19 +160,51 @@ class MainGUI:
                                 style="button.TButton")
         scan_button.pack(side="left")
 
-        #filter button
-        filter_button = ttk.Button(menu_frame,text = "Scan & filter", command=lambda:MainGUI.runScanThread(True))
-        filter_button.pack(side="left")
 
-        # scan dropdown, logic isn't fully there 
-        scan_dropdown = StringVar(root)
-        # selected_module.set("")
-        self.scan_dropdown = ttk.Combobox(menu_frame, 
-                                        values = ["ARP Poisioning", "etc"],
-                                        state='readonly',
-                                        )
-        self.scan_dropdown.set("Scan Options")
-        self.scan_dropdown.pack(side="left", padx=5)
+        #filter button
+        """ filter_button = ttk.Button(menu_frame,text = "Scan & filter", command=lambda:MainGUI.runScanThread(True))
+        filter_button.pack(side="left") """
+
+        def filtering():
+            def submit(): 
+                #filter_input = filter_field.get("1.0","end-1c") 
+                filter_input = filter_field.get("1.0","end-1c") 
+                file_path = os.path.dirname(__file__) +"/../data/filter.json"
+                print(filter_input)
+                data = {"term" : filter_input}
+                with open(file_path, "w") as file:
+                    json.dump(data, file, indent=4)
+                MainGUI.runScanThread(True)
+            filter_field = tk.Text(menu_frame, width = 10, height = 1, font = ('times',10,'normal'))
+            filter_field.pack(side = "left", padx = 5)
+            sub_btn=ttk.Button(menu_frame,text = 'Submit', command = submit)
+            sub_btn.pack(side = "left")
+
+        filtering()
+
+        """ def retrieve_input():
+            
+            print(inputValue)
+
+        textBox=tk.Text(menu_frame, width = 5, height = 1)
+        textBox.pack(side = "left")
+        buttonCommit= tk.Button(menu_frame, text="Commit", 
+                            command=lambda: retrieve_input())
+        buttonCommit.pack(side = "left") """
+        
+
+        """ filter_input = tk.StringVar(menu_frame, ) """
+        
+        def scan_dropdown():
+            # scan dropdown, logic isn't fully there 
+            scan_dropdown = StringVar(root)
+            # selected_module.set("")
+            self.scan_dropdown = ttk.Combobox(menu_frame, 
+                                            values = ["ARP Poisioning", "etc"],
+                                            state='readonly',
+                                            )
+            self.scan_dropdown.set("Scan Options")
+            self.scan_dropdown.pack(side="left", padx=5)
 
         # SCAN BUTTON
         # start scan thread when pressed
