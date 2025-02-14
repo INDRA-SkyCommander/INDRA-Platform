@@ -68,7 +68,7 @@ class MainGUI:
         """
         self.root = root
         root.title("INDRA")
-        root.geometry("1200x675")
+        root.geometry("1920x1080")
         root.resizable(False, False)
         root.update_idletasks()
         # root.grid_columnconfigure(0, weight=1)
@@ -195,16 +195,24 @@ class MainGUI:
 
         """ filter_input = tk.StringVar(menu_frame, ) """
         
+
+        #previously saved targets 
         def scan_dropdown():
             # scan dropdown, logic isn't fully there 
             scan_dropdown = StringVar(root)
             # selected_module.set("")
+
+            #change values to stuff, telemetry data 
             self.scan_dropdown = ttk.Combobox(menu_frame, 
                                             values = ["ARP Poisioning", "etc"],
                                             state='readonly',
                                             )
+                
             self.scan_dropdown.set("Scan Options")
             self.scan_dropdown.pack(side="left", padx=5)
+
+        scan_dropdown()
+
 
         # SCAN BUTTON
         # start scan thread when pressed
@@ -303,38 +311,74 @@ class MainGUI:
         
         # END TOP BOX ----------------------------------------------------------
         
-        # LEFT BOX --------------------------------------------------------------
-        
-        # Grey box on the left
-        self.side_box = ttk.Frame(root, padding=(5, 5, 10, 10), style="box.TFrame")
-        self.side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5,)
         
         
-        # Host List title
-        host_list_label = ttk.Label(self.side_box, text="Host List")
-        host_list_label.configure(anchor="center",
-                                  font=("default", 16, "bold"),
-                                  foreground=colors.WHITE)
-        host_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
+        def host_list(): 
+
+            # LEFT BOX --------------------------------------------------------------
         
+            # Grey box on the left
+            self.side_box = ttk.Frame(root, padding=(5, 5, 10, 10), style="box.TFrame")
+            self.side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5,)
+            
+            
+            # Host List title
+            
+            host_list_label = ttk.Label(self.side_box, text="Host List")
+            host_list_label.configure(anchor="center",
+                                    font=("default", 16, "bold"),
+                                    foreground=colors.WHITE)
+            host_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
+            
+            
+            self.inner_side_box = ttk.Frame(self.side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
+            self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")  
+            # list box of IPs
+            self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=40)
+            self.host_list_data_box.configure(justify="left",
+                                        font=("Segoe UI", 10),
+                                        highlightcolor=colors.LIGHT_ORANGE,
+                                        fg=colors.WHITE,
+                                        selectbackground=colors.LIGHT_ORANGE,
+                                        selectforeground=colors.WHITE,
+                                        highlightthickness=0,
+                                        borderwidth=0,
+                                        selectmode="single",
+                                        relief="flat",)
+            self.host_list_data_box.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
         
-        self.inner_side_box = ttk.Frame(self.side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
-        self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")   
-        
-        # list box of IPs
-        self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=30)
-        self.host_list_data_box.configure(justify="left",
-                                     font=("Segoe UI", 10),
-                                     highlightcolor=colors.LIGHT_ORANGE,
-                                     fg=colors.WHITE,
-                                     selectbackground=colors.LIGHT_ORANGE,
-                                     selectforeground=colors.WHITE,
-                                     highlightthickness=0,
-                                     borderwidth=0,
-                                     selectmode="single",
-                                     relief="flat",)
-        self.host_list_data_box.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
-        
+        def save_list(): 
+
+            # Grey box on the left
+            self.target_side_box = ttk.Frame(root, padding=(5, 5, 10, 10), style="box.TFrame")
+            self.target_side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5,)
+
+            #target list 
+            target_list_label = ttk.Label(self.target_side_box, text="Target List")
+            target_list_label.configure(anchor="center",
+                                    font=("default", 16, "bold"),
+                                    foreground=colors.WHITE)
+            target_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
+            
+            
+            self.target_inner_side_box = ttk.Frame(self.target_side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
+            self.target_inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")  
+            # list box of IPs
+            self.target_list_data_box = tkinter.Listbox(self.target_inner_side_box, width=30, height=40)
+            self.target_list_data_box.configure(justify="left",
+                                        font=("Segoe UI", 10),
+                                        highlightcolor=colors.LIGHT_ORANGE,
+                                        fg=colors.WHITE,
+                                        selectbackground=colors.LIGHT_ORANGE,
+                                        selectforeground=colors.WHITE,
+                                        highlightthickness=0,
+                                        borderwidth=0,
+                                        selectmode="single",
+                                        relief="flat",)
+            self.target_list_data_box.grid(row=0, column=1, pady=5, padx=[30,30], ipadx=30, sticky="n")
+
+        host_list()
+        save_list()
         # END LEFT BOX ----------------------------------------------------------
         
         
