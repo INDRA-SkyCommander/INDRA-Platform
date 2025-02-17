@@ -5,6 +5,7 @@ from tkinter import END
 import GUI
 from iwlist_parse import *
 import json
+import GUI as MainGUI
 
 cell_info = {}
 
@@ -73,13 +74,12 @@ def scan(interface):
             
             cell_info[target_name] = [get_name(cell), get_address(cell), get_quality(cell), get_channel(cell), get_signal_level(cell), get_encryption(cell)]
             
-            for item in cell_info[target_name]:
-                print(item)
+            """ for item in cell_info[target_name]:
+                print(item) """
             
             #Write the contents to the file, which is read by the GUI. decide position based on filter boolean
 
-            if filter:
-
+            if GUI.MainGUI.filter_status:
                 with open(scan_results_file_path, "a") as f:
                     if pull_filter_term() in (cell_info[target_name][0]) :
                         f.write(target_name + "\n")

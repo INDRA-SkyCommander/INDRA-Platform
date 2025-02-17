@@ -16,6 +16,7 @@ from tkinter import ttk
 
 from iwlist_parse import *
 import json
+import scan
 
 class MainGUI:
        
@@ -32,13 +33,13 @@ class MainGUI:
     isScanning = False
     scanningInterface = ''
     autoScanningCooldown = 12
-    filter = True
+    filter_status = False
 
     # workaround for running the same thread multiple times
     #if true: filter by naming convention for drone name
     def runScanThread(filter_status = False):
             
-        filter = filter_status
+        #filter = filter_status
         MainGUI.isScanning = True
         scanThread = threading.Thread(target=scan.scan, args=(MainGUI.scanningInterface,))
         scanThread.start()
@@ -154,9 +155,12 @@ class MainGUI:
                 
         # SCAN BUTTON
         # start scan thread when pressed
+        def run_scan_button(): 
+            MainGUI.filter_status = False
+            MainGUI.runScanThread()
         scan_button = ttk.Button(menu_frame,
                                 text="Scan",
-                                command=lambda: MainGUI.runScanThread(),
+                                command=lambda: run_scan_button(),
                                 style="button.TButton")
         scan_button.pack(side="left")
 
@@ -165,36 +169,25 @@ class MainGUI:
         """ filter_button = ttk.Button(menu_frame,text = "Scan & filter", command=lambda:MainGUI.runScanThread(True))
         filter_button.pack(side="left") """
 
+        #handle submit gui stuff 
         def filtering():
+            
+            #execute things 
             def submit(): 
-                #filter_input = filter_field.get("1.0","end-1c") 
+                MainGUI.filter_status = True
                 filter_input = filter_field.get("1.0","end-1c") 
                 file_path = os.path.dirname(__file__) +"/../data/filter.json"
-                print(filter_input)
                 data = {"term" : filter_input}
                 with open(file_path, "w") as file:
                     json.dump(data, file, indent=4)
                 MainGUI.runScanThread(True)
+
             filter_field = tk.Text(menu_frame, width = 10, height = 1, font = ('times',10,'normal'))
             filter_field.pack(side = "left", padx = 5)
             sub_btn=ttk.Button(menu_frame,text = 'Submit', command = submit)
             sub_btn.pack(side = "left")
 
         filtering()
-
-        """ def retrieve_input():
-            
-            print(inputValue)
-
-        textBox=tk.Text(menu_frame, width = 5, height = 1)
-        textBox.pack(side = "left")
-        buttonCommit= tk.Button(menu_frame, text="Commit", 
-                            command=lambda: retrieve_input())
-        buttonCommit.pack(side = "left") """
-        
-
-        """ filter_input = tk.StringVar(menu_frame, ) """
-        
 
         #previously saved targets 
         def scan_dropdown():
@@ -204,7 +197,7 @@ class MainGUI:
 
             #change values to stuff, telemetry data 
             self.scan_dropdown = ttk.Combobox(menu_frame, 
-                                            values = ["ARP Poisioning", "etc"],
+                                            values = ["ARP Poisioning","Dummy Value 2", "Dummy Value n"],
                                             state='readonly',
                                             )
                 
@@ -216,10 +209,11 @@ class MainGUI:
 
         # SCAN BUTTON
         # start scan thread when pressed
-        filter_button = ttk.Button(menu_frame,
+        """ filter_button = ttk.Button(menu_frame,
                                 text="Filter",
                                 command=lambda: MainGUI.runScanThread(True),
-                                style="button.TButton")
+                                style="button.TButton") """
+        
         scan_button.pack(side="left")
 
         # INTERFACES SELECTION
@@ -309,11 +303,35 @@ class MainGUI:
                                 font=("Segoe UI", 30))
         exploit_button.pack(side="left", padx=5)
         
+        #helper for writing to txt file 
+        def append_to_txt(file_name, text_to_input): 
+            file_path = os.path.join(os.path.dirname(__file__), "../data/", f"{file_name}.txt")
+            with open(file_path, "a") as file:
+                file.write(text_to_input)
+            
+
         # END TOP BOX ----------------------------------------------------------
-        
-        
-        
+
+        #host list box         
         def host_list(): 
+            #to ID which one is selected 
+            def check_host_selection(): 
+                selected_nums = self.host_list_data_box.curselection()
+                if selected_nums: 
+                    item = self.host_list_data_box.get(selected_nums)
+                    #append to file 
+                    append_to_txt("hostsFile", item)
+                else:
+                    print("invalid!")
+
+            """ def delete_button(): 
+                del_btn = ttk.Button(menu_frame, text = 'Delete selected host', command = check_target_selection) """
+
+            def add_button(): 
+                sub_btn=ttk.Button(menu_frame,text = 'Add selected host', command = check_host_selection)
+                sub_btn.pack(side = "left")
+            #test phrase 
+            add_button()
 
             # LEFT BOX --------------------------------------------------------------
         
@@ -335,6 +353,9 @@ class MainGUI:
             self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")  
             # list box of IPs
             self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=40)
+            #add one plus button 
+
+            
             self.host_list_data_box.configure(justify="left",
                                         font=("Segoe UI", 10),
                                         highlightcolor=colors.LIGHT_ORANGE,
@@ -344,9 +365,10 @@ class MainGUI:
                                         highlightthickness=0,
                                         borderwidth=0,
                                         selectmode="single",
-                                        relief="flat",)
+                                        relief="flat")
             self.host_list_data_box.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
-        
+            
+
         def save_list(): 
 
             # Grey box on the left
