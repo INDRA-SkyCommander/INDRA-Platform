@@ -1,0 +1,10 @@
+Ubuntu Setup steps
+
+sudo apt update
+sudo apt install git build-essential
+
+git clone https://github.com/aircrack-ng/rtl18812au.git
+
+cd rt18812au
+make
+sudo make install
