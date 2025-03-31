@@ -34,6 +34,7 @@ class MainGUI:
     scanningInterface = ''
     autoScanningCooldown = 12
     filter_status = False
+    
 
     # workaround for running the same thread multiple times
     #if true: filter by naming convention for drone name
@@ -61,12 +62,15 @@ class MainGUI:
     # Add module-required variables to options list
     module_options.append(packets)
     
+    #self.target_list_data_box = tkinter.Listbox(self.target_inner_side_box, width=30, height=40)
 
     
     
 
     def __init__(self, root):
-        def fill_host_list(self, host_list_file, host_list_box):
+
+        #houston, we have a chicken and the egg problem 
+        def fill_host_list(self, host_list_file, host_list_box, condition = False):
             """Will populate the INDRA software's host_list_box tkinter widget with the host_list_file Object
 
             Args:
@@ -75,6 +79,10 @@ class MainGUI:
             """
             for line in host_list_file:
                 host_list_box.insert(END, line)
+            #to be or not to be, that is the question
+            if condition: 
+                return host_list_box
+
             
 
         """Initializes the Graphical User Interface of the INDRA Software
@@ -333,43 +341,41 @@ class MainGUI:
             file_path = os.path.dirname(__file__) +"/../data/hostsFile.txt"
             with open(file_path, "r") as file:
                 return file.readlines()
-
-
-        def save_list(): 
-
-            # Grey box on the left
-            self.target_side_box = ttk.Frame(root, padding=(5, 5, 10, 10), style="box.TFrame")
-            self.target_side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5,)
-
-            #target list 
-            target_list_label = ttk.Label(self.target_side_box, text="Target List")
-            target_list_label.configure(anchor="center",
-                                    font=("default", 16, "bold"),
-                                    foreground=colors.WHITE)
-            target_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
-            
-            
-            self.target_inner_side_box = ttk.Frame(self.target_side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
-            self.target_inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")  
-            # list box of IPs
-            self.target_list_data_box = tkinter.Listbox(self.target_inner_side_box, width=30, height=40)
-            self.target_list_data_box.configure(justify="left",
-                                        font=("Segoe UI", 10),
-                                        highlightcolor=colors.LIGHT_ORANGE,
-                                        fg=colors.WHITE,
-                                        selectbackground=colors.LIGHT_ORANGE,
-                                        selectforeground=colors.WHITE,
-                                        highlightthickness=0,
-                                        borderwidth=0,
-                                        selectmode="single",
-                                        relief="flat",)
-            self.target_list_data_box.grid(row=0, column=1, pady=5, padx=[30,30], ipadx=30, sticky="n")
-            
-
-            fill_host_list(self,file_shenanigans(), self.target_list_data_box)
-            
         
-        #host list box         
+        # Grey box on the left
+        self.target_side_box = ttk.Frame(root, padding=(5, 5, 10, 10), style="box.TFrame")
+        self.target_side_box.pack(side="left", fill="y", expand=False, padx=5, pady=5,)
+
+        #target list 
+        target_list_label = ttk.Label(self.target_side_box, text="Target List")
+        target_list_label.configure(anchor="center",
+                                font=("default", 16, "bold"),
+                                foreground=colors.WHITE)
+        target_list_label.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=50, sticky="n")
+        
+        
+        self.target_inner_side_box = ttk.Frame(self.target_side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
+        self.target_inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")  
+        # list box of IPs
+        self.target_list_data_box = tkinter.Listbox(self.target_inner_side_box, width=30, height=40)
+        self.target_list_data_box.configure(justify="left",
+                                    font=("Segoe UI", 10),
+                                    highlightcolor=colors.LIGHT_ORANGE,
+                                    fg=colors.WHITE,
+                                    selectbackground=colors.LIGHT_ORANGE,
+                                    selectforeground=colors.WHITE,
+                                    highlightthickness=0,
+                                    borderwidth=0,
+                                    selectmode="single",
+                                    relief="flat",)
+        self.target_list_data_box.grid(row=0, column=1, pady=5, padx=[30,30], ipadx=30, sticky="n")
+        
+
+        fill_host_list(self,file_shenanigans(), self.target_list_data_box, True)
+                
+
+        
+        #host list box          
         def host_list(target_box): 
             #to ID which one is selected 
             def check_host_selection(): 
@@ -378,6 +384,8 @@ class MainGUI:
                     item = self.host_list_data_box.get(selected_nums)
                     #append to file 
                     append_to_txt("hostsFile", item)
+                    #self.target_list_data_box
+
                 else:
                     print("invalid!")
 
@@ -387,9 +395,6 @@ class MainGUI:
             def add_button(): 
                 sub_btn=ttk.Button(menu_frame,text = 'Add selected host', command = check_host_selection)
                 sub_btn.pack(side = "left")
-                #root.update_idletasks()
-                #fill_host_list(self,file_shenanigans(), self.target_list_data_box)
-                
 
             #test phrase 
             add_button()
@@ -429,9 +434,12 @@ class MainGUI:
                                         relief="flat")
             self.host_list_data_box.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
             
-        self.target_list_data_box = save_list()
+        #self.target_list_data_box = save_list()
         host_list(self.target_list_data_box)
         
+        # wake up sleepy 
+        def pain(): 
+            self.target_list_data_box.update()
 
         #def refresh():
             
@@ -531,7 +539,8 @@ class MainGUI:
                                target_label=self.Target_label,
                                target_info_label=self.Target_info_label,
                                interval=self.interval,
-                               module_dropdown=self.modules_dropdown)
+                               module_dropdown=self.modules_dropdown, 
+                               targetList = self.target_list_data_box)
         
         MainGUI.toggleScanThread.start()
         

@@ -5,7 +5,9 @@ from tkinter import END
 import GUI
 from iwlist_parse import *
 import json
-import GUI as MainGUI
+#from GUI import target_list_data_box
+import GUI as MainGUI   
+
 
 cell_info = {}
 
@@ -108,7 +110,9 @@ def get_scan_results(root, list_box):
     file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
     
     results = ""
-    #build filtering in somewhere in this function
+
+    #winner winner chicken dinner
+    #MainGUI.updateTargets
 
     if GUI.MainGUI.host_list_update == True:
         list_box.delete(0, END)

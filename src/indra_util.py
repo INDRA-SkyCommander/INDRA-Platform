@@ -1,4 +1,5 @@
 from tkinter import ACTIVE
+import tkinter
 import GUI
 import main
 import scan
@@ -91,7 +92,11 @@ def module_scan(root, module_dropdown):
       module_list = modulescan.get_modules()
       module_dropdown['values'] = module_list
 
-    
+
+def targetUpdate(root, targetList): 
+    #targetList = GUI.fill_host_list(GUI.file_shenanigans(), GUI.target_list_data_box, True)
+    print("here")
+
 def updateables(root, **kwargs):
     """
         Updates various elements in the GUI
@@ -104,3 +109,4 @@ def updateables(root, **kwargs):
     scan.get_scan_results(root, kwargs.get("host_list_data_box"))
     toggle_scan_executor(root, kwargs.get("interval"))
     module_scan(root, kwargs.get("module_dropdown"))
+    targetUpdate(root, kwargs.get("targetList"))
