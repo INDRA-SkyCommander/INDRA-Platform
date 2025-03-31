@@ -18,6 +18,7 @@
 # - battery level
 # 
 
+import json
 import socket, sys, signal, time
 
 
@@ -51,6 +52,25 @@ def getData():
 
 if __name__ == '__main__':
     
+    #write to json file 
+    def write(dic, time): 
+        data = {
+                    #TODO: replace with incrementing thing
+                    "placeholder: ": {
+                        "time: ":  int((t - int(t)) * 1000),
+                        "battery: ": dic['battery'],
+                        "GPS: ": {
+                            "x: ": dic['x'],
+                            "y: ": dic['y'],
+                            "z: ": dic['z']
+                        }
+                    }
+                }
+        
+
+        with open('drone_data.json', 'w') as data_file: 
+            json.dump(data, data_file, indent = 5)
+
     #potentially modify remote line
 
     #socket magic
@@ -87,10 +107,15 @@ if __name__ == '__main__':
         dic = collect_state(out)
         t = time.time()
     
-        """ print('time:{:4d}\tnick:{:>4}\troll:{:>4}\tyaw:{:>4}'.format(
+
+        #write to json 
+        write(dic, t)
+        
+        print('time:{:4d}\tnick:{:>4}\troll:{:>4}\tyaw:{:>4}'.format(
             int((t - int(t)) * 1000), dic['pitch'], dic['roll'], dic['yaw']),
-            file=sys.stdout, flush=True) """
-    
-        dictionary = dic
+            file=sys.stdout, flush=True)
+
+
+        #dictionary = dic
 
     print('exit')
