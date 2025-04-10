@@ -17,6 +17,9 @@ from tkinter import ttk
 from iwlist_parse import *
 import json
 import scan
+import pull
+import subprocess
+
 
 class MainGUI:
        
@@ -199,6 +202,8 @@ class MainGUI:
             def submit(): 
                 MainGUI.filter_status = True
                 filter_input = filter_field.get("1.0","end-1c") 
+                #lazy 
+                #filter_input = "TELL"
                 file_path = os.path.dirname(__file__) +"/../data/filter.json"
                 data = {"term" : filter_input}
                 with open(file_path, "w") as file:
@@ -211,6 +216,16 @@ class MainGUI:
             sub_btn.pack(side = "left")
 
         filtering()
+
+        def info_button(): 
+            def info(): 
+                #call pull
+                subprocess.run(["python3", "src/pull.py"])
+
+            sub_btn=ttk.Button(menu_frame,text = 'Get info', command = info)
+            sub_btn.pack(side = "left")
+
+        info_button()
 
         #previously saved targets 
         def scan_dropdown():

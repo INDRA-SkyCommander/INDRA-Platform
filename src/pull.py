@@ -51,24 +51,37 @@ def getData():
 
 
 if __name__ == '__main__':
-    
+
     #write to json file 
     def write(dic, time): 
         data = {
-                    #TODO: replace with incrementing thing
-                    "placeholder: ": {
-                        "time: ":  int((t - int(t)) * 1000),
-                        "battery: ": dic['battery'],
-                        "GPS: ": {
-                            "x: ": dic['x'],
-                            "y: ": dic['y'],
-                            "z: ": dic['z']
-                        }
-                    }
-                }
+        int((t - int(t)) * 1000): {
+            "battery": dic['bat'],
+            "mid": dic.get('mid'),
+            "x": dic.get('x'),
+            "y": dic.get('y'),
+            "z": dic.get('z'),
+            "mpry": dic.get('mpry'),
+            "pitch": dic.get('pitch'),
+            "roll": dic.get('roll'),
+            "yaw": dic.get('yaw'),
+            "vgx": dic.get('vgx'),
+            "vgy": dic.get('vgy'),
+            "vgz": dic.get('vgz'),
+            "templ": dic.get('templ'),
+            "temph": dic.get('temph'),
+            "tof": dic.get('tof'),
+            "h": dic.get('h'),
+            "baro": dic.get('baro'),
+            "time_field": dic.get('time'), 
+            "agx": dic.get('agx'),
+            "agy": dic.get('agy'),
+            "agz": dic.get('agz'),
+        }
+    }
         
 
-        with open('drone_data.json', 'w') as data_file: 
+        with open('drone_data.json', 'a') as data_file: 
             json.dump(data, data_file, indent = 5)
 
     #potentially modify remote line
@@ -111,9 +124,13 @@ if __name__ == '__main__':
         #write to json 
         write(dic, t)
         
-        print('time:{:4d}\tnick:{:>4}\troll:{:>4}\tyaw:{:>4}'.format(
-            int((t - int(t)) * 1000), dic['pitch'], dic['roll'], dic['yaw']),
-            file=sys.stdout, flush=True)
+        print('time:{:4d}\tpitch:{:>4}\tbattery:{:>4}\tyaw:{:>4}\tmid:{:>4}\tx:{:>4}\ty:{:>4}\tz:{:>4}\t'
+          'mpry:{:>4}\tvgx:{:>4}\tvgy:{:>4}\tvgz:{:>4}\ttempl:{:>4}\ttemph:{:>4}\ttof:{:>4}\th:{:>4}\t'
+          'baro:{:>4}\ttime_field:{:>4}\tagx:{:>4}\tagy:{:>4}\tagz:{:>4}'.format(
+          int((t - int(t)) * 1000), dic['pitch'], dic['bat'], dic['yaw'], dic['mid'], dic['x'], dic['y'], dic['z'],
+          dic['mpry'], dic['vgx'], dic['vgy'], dic['vgz'], dic['templ'], dic['temph'], dic['tof'], dic['h'],
+          dic['baro'], dic['time'], dic['agx'], dic['agy'], dic['agz']),
+          file=sys.stdout, flush=True)
 
 
         #dictionary = dic
