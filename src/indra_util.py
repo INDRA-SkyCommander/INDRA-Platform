@@ -6,6 +6,8 @@ import scan
 import modulescan
 import exploit
 import pull
+import json
+import os
 
 current_target = ""
 target_info_list = []
@@ -49,27 +51,53 @@ def target_info(root, target_label, target_info_label, current_target):
     global target_info_list
     target_info_list = get_target_info(current_target)
 
-    drone_info_list = pull.get_drone_info()
-
-
     target_label.configure(text=f"Target: {current_target}")
     target_label.update()
     
-    target_info_label.configure(text=f"Quality: {target_info_list[2]}\n"\
-                                    f"Channel: {target_info_list[3]}\n"\
-                                    f"Signal Level: {target_info_list[4]}\n"\
-                                    f"Encryption: {target_info_list[5]}")
-    #if in there 
-    if "Batt" in {target_info_label}: 
+    test = (f"{current_target}")
+    """ if("TELL" in {current_target}): 
+        print("heraoisdj foiajd foi;awe fo;iawj eo;faij we;ofiajwef") """
+
+
+    """ if(pull.dictionary is "n"): 
         target_info_label.configure(text=f"Quality: {target_info_list[2]}\n"\
-                                    f"Channel: {target_info_list[3]}\n"\
-                                    f"Signal Level: {target_info_list[4]}\n"\
-                                    f"Encryption: {target_info_list[5]}\n"\
-                                    
-                                    f"Battery: {drone_info_list[0]}\n"\
-                                    f"Temp High: {drone_info_list[1]}\n"\
-                                    f"Time of flight: {drone_info_list[2]}\n"\
-                                    )
+                                f"Channel: {target_info_list[3]}\n"\
+                                f"Signal Level: {target_info_list[4]}\n"\
+                                f"Encryption: {target_info_list[5]}\n"\
+                            
+
+                                f"Battery: Null\n"\
+                                f"Temp High: Null\n"\
+                                f"Time of flight: Null\n"\
+                                )
+    else:  """
+
+
+    #opening json file: 
+    file_path = os.path.dirname(__file__) +"/../src/drone_data.json"
+    entry = "meh"
+    battery = "NULL"
+    tof = "NULL"
+    temph = "NULL"
+    if("TELLO" in test): 
+        with open(file_path, "r") as file: 
+            entry = json.load(file)
+        battery = entry["battery"]
+        tof = entry["tof"]
+        temph = entry["temph"]
+
+    
+
+    target_info_label.configure(text=f"Quality: {target_info_list[2]}\n"\
+                                f"Channel: {target_info_list[3]}\n"\
+                                f"Signal Level: {target_info_list[4]}\n"\
+                                f"Encryption: {target_info_list[5]}\n"\
+                            
+
+                                f"Battery: {battery}\n"\
+                                f"Temp High: {temph}\n"\
+                                f"Time of flight:{tof}\n"\
+                                ) 
 
     #get the information from drone if network is drone 
 

@@ -49,12 +49,15 @@ def collect_state(state):
             except: pass    
     return dic
 
-def getData(): 
-    print (dictionary['bat'])
+def getBat(): 
+    return (dictionary['bat'])
 
-#return data 
-def get_drone_info(): 
-    return [dictionary['bat'], dictionary['temph'], dictionary['tof']]
+def getTH(): 
+    return (dictionary['temph'])
+
+def getTof(): 
+    return (dictionary['tof'])
+
 
 if __name__ == '__main__':
 
@@ -64,7 +67,7 @@ if __name__ == '__main__':
     #write to json file 
     def write(dic, time): 
         data = {
-        int((t - int(t)) * 1000): {
+        
             "battery": dic['bat'],
             "mid": dic.get('mid'),
             "x": dic.get('x'),
@@ -86,11 +89,10 @@ if __name__ == '__main__':
             "agx": dic.get('agx'),
             "agy": dic.get('agy'),
             "agz": dic.get('agz'),
-        }
     }
         
 
-        with open('drone_data.json', 'a') as data_file: 
+        with open('drone_data.json', 'w') as data_file: 
             json.dump(data, data_file, indent = 5)
 
     #potentially modify remote line
@@ -124,7 +126,9 @@ if __name__ == '__main__':
             time.sleep(0.5)
             out = None
         
+        
     #decode and write 
+    startTime = time.time()
     while out:
         buffer = socket.recv(BUFFER_SIZE)
         out = buffer.decode('latin-1')
@@ -132,17 +136,19 @@ if __name__ == '__main__':
         dic = collect_state(out)
         dictionary = dic
         t = time.time()
-    
-        #write to json 
+        #do for one
+        if(t - startTime > 2): 
+            break
+
         write(dic, t)
         
-        """ print('time:{:4d}\tpitch:{:>4}\tbattery:{:>4}\tyaw:{:>4}\tmid:{:>4}\tx:{:>4}\ty:{:>4}\tz:{:>4}\t'
+        print('time:{:4d}\tpitch:{:>4}\tbattery:{:>4}\tyaw:{:>4}\tmid:{:>4}\tx:{:>4}\ty:{:>4}\tz:{:>4}\t'
           'mpry:{:>4}\tvgx:{:>4}\tvgy:{:>4}\tvgz:{:>4}\ttempl:{:>4}\ttemph:{:>4}\ttof:{:>4}\th:{:>4}\t'
           'baro:{:>4}\ttime_field:{:>4}\tagx:{:>4}\tagy:{:>4}\tagz:{:>4}'.format(
           int((t - int(t)) * 1000), dic['pitch'], dic['bat'], dic['yaw'], dic['mid'], dic['x'], dic['y'], dic['z'],
           dic['mpry'], dic['vgx'], dic['vgy'], dic['vgz'], dic['templ'], dic['temph'], dic['tof'], dic['h'],
           dic['baro'], dic['time'], dic['agx'], dic['agy'], dic['agz']),
-          file=sys.stdout, flush=True) """
+          file=sys.stdout, flush=True)
 
 
         #dictionary = dic

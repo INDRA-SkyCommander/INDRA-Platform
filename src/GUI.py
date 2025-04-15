@@ -487,23 +487,18 @@ class MainGUI:
                              font=("default", 12),
                              foreground=colors.WHITE)
         self.Target_label.grid(row=1, column=0, pady=5, padx=[30,30], ipadx=50, sticky="nw")
-        
-        self.Target_info_label = ttk.Label(center_frame,
-                                           text="Quality: \n"\
-                                                "Channel: \n"\
-                                                "Signal Level: \n"\
-                                                "Encryption: ")
+
+        """ print(f"Data: {self.current_target}") """
         #if it's a Tello connection 
-        if("TELL" in self.current_target.get()): 
-            self.Target_info_label = ttk.Label(center_frame,
-                                           text="Quality: \n"\
-                                                "Channel: \n"\
-                                                "Signal Level: \n"\
-                                                "Encryption: \n"\
-                                                "Battery: \n"\
-                                                "Temp high: \n"\
-                                                "Time of flight: \n"\
-                                                )
+        self.Target_info_label = ttk.Label(center_frame,
+                                        text="Quality: \n"\
+                                            "Channel: \n"\
+                                            "Signal Level: \n"\
+                                            "Encryption: \n"\
+                                            "Battery: \n"\
+                                            "Temp high: \n"\
+                                            "Time of flight: \n"\
+                                            )
 
         self.Target_info_label.configure(anchor="center",
                                 font=("default", 12),
