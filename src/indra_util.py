@@ -5,6 +5,7 @@ import main
 import scan
 import modulescan
 import exploit
+import pull
 
 current_target = ""
 target_info_list = []
@@ -48,6 +49,8 @@ def target_info(root, target_label, target_info_label, current_target):
     global target_info_list
     target_info_list = get_target_info(current_target)
 
+    drone_info_list = pull.get_drone_info()
+
 
     target_label.configure(text=f"Target: {current_target}")
     target_label.update()
@@ -56,7 +59,21 @@ def target_info(root, target_label, target_info_label, current_target):
                                     f"Channel: {target_info_list[3]}\n"\
                                     f"Signal Level: {target_info_list[4]}\n"\
                                     f"Encryption: {target_info_list[5]}")
-    
+    #if in there 
+    if "Batt" in {target_info_label}: 
+        target_info_label.configure(text=f"Quality: {target_info_list[2]}\n"\
+                                    f"Channel: {target_info_list[3]}\n"\
+                                    f"Signal Level: {target_info_list[4]}\n"\
+                                    f"Encryption: {target_info_list[5]}\n"\
+                                    
+                                    f"Battery: {drone_info_list[0]}\n"\
+                                    f"Temp High: {drone_info_list[1]}\n"\
+                                    f"Time of flight: {drone_info_list[2]}\n"\
+                                    )
+
+    #get the information from drone if network is drone 
+
+
 def get_target_info(cell_name):
     """
         Retrieves target information from scan results

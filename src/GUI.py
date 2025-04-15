@@ -37,6 +37,7 @@ class MainGUI:
     scanningInterface = ''
     autoScanningCooldown = 12
     filter_status = False
+    is_tello = False
     
 
     # workaround for running the same thread multiple times
@@ -220,7 +221,8 @@ class MainGUI:
         def info_button(): 
             def info(): 
                 #call pull
-                subprocess.run(["python3", "src/pull.py"])
+                #subprocess.run(["python3", "src/pull.py"])
+                os.system('python3 src/pull.py')
 
             sub_btn=ttk.Button(menu_frame,text = 'Get info', command = info)
             sub_btn.pack(side = "left")
@@ -491,6 +493,18 @@ class MainGUI:
                                                 "Channel: \n"\
                                                 "Signal Level: \n"\
                                                 "Encryption: ")
+        #if it's a Tello connection 
+        if("TELL" in self.current_target.get()): 
+            self.Target_info_label = ttk.Label(center_frame,
+                                           text="Quality: \n"\
+                                                "Channel: \n"\
+                                                "Signal Level: \n"\
+                                                "Encryption: \n"\
+                                                "Battery: \n"\
+                                                "Temp high: \n"\
+                                                "Time of flight: \n"\
+                                                )
+
         self.Target_info_label.configure(anchor="center",
                                 font=("default", 12),
                                 foreground=colors.WHITE)

@@ -18,10 +18,13 @@
 # - battery level
 # 
 
+#import dependencies 
 import json
 import socket, sys, signal, time
 
 
+
+#size of struc being taken in 
 BUFFER_SIZE = 1024
 #we only need battery, time of flight, 
 STATE = ('mid', 'x', 'y', 'z', 'mpry',
@@ -47,10 +50,16 @@ def collect_state(state):
     return dic
 
 def getData(): 
-    return dictionary['battery'], dictionary['time']
+    print (dictionary['bat'])
 
+#return data 
+def get_drone_info(): 
+    return [dictionary['bat'], dictionary['temph'], dictionary['tof']]
 
 if __name__ == '__main__':
+
+    
+        
 
     #write to json file 
     def write(dic, time): 
@@ -86,10 +95,11 @@ if __name__ == '__main__':
 
     #potentially modify remote line
 
-    #socket magic
+    #socket magic, setup 
     local = ('', 8890)
     remote = ('192.168.10.1', 8889)
     
+    #binds to port to receive data 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     
     socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)    
@@ -98,6 +108,7 @@ if __name__ == '__main__':
 
     out = None    
 
+    #try three times, and if no dice, alert
     attempts = 3
     for i in range(attempts):        
 
@@ -113,24 +124,25 @@ if __name__ == '__main__':
             time.sleep(0.5)
             out = None
         
+    #decode and write 
     while out:
         buffer = socket.recv(BUFFER_SIZE)
         out = buffer.decode('latin-1')
         out = out.replace('\n', '')
         dic = collect_state(out)
+        dictionary = dic
         t = time.time()
     
-
         #write to json 
         write(dic, t)
         
-        print('time:{:4d}\tpitch:{:>4}\tbattery:{:>4}\tyaw:{:>4}\tmid:{:>4}\tx:{:>4}\ty:{:>4}\tz:{:>4}\t'
+        """ print('time:{:4d}\tpitch:{:>4}\tbattery:{:>4}\tyaw:{:>4}\tmid:{:>4}\tx:{:>4}\ty:{:>4}\tz:{:>4}\t'
           'mpry:{:>4}\tvgx:{:>4}\tvgy:{:>4}\tvgz:{:>4}\ttempl:{:>4}\ttemph:{:>4}\ttof:{:>4}\th:{:>4}\t'
           'baro:{:>4}\ttime_field:{:>4}\tagx:{:>4}\tagy:{:>4}\tagz:{:>4}'.format(
           int((t - int(t)) * 1000), dic['pitch'], dic['bat'], dic['yaw'], dic['mid'], dic['x'], dic['y'], dic['z'],
           dic['mpry'], dic['vgx'], dic['vgy'], dic['vgz'], dic['templ'], dic['temph'], dic['tof'], dic['h'],
           dic['baro'], dic['time'], dic['agx'], dic['agy'], dic['agz']),
-          file=sys.stdout, flush=True)
+          file=sys.stdout, flush=True) """
 
 
         #dictionary = dic
