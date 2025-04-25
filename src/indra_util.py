@@ -79,12 +79,18 @@ def target_info(root, target_label, target_info_label, current_target):
     battery = "NULL"
     tof = "NULL"
     temph = "NULL"
+    pitch = "NULL"
+    roll = "NULL"
+    yaw = "NULL"
     if("TELLO" in test): 
         with open(file_path, "r") as file: 
             entry = json.load(file)
         battery = entry["battery"]
         tof = entry["tof"]
         temph = entry["temph"]
+        pitch = entry['pitch']
+        roll = entry['roll']
+        yaw = entry['yaw']
 
     
 
@@ -97,6 +103,10 @@ def target_info(root, target_label, target_info_label, current_target):
                                 f"Battery: {battery}\n"\
                                 f"Temp High: {temph}\n"\
                                 f"Time of flight:{tof}\n"\
+                                
+                                f"Pitch: {pitch}\n"\
+                                f"Roll: {roll}\n"\
+                                f"Yaw:{yaw}\n"\
                                 ) 
 
     #get the information from drone if network is drone 

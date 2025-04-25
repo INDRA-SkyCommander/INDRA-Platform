@@ -136,8 +136,8 @@ if __name__ == '__main__':
         dic = collect_state(out)
         dictionary = dic
         t = time.time()
-        #do for one
-        if(t - startTime > 2): 
+        #doing so it doesn't crash the program, or lag
+        if(t - startTime > 10): 
             break
 
         write(dic, t)

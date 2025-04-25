@@ -224,7 +224,7 @@ class MainGUI:
                 #subprocess.run(["python3", "src/pull.py"])
                 os.system('python3 src/pull.py')
 
-            sub_btn=ttk.Button(menu_frame,text = 'Get info', command = info)
+            sub_btn=ttk.Button(menu_frame,text = 'Refresh Telemetry Data', command = info)
             sub_btn.pack(side = "left")
 
         info_button()
@@ -498,6 +498,9 @@ class MainGUI:
                                             "Battery: \n"\
                                             "Temp high: \n"\
                                             "Time of flight: \n"\
+                                            "Pitch: \n"\
+                                            "Roll: \n"\
+                                            "Yaw: \n"\
                                             )
 
         self.Target_info_label.configure(anchor="center",
