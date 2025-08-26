@@ -374,7 +374,7 @@ class MainGUI:
         MainGUI.toggleScanThread.start()
 
         def videoPlayer():
-            image_folder = "./data/images"  # Adjust this to your image folder path
+            image_folder = "images"  # Adjust this to your image folder path
             self.image_player = ImagePlayer(root, image_folder=image_folder, frame_rate=2)
             self.image_player.stop()
             self.image_player.pack(side="right", fill="both", expand=True, padx=5, pady=5)
@@ -416,7 +416,6 @@ class ImagePlayer(ttk.Frame):
 
     def __init__(self, parent, image_folder, frame_rate=2):
         super().__init__(parent)
-        self.image_folder = image_folder
         self.frame_rate = frame_rate
         self.images = []  # List of all images in the folder
         self.new_images = []  # List of newly added images
@@ -426,12 +425,18 @@ class ImagePlayer(ttk.Frame):
         self.label = ttk.Label(self)
         self.label.pack(expand=True, fill="both")
 
+        current_dir = os.path.dirname(__file__)
+        data_folder = os.path.join(current_dir, "..", "data")
+        self.image_folder = os.path.join(data_folder, self.image_folder)
+        os.makedirs(image_folder, exist_ok=True)
+        
         self._clear_folder()
         self.load_images()
         self.monitor_folder()
-
+        
     def _clear_folder(self):
         """Clears the contents of the image folder."""
+        
         if os.path.exists(self.image_folder):
             for filename in os.listdir(self.image_folder):
                 file_path = os.path.join(self.image_folder, filename)
