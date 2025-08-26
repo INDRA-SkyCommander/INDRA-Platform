@@ -35,14 +35,22 @@ def scan(interface):
     
     scan_results_file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
 
-    raw_file_path=os.path.dirname(__file__) + "/../data/raw_output.txt"
+    current_dir = os.path.dirname(__file__)
+    data_folder = os.path.join(current_dir, "..", "data")
+    os.makedirs(data_folder, exist_ok=True)
+    raw_output_path = os.path.join(data_folder, "raw_output.txt")
 
     # if new results are blank, don't overwrite previous results with blank results
-    if os.stat(raw_file_path).st_size == 0:
-        GUI.MainGUI.scanning = False
-        return
+    if os.path.exists(raw_output_path):
+        file_size = os.stat(raw_output_path).st_size
+        
+        if file_size == 0:
+            GUI.MainGUI.scanning = False
+            with open(raw_output_path, 'w') as f:
+                f.write("")
+            return
 
-    with open(raw_file_path,"r") as f:
+    with open(raw_output_path,"r") as f:
        cell_list = get_cells(f.read())
 
     #Writes a new file that outputs the names and addresses of the scanned targets
@@ -76,7 +84,6 @@ def scan(interface):
         GUI.MainGUI.scanning = False
         
         return cell_info
-
 
 def get_scan_results(root, list_box):
     """
