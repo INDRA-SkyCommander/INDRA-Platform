@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import tkinter
 from tkinter import END, StringVar, Tk, TkVersion, ttk
+import sys
 import sv_ttk
 from ctypes import *
 import colors as colors
