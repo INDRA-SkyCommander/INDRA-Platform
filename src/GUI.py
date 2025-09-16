@@ -374,7 +374,6 @@ class MainGUI:
         MainGUI.toggleScanThread.start()
 
         def videoPlayer():
-            import os
             image_folder = os.path.join(os.path.dirname(__file__), "..", "data", "images")  # Adjusted to avoid FileNotFoundError
             self.image_player = ImagePlayer(root, image_folder=image_folder, frame_rate=2)
             self.image_player.stop()
