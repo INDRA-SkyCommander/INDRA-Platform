@@ -375,7 +375,7 @@ class MainGUI:
         MainGUI.toggleScanThread.start()
 
         def videoPlayer():
-            image_folder = "../data/images"  # Adjust this to your image folder path
+            image_folder = os.path.join(os.path.dirname(__file__), "..", "data", "images")
             self.image_player = ImagePlayer(root, image_folder=image_folder, frame_rate=2)
             self.image_player.stop()
             self.image_player.pack(side="right", fill="both", expand=True, padx=5, pady=5)
