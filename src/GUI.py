@@ -13,7 +13,7 @@ import indra_util as indra_util
 import threading
 import time
 from PIL import Image, ImageTk
-
+import cmdinjector as cmdinjector
 
 class MainGUI:
        
