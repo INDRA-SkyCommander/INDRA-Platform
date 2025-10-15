@@ -105,7 +105,8 @@ def get_scan_results(root, list_box):
         list_box.delete(0, END)
         with open(file_path, "r") as f:        
             for line in f:
-                list_box.insert(END, line)
+                if("TELLO" in line):
+                    list_box.insert(END, line)
             GUI.MainGUI.host_list_update = False
     
 
@@ -116,3 +117,5 @@ def get_scan_results(root, list_box):
     root.after(1000, lambda: get_scan_results(root, list_box))
 
     return results
+
+
