@@ -1,9 +1,6 @@
 from tkinter import ACTIVE
-import GUI
-import main
-import scan
-import modulescan
-import exploit
+from src.gui import MainGUI
+from src.utils import module_setup, scan
 
 current_target = ""
 target_info_list = []
@@ -81,16 +78,14 @@ def toggle_scan_executor(root, interval):
             root: root window
             interval: time interval for checking the toggle and executing the scan
     """
-    interval = GUI.MainGUI.interval
-    if (GUI.MainGUI.switch):
-        root.after(interval, lambda: scan.scan())
+    interval = MainGUI.interval
+    if (MainGUI.switch):
+        root.after(interval, lambda: scan.scan)
     root.after(interval, lambda: toggle_scan_executor(root, interval))
-    
- 
-def module_scan(root, module_dropdown):
-      module_list = modulescan.get_modules()
-      module_dropdown['values'] = module_list
 
+def module_scan(root, module_dropdown):
+      module_list = module_setup()
+      module_dropdown['values'] = module_list
     
 def updateables(root, **kwargs):
     """

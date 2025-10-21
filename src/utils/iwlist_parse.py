@@ -4,6 +4,7 @@
 
 import sys
 import subprocess
+from typing import List, Dict, Optional
 
 interface = "wlan0"
 
@@ -59,7 +60,15 @@ def get_name(cell):
     Returns:
         str: The ESSID (network name) of the wireless network.
     """
-    return matching_line(cell, "ESSID:")[1:-1]
+    m = matching_line(cell, "ESSID:")
+    if not m:
+        return "N/A"
+    
+    name = m.strip()
+    if len(name) >= 2 and name[0] == '"' and name [-1] == '"':
+        return name[1:-1]
+    
+    return name
 
 
 def get_quality(cell):
@@ -75,9 +84,19 @@ def get_quality(cell):
     Returns:
         str: A formatted string representing the quality of the Wi-Fi network as a percentage.
     """
-    quality = matching_line(cell, "Quality=").split()[0].split("/")
-    return str(int(round(float(quality[0]) / float(quality[1]) * 100))).rjust(3) + " %"
-
+    qline = matching_line(cell, "Quality=")
+    if not qline:
+        return "N/A"
+    
+    try:
+        parts = qline.split()
+        frac = parts[0].split("/")
+        numerator = float(frac[0])
+        denominator = float(frac[1])
+        percent = int(round(numerator / denominator * 100))
+        return str(percent).rjust(3) + " %"
+    except Exception:
+        return "N/A"
 
 def get_channel(cell):
     """
@@ -98,7 +117,10 @@ def get_channel(cell):
     # so we first must take the line and split it by the spaces, but only once
     # then we ONLY want the channel number, so we remove everything around it, and then return
     channelfinal = ""
+
     frequency_line = matching_line(cell, "Frequency:")
+    if not frequency_line:
+        return "N/A"
 
     # we have to first check if there is a channel at all, because some devices don't have one
     if not "Channel" in frequency_line:
@@ -124,7 +146,18 @@ def get_signal_level(cell):
     """
     # Signal level is on same line as Quality data so a bit of ugly
     # hacking needed...
-    return matching_line(cell, "Quality=").split("Signal level=")[1]
+
+    qline = matching_line(cell, "Quality=")
+    if not qline:
+        return "N/A"
+    
+    if "Signal level" in qline:
+        try:
+            return qline.split("Signal level=")[1]
+        except Exception:
+            return "N/A"
+    else:
+        return "N/A"
 
 
 def get_encryption(cell):

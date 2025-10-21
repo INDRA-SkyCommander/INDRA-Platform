@@ -1,5 +1,3 @@
-
-
 WHITE = "#FFFFFF"
 BLACK = "#000000"
 GREY = "#2F332E"
@@ -10,6 +8,3 @@ GREEN = "#263328"
 ORANGE = "#663011"
 LIGHT_ORANGE = "#99552e"
 RED = "#330000"
-    
-    
-    

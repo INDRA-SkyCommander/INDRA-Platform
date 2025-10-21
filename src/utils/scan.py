@@ -1,8 +1,6 @@
 import os
-import random
 from tkinter import END
-
-import GUI
+from src.gui import MainGUI
 from iwlist_parse import *
 
 cell_info = {}
@@ -29,7 +27,7 @@ def scan(interface):
 
     os.system(f'iwlist {interface} scan > data/raw_output.txt')
 
-    GUI.MainGUI.host_list_update = True
+    MainGUI.host_list_update = True
 
     cell_list = [[]]
     
@@ -45,7 +43,7 @@ def scan(interface):
         file_size = os.stat(raw_output_path).st_size
         
         if file_size == 0:
-            GUI.MainGUI.scanning = False
+            MainGUI.scanning = False
             with open(raw_output_path, 'w') as f:
                 f.write("")
             return
@@ -67,7 +65,7 @@ def scan(interface):
                 
             target_address = get_address(cell)
                 
-            target_name = strname + " - " + target_address
+            target_name = f"{strname} - {target_address}"
             
             
             print(f"Adding {target_name} to dictionary")
@@ -81,7 +79,7 @@ def scan(interface):
             f.write(target_name)
             f.write("\n")
         
-        GUI.MainGUI.scanning = False
+        MainGUI.scanning = False
         
         return cell_info
 
@@ -101,15 +99,14 @@ def get_scan_results(root, list_box):
     
     results = ""
     
-    if GUI.MainGUI.host_list_update == True:
+    if MainGUI.host_list_update == True:
         list_box.delete(0, END)
         with open(file_path, "r") as f:        
             for line in f:
                 if("TELLO" in line):
                     list_box.insert(END, line)
-            GUI.MainGUI.host_list_update = False
+            MainGUI.host_list_update = False
     
-
     # prevent console from constantly printing whitespace
     if results != '':
         print(results)
