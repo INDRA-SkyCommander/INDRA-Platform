@@ -24,14 +24,14 @@ import shutil
 
 # Tkinter
 import tkinter as tk
-from tkinter import END, StringVar, ttk
+from tkinter import END, ACTIVE, StringVar, ttk
 
 # Third-party
 from PIL import Image, ImageTk
 import sv_ttk
 
 # Local Project Utils
-from src.utils import sudo_exec, module_setup, colors, scan, run_exploit, indra_util
+from utils import sudo_exec, module_setup, scan, colors
 
 # ===============================================================
 # CLASS: MainGUI
@@ -49,7 +49,7 @@ class MainGUI:
     # Class-Level Variables
     # ---------------------------------------------------------------
     module_options = []
-    host_list_update = True
+    #host_list_update = True
     selected_host = None
     switch = False
 
@@ -58,54 +58,56 @@ class MainGUI:
     packets = 10000
     scan_toggle = False
     is_scanning = False
-    scanning = False
     scanning_interface = ''
     auto_scanning_cooldown = 12  # seconds between auto-scans
+    target_info = {}
 
     # Add module-required variables to the options list
     module_options.append(packets)
 
     # Threaded Scan helpers
-    @staticmethod
-    def run_scan_once():
+    def run_scan_once(self):
         """
         Run a scan on the selected network interface in a new thread.
         Ensures that only one scan runs at a time.
         """
-        MainGUI.is_scanning = True
+        self.is_scanning = True
 
         # Single scan
         def _scan_and_exit():
             try:
                 # Implement and import scan
-                scan.scan(MainGUI.scanning_interface)
+                self.target_info = scan(self.scanning_interface)
             finally:
-                MainGUI.is_scanning = False
+                self.get_scan_results()
+                self.is_scanning = False
 
         t = threading.Thread(target=_scan_and_exit)
         t.start()
 
-    @staticmethod
-    def auto_scan_loop():
+    def auto_scan_loop(self):
         """
         Continuously runs scans in a loop with a cooldown period to avoid
         overwhelming the WiFi adapter. This function runs recursively in a thread.
         """
         while True:
-            if MainGUI.scan_toggle and not MainGUI.is_scanning:
-                MainGUI.run_scan_once()
-            time.sleep(MainGUI.auto_scanning_cooldown)
+            if self.scan_toggle and not self.is_scanning:
+                self.run_scan_once()
+            time.sleep(self.auto_scanning_cooldown)
 
-    @staticmethod
-    def get_module_options():
-        """
-        Returns a list containing options to be outputted to the module_input_data.json file
+    def get_scan_results(self):
+            """
+            This method is responsible for updating the list of all hosts shown in the GUI after scanning.
+            """
 
-        Returns:
-            list: List of option variables to be outputted to the module_input_data.json file
-        """
-        return MainGUI.module_options 
-    
+            file_path = os.path.dirname(__file__) + "../../data/scan_results.txt"
+            
+            self.host_list_data_box.delete(0, END)
+            with open(file_path, "r") as f:
+                for line in f:
+                    if ("TELLO" in line):
+                        self.host_list_data_box.insert(END, line)
+
     # GUI Initialization 
     def __init__(self, root: tk.Tk):
         """
@@ -125,10 +127,9 @@ class MainGUI:
         sv_ttk.set_theme("dark")
 
         # Variable Declaration
-        self.host_list_var = StringVar()
         self.terminal_output_var = StringVar()
         self.terminal_output_var.set("")
-        self.current_target = StringVar(root, name="current_target")
+        self.current_target = StringVar()
 
         self.interval = MainGUI.interval
         self.packets = MainGUI.packets
@@ -154,7 +155,7 @@ class MainGUI:
         label_style.configure("label.TLabel", background=colors.SLATE, foreground=colors.WHITE)
 
         # Start the background continuous-scan thread as a daemon
-        self.toggle_scan_thread = threading.Thread(target=MainGUI.auto_scan_loop, daemon=True)
+        self.toggle_scan_thread = threading.Thread(target=self.auto_scan_loop, daemon=True)
         self.toggle_scan_thread.start()
 
         # TOP BOX: Menu and Control Bar
@@ -213,7 +214,7 @@ class MainGUI:
             MainGUI.scanning_interface = self.interface_dropdown.get()
 
         self.selected_interface = StringVar(root)
-        self.selected_interface.set('wlan0')
+        self.selected_interface.set('interfaces')
         self.interface_dropdown = ttk.Combobox(
             menu_frame,
             values=get_interfaces(),
@@ -271,6 +272,87 @@ class MainGUI:
         options_dropdown.pack(side="left", padx=5)
 
         # Exploit Button
+
+        def get_target_info(target_name):
+            """
+            Retrieves target information from scan results
+            """
+            
+            info_dict = self.target_info
+
+            if target_name.strip() in info_dict:
+                return info_dict[target_name.strip()]
+            else:
+                return ['','','','','']
+            
+        def update_target():
+            """
+            Updates information based on the selected target
+
+            Args:
+                list_box: listbox containing target items
+                target_label: label to display target name
+                target_info_label: label to display target info
+            """
+
+            self.current_target = self.host_list_data_box.get(ACTIVE)
+
+            target_info_list = get_target_info(self.current_target.get().strip())
+
+            self.target_label.configure(text=f"Target: {self.current_target}")
+            self.target_label.update()
+
+            self.target_info_label.configure(text=f"MAC: {target_info_list[1]}\n"\
+                                                  f"Quality: {target_info_list[2]}\n"\
+                                                  f"Channel: {target_info_list[3]}\n"\
+                                                  f"Signal Level: {target_info_list[4]}\n"\
+                                                  f"Encryption: {target_info_list[5]}")
+            self.target_info_label.update()
+
+            return
+
+        def run_exploit(gui_selected_module) -> int:
+            """
+            Will write current state of software and selected target to module_input_data.json
+
+            After writing, will run the selected module with the parameters set in module_input_data.json
+            """
+
+            if self.is_scanning:
+                print("Stop scanning before launching a module!")
+                return -1
+            
+            if gui_selected_module == "Modules":
+                print("Please select a module before hitting \"exploit\"!")
+                return -1
+            
+            print(f"Running module: {gui_selected_module}")
+
+            module_input_file_path = os.path.dirname(__file__) + "/../data/module_input_data.json"
+
+            with open(module_input_file_path, "w") as f:
+                # Capture current target's name and info
+                update_target()
+
+                target_info = get_target_info(self.current_target.get())
+                options_info = self.module_options
+
+                f.write(self.current_target.get())
+
+                for item in target_info:
+                    f.write(str(item).strip())
+                    f.write("\n")
+                f.write("\n")
+
+                # No clue what writing 10000 to the file does, but it's in the original code
+                for item in options_info:
+                    f.write(str(item).strip())
+                    f.write("\n")
+            
+            module_return_code = subprocess.call(['/usr/bin/python3.11', f'../../modules/{gui_selected_module}.py'])
+
+            return module_return_code
+
         def run_exploit_thread():
             """
             Runs the selected exploit module in a background thread.
@@ -307,6 +389,7 @@ class MainGUI:
         self.inner_side_box.grid(row=1, column=0, pady=5, padx=(30, 30), sticky="n")
 
         # Listbox displaying discovered hosts
+
         self.host_list_data_box = tk.Listbox(
             self.inner_side_box,
             width=30,
@@ -390,18 +473,6 @@ class MainGUI:
         )
         terminal_output_label.configure(anchor="center")
         terminal_output_label.grid(row=0, column=0, pady=5, padx=(30, 30), ipadx=30, sticky="n")
-
-        # INITIALIZATION OF UTILITIES AND THREADS
-        indra_util.updateables(
-            root,
-            terminal_output_var=self.terminal_output_var,
-            host_list_data_box=self.host_list_data_box,
-            current_target=self.current_target,
-            target_label=self.target_label,
-            target_info_label=self.target_info_label,
-            interval=self.interval,
-            module_dropdown=self.modules_dropdown
-        )
 
         # RIGHT BOX: Image Player (Video Feed)
         image_folder = os.path.join(os.path.dirname(__file__), "..", "data", "images")

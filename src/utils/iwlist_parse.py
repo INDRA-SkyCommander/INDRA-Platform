@@ -2,9 +2,9 @@
 # Hugo Chargois - 17 jan. 2010 - v.0.1
 # Parses the output of iwlist scan into a table
 
-import sys
-import subprocess
-from typing import List, Dict, Optional
+# import sys
+# import subprocess
+# from typing import List, Dict, Optional
 
 interface = "wlan0"
 
