@@ -28,7 +28,7 @@ import os
 import numpy as np
 import subprocess as sp
 import PIL.Image as pil
-from inotify.adapters import Inotify
+import inotify.adapters
 
 def split(value, size=2):
     return tuple(value[0 + i:size + i] for i in range(0, len(value), size))
@@ -105,8 +105,8 @@ if __name__ == '__main__':
     log = sys.argv[1]
     image_folder = sys.argv[2]
 
-    inotify = Inotify()
-    inotify.add_watch(log)
+    i = inotify.adapters.Inotify()
+    i.add_watch(log)
 
     with open(log, 'r') as file:
         file.seek(0, os.SEEK_END)  # Move the pointer to the end of the file

@@ -277,13 +277,15 @@ class MainGUI:
             """
             Retrieves target information from scan results
             """
+
+            #TODO: There is still an unresolved issue with get_target_info returning less than 6 elements
             
             info_dict = self.target_info
 
             if target_name.strip() in info_dict:
                 return info_dict[target_name.strip()]
             else:
-                return ['','','','','']
+                return ['','','','','','']
             
         def update_target():
             """
@@ -296,8 +298,8 @@ class MainGUI:
             """
 
             self.current_target = self.host_list_data_box.get(ACTIVE)
-
-            target_info_list = get_target_info(self.current_target.get().strip())
+            print(self.current_target)
+            target_info_list = get_target_info(self.current_target) # Had to remove every .get() because it was throwing error
 
             self.target_label.configure(text=f"Target: {self.current_target}")
             self.target_label.update()
@@ -328,16 +330,16 @@ class MainGUI:
             
             print(f"Running module: {gui_selected_module}")
 
-            module_input_file_path = os.path.dirname(__file__) + "/../data/module_input_data.json"
+            module_input_file_path = os.path.dirname(__file__) + "/../../data/module_input_data.json"
 
             with open(module_input_file_path, "w") as f:
                 # Capture current target's name and info
                 update_target()
 
-                target_info = get_target_info(self.current_target.get())
+                target_info = get_target_info(self.current_target)
                 options_info = self.module_options
 
-                f.write(self.current_target.get())
+                f.write(self.current_target)
 
                 for item in target_info:
                     f.write(str(item).strip())
@@ -349,7 +351,8 @@ class MainGUI:
                     f.write(str(item).strip())
                     f.write("\n")
             
-            module_return_code = subprocess.call(['/usr/bin/python3.11', f'../../modules/{gui_selected_module}.py'])
+            module_file_path = os.path.dirname(__file__) + f'/../../modules/{gui_selected_module}/{gui_selected_module}.py'
+            module_return_code = subprocess.call(['/usr/bin/python3.11', module_file_path])
 
             return module_return_code
 
@@ -365,7 +368,7 @@ class MainGUI:
         exploit_button = tk.Button(
             menu_frame,
             text="EXPLOIT",
-            command=lambda: run_exploit_thread,
+            command=lambda: run_exploit_thread(),
             bg=colors.ORANGE,
             relief="flat",
             activebackground=colors.ORANGE,
