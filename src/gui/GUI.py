@@ -100,7 +100,7 @@ class MainGUI:
             This method is responsible for updating the list of all hosts shown in the GUI after scanning.
             """
 
-            file_path = os.path.dirname(__file__) + "../../data/scan_results.txt"
+            file_path = os.path.dirname(__file__) + "/../../data/scan_results.txt"
             
             self.host_list_data_box.delete(0, END)
             with open(file_path, "r") as f:
@@ -182,7 +182,7 @@ class MainGUI:
         self.toggle_scan_button = tk.Button(
             menu_frame,
             text="Toggle Scan",
-            command=lambda: toggle_scan,
+            command=lambda: toggle_scan(),
             relief="flat",
             bg=colors.TKINTER_SLATE,
             justify="center",
@@ -194,7 +194,7 @@ class MainGUI:
         self.scan_button = ttk.Button(
             menu_frame,
             text="Scan",
-            command=lambda: MainGUI.run_scan_once,
+            command=lambda: self.run_scan_once(),
             style="button.TButton"
         )
         self.scan_button.pack(side="left")

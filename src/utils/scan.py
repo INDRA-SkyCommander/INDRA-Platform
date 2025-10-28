@@ -20,13 +20,9 @@ def scan(interface="wlan0"):
 
     print("Beep boop. Scanning...")
 
-    os.system(f'iwlist {interface} scan > ../../data/raw_output.txt')
-
-    #MainGUI.host_list_update = True
     cell_list = [[]]
     global cell_info
     
-            
     current_dir = os.path.dirname(__file__)
     data_folder = os.path.join(current_dir, "..", "..", "data")
     os.makedirs(data_folder, exist_ok=True)
@@ -34,6 +30,9 @@ def scan(interface="wlan0"):
     raw_output_path = os.path.join(data_folder, "raw_output.txt")
     scan_results_file_path = os.path.join(data_folder, "scan_results.txt")
 
+    # run scan
+    os.system(f'iwlist {interface} scan > {raw_output_path}')
+    
     # if new results are blank, don't overwrite previous results with blank results
     if os.path.exists(raw_output_path):
         file_size = os.stat(raw_output_path).st_size
