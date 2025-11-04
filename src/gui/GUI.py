@@ -66,6 +66,9 @@ class MainGUI:
 	# Add module-required variables to the options list
 	module_options.append(packets)
 
+	# Filter variables
+	tello_filter = False
+
 	# Threaded Scan helpers
 	def run_scan_once(self):
 		"""
@@ -108,6 +111,9 @@ class MainGUI:
 			try:
 				with open(file_path, "r") as f:
 					for line in f:
+						if(tello_filter == False):
+							self.host_list_data_box.insert(END, line)
+							continue
 						if ("TELLO" in line):
 							self.host_list_data_box.insert(END, line)
 			except FileNotFoundError:
@@ -174,6 +180,8 @@ class MainGUI:
 		self.packets = MainGUI.packets
 		self.scan_toggle = False
 
+		self.tello_filter = MainGUI.tello_filter
+
 		# Styling
 		frame_style = ttk.Style()
 		frame_style.configure("box.TFrame", background=colors.LIGHT_GREY)
@@ -187,6 +195,9 @@ class MainGUI:
 
 		exploit_button_style = ttk.Style()
 		exploit_button_style.configure("exploit_button.TButton", foreground=colors.ORANGE)
+
+		filter_button_style = ttk.Style()
+		filter_button_style.configure("filter_button.TButton", foreground = "YELLOW")
 
 		dropdown_style = ttk.Style()
 		dropdown_style.configure("dropdown.TOptionsMenu", background=colors.SLATE)
@@ -467,6 +478,25 @@ class MainGUI:
 			relief="flat"
 		)
 		self.host_list_data_box.grid(row=0, column=0, pady=5, padx=(30, 30), ipadx=30, sticky="n")
+
+		# LEFT BOX: Filter Button
+
+		# Filter Button
+		#
+		# WORK IN PROGRESS
+		#
+		
+		def filterThread():
+			self.tello_filter = not self.tello_filter
+			print(self.tello_filter)
+
+		filter_button = ttk.Button(self.side_box,
+								text="Filter",
+								command= filterThread,
+								style="filter_button.TButton")
+		filter_button.grid(row=0, column=0, sticky = "ne", padx = 30, pady = 3)
+
+
 
 		# CENTER BOX: Target Information and Options
 		self.center_box = ttk.Frame(root, style="box.TFrame")
