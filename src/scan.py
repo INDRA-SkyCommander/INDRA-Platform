@@ -103,10 +103,15 @@ def get_scan_results(root, list_box):
     
     if GUI.MainGUI.host_list_update == True:
         list_box.delete(0, END)
-        with open(file_path, "r") as f:        
+        with open(file_path, "r") as f:
+            scanFilter = False    
             for line in f:
-                list_box.insert(END, line)
-            GUI.MainGUI.host_list_update = False
+                if not scanFilter:
+                    list_box.insert(END, line)
+                    continue
+                if "TELLO" in line:
+                    list_box.insert(END, line)
+                GUI.MainGUI.host_list_update = False
     
 
     # prevent console from constantly printing whitespace

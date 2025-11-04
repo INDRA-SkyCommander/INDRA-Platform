@@ -29,12 +29,15 @@ class MainGUI:
     isScanning = False
     scanningInterface = ''
     autoScanningCooldown = 12
+    tello_filter = False
+
 
     # workaround for running the same thread multiple times
     def runScanThread():
         MainGUI.isScanning = True
         scanThread = threading.Thread(target=scan.scan, args=(MainGUI.scanningInterface,))
         scanThread.start()
+        
     
     # scan over and over. utilize cooldown timer to prevent scanning overlap
     # anything less than a 10 sec cooldown is way too chaotic and overwhelms the usb wifi
@@ -66,6 +69,7 @@ class MainGUI:
         root.update_idletasks()
         # root.grid_columnconfigure(0, weight=1)
         sv_ttk.set_theme("dark")
+        self.tello_filter = False
         
         # change the Icon in the title bar
         # root.iconbitmap(os.path.dirname(__file__) + "/../media/high_res_icon.ico")
@@ -97,6 +101,11 @@ class MainGUI:
         
         exploit_button_style = ttk.Style()
         exploit_button_style.configure("exploit_button.TButton", foreground=colors.ORANGE)
+        
+        filter_button_style = ttk.Style()
+        filter_button_style.configure("filter_button.TButton", foreground = "YELLOW")
+        
+
         
         dropdown_style = ttk.Style()
         dropdown_style.configure("dropdown.TOptionsMenu", background=colors.SLATE)
@@ -261,6 +270,22 @@ class MainGUI:
         self.inner_side_box = ttk.Frame(self.side_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
         self.inner_side_box.grid(row=1, column=0, pady=5, padx=[30,30], sticky="n")   
         
+        def filterThread():
+        	self.tello_filter = not self.tello_filter
+        	print(self.tello_filter)
+        
+        # Filter Button
+        #
+        # WORK IN PROGRESS
+        #
+        
+        filter_button = ttk.Button(self.side_box,
+                                text="Filter",
+                                command= filterThread,
+                                style="filter_button.TButton")
+        filter_button.grid(row=0, column=0, sticky = "ne", padx = 30, pady = 3)
+        
+        
         # list box of IPs
         self.host_list_data_box = tkinter.Listbox(self.inner_side_box, width=30, height=30)
         self.host_list_data_box.configure(justify="left",
@@ -274,6 +299,7 @@ class MainGUI:
                                      selectmode="single",
                                      relief="flat",)
         self.host_list_data_box.grid(row=0, column=0, pady=5, padx=[30,30], ipadx=30, sticky="n")
+       
         
         # END LEFT BOX ----------------------------------------------------------
         
