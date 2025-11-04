@@ -18,8 +18,6 @@ def scan(interface="wlan0"):
         The name of the cell, the MAC address, the quality, the channel, the signal level, and the encryption type. This is used in the GUI later to list the info of every host.
     """
 
-    print("Beep boop. Scanning...")
-
     cell_list = [[]]
     global cell_info
     
@@ -70,37 +68,3 @@ def scan(interface="wlan0"):
             f.write(target_name + "\n")
             
         return cell_info
-
-# def get_scan_results(root, list_box):
-#     """
-#     This method is responsible for updating the list of hosts on the GUI itself.
-
-#     Args: 
-#         root: root window
-#         list_box: A list on the GUI that is meant for displaying the scanned hosts
-
-#     Returns
-#         results (str): Returns a list of hosts from the scan results file, which contains the SSID and MAC address of every available host
-
-#     """
-#     file_path=os.path.dirname(__file__) + "/../data/scan_results.txt"
-    
-#     results = ""
-    
-#     if MainGUI.host_list_update == True:
-#         list_box.delete(0, END)
-#         with open(file_path, "r") as f:        
-#             for line in f:
-#                 if("TELLO" in line):
-#                     list_box.insert(END, line)
-#             MainGUI.host_list_update = False
-    
-#     # prevent console from constantly printing whitespace
-#     if results != '':
-#         print(results)
-
-#     root.after(1000, lambda: get_scan_results(root, list_box))
-
-#     return results
-
-

@@ -21,6 +21,7 @@ import time
 import threading
 import subprocess
 import shutil
+import json
 
 # Tkinter
 import tkinter as tk
@@ -73,14 +74,15 @@ class MainGUI:
         """
         self.is_scanning = True
 
+        self.log("Beep boop. Scanning...")
+        
         # Single scan
         def _scan_and_exit():
             try:
                 # Implement and import scan
                 self.target_info = scan(self.scanning_interface)
             finally:
-                self.get_scan_results()
-                self.is_scanning = False
+                self.root.after(0, self.on_scan_complete)
 
         t = threading.Thread(target=_scan_and_exit)
         t.start()
@@ -100,14 +102,53 @@ class MainGUI:
             This method is responsible for updating the list of all hosts shown in the GUI after scanning.
             """
 
-            file_path = os.path.dirname(__file__) + "/../../data/scan_results.txt"
+            file_path = os.path.join(os.path.dirname(__file__), '..', '..', "data", "scan_results.txt")
             
             self.host_list_data_box.delete(0, END)
-            with open(file_path, "r") as f:
-                for line in f:
-                    if ("TELLO" in line):
-                        self.host_list_data_box.insert(END, line)
+            try:
+                with open(file_path, "r") as f:
+                    for line in f:
+                        if ("TELLO" in line):
+                            self.host_list_data_box.insert(END, line)
+            except FileNotFoundError:
+                self.log(f"Scan results file not found at {file_path}.")
+    
+    def on_scan_complete(self):
+        """
+        Callback function to be executed when a scan is complete.
+        Updates the GUI with the latest scan results.
+        """
+        self.get_scan_results()
+        self.is_scanning = False
 
+    def log(self, message: str):
+        """
+        Logs a message to the terminal output area in the GUI.
+        """
+        
+        # Debug print to console
+        print(message)
+        
+        self.root.after(0, self._log_update_gui, message)
+        
+    def _log_update_gui(self, message: str):
+        """
+        Updates the terminal output area in the GUI.
+        """
+        try:
+            # Enable editing
+            self.terminal_output_widget.config(state='normal')
+            
+            # Insert message
+            self.terminal_output_widget.insert(END, message + "\n")
+            
+            # Auto-scroll down
+            self.terminal_output_widget.see(END)
+            
+            self.terminal_output_widget.config(state='disabled')
+        except Exception as e:
+            self.log(f"Error updating terminal output: {e}")
+        
     # GUI Initialization 
     def __init__(self, root: tk.Tk):
         """
@@ -127,12 +168,11 @@ class MainGUI:
         sv_ttk.set_theme("dark")
 
         # Variable Declaration
-        self.terminal_output_var = StringVar()
-        self.terminal_output_var.set("")
         self.current_target = StringVar()
 
         self.interval = MainGUI.interval
         self.packets = MainGUI.packets
+        self.scan_toggle = False
 
         # Styling
         frame_style = ttk.Style()
@@ -173,8 +213,8 @@ class MainGUI:
             Value update is picked up by auto_scan_loop().
             """
             
-            MainGUI.scan_toggle = not MainGUI.scan_toggle
-            if MainGUI.scan_toggle:
+            self.scan_toggle = not self.scan_toggle
+            if self.scan_toggle:
                 self.toggle_scan_button.config(bg=colors.ORANGE)
             else:
                 self.toggle_scan_button.config(bg=colors.TKINTER_SLATE)
@@ -223,7 +263,7 @@ class MainGUI:
         )
 
         self.interface_dropdown.set('wlan0')
-        self.interface_dropdown.bind("<<ComboboxSelected>>", on_interface_selected())
+        self.interface_dropdown.bind("<<ComboboxSelected>>", on_interface_selected)
         self.interface_dropdown.pack(side="left", padx=5)
 
         # Modules Dropdown
@@ -248,10 +288,10 @@ class MainGUI:
 
             match options_dropdown.get():
                 case "Restart Network Adapter":
-                    print('Restarting Network Adapter')
+                    self.log('Restarting Network Adapter')
                     sudo_exec("service NetworkManager restart")
                 case "Stop Monitor Mode":
-                    print('Stopping Monitor Mode')
+                    self.log('Stopping Monitor Mode')
                     sudo_exec("airmon-ng stop wlan0")
                 case _:
                     self.option_interval.grid_remove()
@@ -298,7 +338,7 @@ class MainGUI:
             """
 
             self.current_target = self.host_list_data_box.get(ACTIVE)
-            print(self.current_target)
+            self.log(self.current_target)
             target_info_list = get_target_info(self.current_target) # Had to remove every .get() because it was throwing error
 
             self.target_label.configure(text=f"Target: {self.current_target}")
@@ -313,56 +353,74 @@ class MainGUI:
 
             return
 
-        def run_exploit(gui_selected_module) -> int:
+        def run_exploit(gui_selected_module, target_name, target_info, options_info) -> int:
             """
             Will write current state of software and selected target to module_input_data.json
 
             After writing, will run the selected module with the parameters set in module_input_data.json
             """
-
-            if self.is_scanning:
-                print("Stop scanning before launching a module!")
-                return -1
             
-            if gui_selected_module == "Modules":
-                print("Please select a module before hitting \"exploit\"!")
-                return -1
-            
-            print(f"Running module: {gui_selected_module}")
+            module_input_file_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "module_input_data.json")
 
-            module_input_file_path = os.path.dirname(__file__) + "/../../data/module_input_data.json"
-
-            with open(module_input_file_path, "w") as f:
-                # Capture current target's name and info
-                update_target()
-
-                target_info = get_target_info(self.current_target)
-                options_info = self.module_options
-
-                f.write(self.current_target)
-
-                for item in target_info:
-                    f.write(str(item).strip())
-                    f.write("\n")
-                f.write("\n")
-
+            # Writing to JSON
+            output_data = {
+                "target_name": target_name.strip(),
+                "target_info": {
+                    "raw_string": target_info[0].strip() if len(target_info) > 0 else "",
+                    "mac_address": target_info[1].strip() if len(target_info) > 1 else "",
+                    "quality": target_info[2].strip() if len(target_info) > 2 else "",
+                    "channel": target_info[3].strip() if len(target_info) > 3 else "",
+                    "signal_level": target_info[4].strip() if len(target_info) > 4 else "",
+                    "encryption": target_info[5].strip() if len(target_info) > 5 else ""
+                },
                 # No clue what writing 10000 to the file does, but it's in the original code
-                for item in options_info:
-                    f.write(str(item).strip())
-                    f.write("\n")
+                "options": {
+                    "packets": options_info[0] if len(options_info) > 0 else 10000
+                }                
+            }
             
-            module_file_path = os.path.dirname(__file__) + f'/../../modules/{gui_selected_module}/{gui_selected_module}.py'
-            module_return_code = subprocess.call(['/usr/bin/python3.11', module_file_path])
-
-            return module_return_code
+            try:
+                with open(module_input_file_path, "w") as json_file:
+                    json.dump(output_data, json_file, indent=4)
+            except Exception as e:
+                self.log(f"Error writing to JSON file: {e}")
+                return -1
+            
+            module_file_path = os.path.join(os.path.dirname(__file__), "..", "..", "modules", f"{gui_selected_module}", f"{gui_selected_module}.py")
+            
+            print(f"Launching module: {gui_selected_module} on target: {target_name}")
+            
+            try:
+                module_return_code = subprocess.call(['/usr/bin/python3.11', module_file_path])
+                print(f"Module {gui_selected_module} finished with return code {module_return_code}")
+                return module_return_code
+            except Exception as e:
+                print(f"Error running module {gui_selected_module}: {e}")
+                return -1
 
         def run_exploit_thread():
             """
             Runs the selected exploit module in a background thread.
             """
             module_name = self.selected_module.get()
+            
+            if self.is_scanning:
+                self.log("Stop scanning before launching a module!")
+                return
+            
+            if module_name == "Modules":
+                self.log("Please select a module before hitting \"exploit\"!")
+                return
+            
+            self.log(f"Running module: {module_name}")
+            
+            update_target()
+            current_target = self.current_target
+            target_info_list = get_target_info(current_target)
+            options_info_list = self.module_options
+            
             # Implement and import exploit
-            exploit_thread = threading.Thread(target=run_exploit, args=(module_name,), daemon=True)
+            exploit_thread = threading.Thread(target=run_exploit, args=(module_name, current_target, target_info_list, options_info_list), daemon=True)
             exploit_thread.start()
 
         exploit_button = tk.Button(
@@ -459,23 +517,38 @@ class MainGUI:
         self.bottom_box = ttk.Frame(root, style="box.TFrame")
         self.bottom_box.pack(side="bottom", fill="x", expand=False, pady=5, padx=5, ipadx=5)
         self.bottom_box.grid_columnconfigure(0, weight=1)
+        self.bottom_box.grid_rowconfigure(1, weight=1)
 
         terminal_title = ttk.Label(self.bottom_box, text="Terminal Output")
         terminal_title.configure(anchor="center")
-        terminal_title.grid(row=0, column=0, pady=5, padx=(30, 30), ipadx=50)
+        terminal_title.grid(row=0, column=0, pady=5, padx=(30, 30), ipadx=50, sticky="n")
 
-        self.inner_bottom_box = ttk.Frame(self.bottom_box, padding=(5, 5, 10, 10), style="inner_box.TFrame")
-        self.inner_bottom_box.grid(row=1, column=0, pady=(10, 20), padx=(30, 30), sticky="n")
-
-        # Properly bind the StringVar to textvariable
-        terminal_output_label = ttk.Label(
-            self.inner_bottom_box,
+        # Frame for text widget and scrollbar
+        log_frame = ttk.Frame(self.bottom_box)
+        log_frame.grid(row=1, column=0, pady=(10, 20), padx=(30, 30), sticky="nsew")
+        log_frame.grid_rowconfigure(0, weight=1)
+        log_frame.grid_columnconfigure(0, weight=1)
+        
+        # Scrollbar
+        self.terminal_scrollbar = ttk.Scrollbar(log_frame, orient="vertical")
+        self.terminal_scrollbar.grid(row=0, column=1, sticky="ns")
+        
+        self.terminal_output_widget = tk.Text(
+            log_frame,
             width=20,
-            textvariable=self.terminal_output_var,
-            style="label.TLabel"
+            height=10,
+            font=("Segoe UI", 10),
+            fg=colors.WHITE,
+            bg=colors.SLATE,
+            highlightthickness=0,
+            borderwidth=0,
+            relief="flat",
+            selectbackground=colors.LIGHT_ORANGE,
+            yscrollcommand=self.terminal_scrollbar.set,
+            state='disabled'
         )
-        terminal_output_label.configure(anchor="center")
-        terminal_output_label.grid(row=0, column=0, pady=5, padx=(30, 30), ipadx=30, sticky="n")
+        self.terminal_output_widget.grid(row=0, column=0, sticky="nsew")
+        self.terminal_scrollbar.config(command=self.terminal_output_widget.yview)
 
         # RIGHT BOX: Image Player (Video Feed)
         image_folder = os.path.join(os.path.dirname(__file__), "..", "data", "images")
@@ -506,12 +579,19 @@ class ImagePlayer(ttk.Frame):
         self.label.pack(expand=True, fill="both")
 
         os.makedirs(self.image_folder, exist_ok=True)
+        
+        self._clear_folder()
 
         self.load_images()
         self.monitor_folder()
 
     def _clear_folder(self):
         """Clears the contents of the image folder."""
+        
+        self.images = []
+        self.new_images = []
+        self.current_image_index = 0
+        
         if os.path.exists(self.image_folder):
             for filename in os.listdir(self.image_folder):
                 file_path = os.path.join(self.image_folder, filename)
@@ -553,7 +633,7 @@ class ImagePlayer(ttk.Frame):
                 img = img.resize((730, 300))
                 tk_img = ImageTk.PhotoImage(img)
                 self.label.config(image=tk_img)
-                #self.label.image = tk_img # Reference to avoid garbage collection
+                self.label.image = tk_img # Reference to avoid garbage collection
                 self.after(int(1000 / self.frame_rate), self.play_images)
             except Exception as e:
                 print(f"Error displaying {img_path}: {e}")
