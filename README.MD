@@ -82,7 +82,7 @@ top_box = ttk.Frame(root, padding=(3, 3, 12, 12), style="box.TFrame")
 1. Run this command in terminal to install appropriate drivers
 	```terminal
 	sudo apt install realtek-rtl88xxau-dkms
-    ```
+	```
 
 2. Restart Ubuntu to complete driver installation.
 
