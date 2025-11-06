@@ -4,8 +4,6 @@ import socket
 import time
 import shutil
 import sys
-
-sys.path.append(os.path.dirname(__file__) + '/../.././') # This gets around the src issue
 from src.utils import sudo_exec
 
 AIRMON = "airmon-ng"

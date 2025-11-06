@@ -375,11 +375,13 @@ class MainGUI:
 
 		def run_exploit(gui_selected_module, target_name, target_info, options_info) -> int:
 			"""
+			Ensures correct environment variables before running modules.
+
 			Will write current state of software and selected target to module_input_data.json
 
 			After writing, will run the selected module with the parameters set in module_input_data.json
 			"""
-			
+
 			module_input_file_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "module_input_data.json")
 
 			# Writing to JSON
@@ -408,14 +410,19 @@ class MainGUI:
 			
 			module_file_path = os.path.join(os.path.dirname(__file__), "..", "..", "modules", f"{gui_selected_module}", f"{gui_selected_module}.py")
 			
-			print(f"Launching module: {gui_selected_module} on target: {target_name}")
+			project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+			src_path = os.path.join(project_root, "src")
+			env = os.environ.copy()
+			env['PYTHONPATH'] = f"{src_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
+
+			self.log(f"Launching module: {gui_selected_module} on target: {target_name}")
 			
 			try:
-				module_return_code = subprocess.call([sys.executable, module_file_path])
-				print(f"Module {gui_selected_module} finished with return code {module_return_code}")
+				module_return_code = subprocess.call([sys.executable, module_file_path], env=env)
+				self.log(f"Module {gui_selected_module} finished with return code {module_return_code}")
 				return module_return_code
 			except Exception as e:
-				print(f"Error running module {gui_selected_module}: {e}")
+				self.log(f"Error running module {gui_selected_module}: {e}")
 				return -1
 
 		def run_exploit_thread():
@@ -593,7 +600,7 @@ class MainGUI:
 		self.terminal_scrollbar.config(command=self.terminal_output_widget.yview)
 
 		# RIGHT BOX: Image Player (Video Feed)
-		image_folder = os.path.join(os.path.dirname(__file__), "..", "data", "images")
+		image_folder = os.path.join(os.path.dirname(__file__), "..", "..", "data", "images")
 		os.makedirs(image_folder, exist_ok=True)
 		self.image_player = ImagePlayer(root, image_folder=image_folder, frame_rate=2)
 
