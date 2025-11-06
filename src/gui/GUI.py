@@ -496,7 +496,7 @@ class MainGUI:
 		
 		def filterThread():
 			self.tello_filter = not self.tello_filter
-			print(self.tello_filter)
+			self.log(str(self.tello_filter))
 
 		filter_button = ttk.Button(self.side_box,
 								text="Filter",

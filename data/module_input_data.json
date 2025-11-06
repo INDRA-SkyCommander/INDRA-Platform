@@ -1,8 +1,14 @@
-
-
-
-
-
-
-
-10000
+{
+    "target_name": "TELLO-F17756 - 34:D2:62:F1:77:56",
+    "target_info": {
+        "raw_string": "TELLO-F17756",
+        "mac_address": "34:D2:62:F1:77:56",
+        "quality": "72 %",
+        "channel": "5",
+        "signal_level": "87/100",
+        "encryption": "Open"
+    },
+    "options": {
+        "packets": 10000
+    }
+}
