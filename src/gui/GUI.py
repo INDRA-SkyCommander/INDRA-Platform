@@ -87,6 +87,8 @@ class MainGUI:
 			finally:
 				self.root.after(0, self.on_scan_complete)
 
+				return
+
 		t = threading.Thread(target=_scan_and_exit)
 		t.start()
 
@@ -111,7 +113,7 @@ class MainGUI:
 			try:
 				with open(file_path, "r") as f:
 					for line in f:
-						if(tello_filter == False):
+						if(self.tello_filter == False):
 							self.host_list_data_box.insert(END, line)
 							continue
 						if ("TELLO" in line):
@@ -126,6 +128,8 @@ class MainGUI:
 		"""
 		self.get_scan_results()
 		self.is_scanning = False
+
+		return
 
 	def log(self, message: str):
 		"""
@@ -273,9 +277,13 @@ class MainGUI:
 			textvariable=self.selected_interface
 		)
 
-		self.interface_dropdown.set('wlan0')
+		self.interface_dropdown.set('')
 		self.interface_dropdown.bind("<<ComboboxSelected>>", on_interface_selected)
 		self.interface_dropdown.pack(side="left", padx=5)
+
+		# Initializing interface selection
+		self.interface_dropdown.current(0)
+		on_interface_selected()
 
 		# Modules Dropdown
 		self.selected_module = StringVar(root)
@@ -519,7 +527,7 @@ class MainGUI:
 
 		self.target_info_label = ttk.Label(
 			center_frame,
-			text="Quality: \nChannel: \nSignal Level: \nEncryption: "
+			text="MAC: \nQuality: \nChannel: \nSignal Level: \nEncryption: "
 		)
 		self.target_info_label.configure(anchor="center",
 										 font=("default", 12),
@@ -663,7 +671,7 @@ class ImagePlayer(ttk.Frame):
 				img = img.resize((730, 300))
 				tk_img = ImageTk.PhotoImage(img)
 				self.label.config(image=tk_img)
-				self.label.image = tk_img # Reference to avoid garbage collection
+				# self.label.image = tk_img # Reference to avoid garbage collection
 				self.after(int(1000 / self.frame_rate), self.play_images)
 			except Exception as e:
 				print(f"Error displaying {img_path}: {e}")
