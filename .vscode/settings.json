@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "./videosrc"
+        "./videosrc",
+        "/usr/lib.python3/dist-packages"
     ]
 }

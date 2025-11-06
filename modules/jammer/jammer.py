@@ -2,30 +2,37 @@
 
 import time
 import yaml
-import gnuradio
+import sys
+import osmosdr
 from gnuradio import gr
 from gnuradio import analog
-from gnuradio.fft import window
-from gnuradio.filter import firdes
-from statistics import mean
-import osmosdr
-from random import randint
 
-def jam(freq, power, delay=1):
-    
-    print(f"\nThe frequency currently jammed is: {freq / (10e5)}MHz")
-    samp_rate = 20e6  # Sample Rate
-    sdr_bandwidth = 20e6  # Hackrf SDR Bandwidth
-    RF_gain, IF_gain = set_gains(power)  # Hackrf SDR antenna gain
+def jam(freq, power, samp_rate, sdr_bandwidth, delay=1):
+    """
+    Configures and runs the GNU radio flowgraph to transmit noise
+    """
+    print(f"\nJamming frequency: {freq / 1e6} MHz")
+    print(f"Sample Rate / Bandwidth: {samp_rate / 1e6} Mhz")
+    print(f"Jamming for: {delay} second(s)")
+
+    try:
+        RF_gain, IF_gain = set_gains(power) # HackRF SDR antenna gain
+        print(f"Power: {power} dB | RF Gain: {RF_gain} | IF Gain: {IF_gain}")
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
     tb = gr.top_block()
 
-    source = analog.noise_source_c(analog.GR_GAUSSIAN, 1, 1)
+    # Guassian noise
+    
+    source = analog.noise_source_c(analog.GAUSSIAN, 1, 1)
 
     #HackRF parameters are set below. These are specific to the hackrf and are set with osmosdr.sink
     #all other supplied values are tuned for the device.
 
     freq_mod = analog.frequency_modulator_fc(1)
+    
     osmosdr_sink = osmosdr.sink(
         args="numchan=" + str(1) + " " + ""
     )
