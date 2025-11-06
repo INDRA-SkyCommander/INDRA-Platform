@@ -1,37 +1,5 @@
 wlx00c0cab09070  Scan completed :
-          Cell 01 - Address: D4:DC:09:5D:3E:23
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=35/100  Signal level=39/100  
-                    Extra:fm=0003
-          Cell 02 - Address: D4:DC:09:5D:3E:24
-                    ESSID:"WVU.Encrypted"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=36/100  Signal level=40/100  
-                    Extra:fm=0003
-          Cell 03 - Address: D4:DC:09:5D:3E:21
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=48/100  Signal level=41/100  
-                    Extra:fm=0001
-          Cell 04 - Address: D4:DC:09:5D:3E:22
+          Cell 01 - Address: D4:DC:09:5D:3E:22
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -43,40 +11,22 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=49/100  Signal level=39/100  
-                    Extra:fm=0001
-          Cell 05 - Address: 34:D2:62:F1:77:56
-                    ESSID:"TELLO-F17756"
-                    Protocol:IEEE 802.11bg
-                    Mode:Master
-                    Frequency:2.432 GHz (Channel 5)
-                    Encryption key:off
-                    Bit Rates:54 Mb/s
-                    Quality=72/100  Signal level=87/100  
+                    Quality=31/100  Signal level=39/100  
                     Extra:fm=0003
-          Cell 06 - Address: D4:DC:09:5D:37:91
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=29/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 07 - Address: D4:DC:09:5D:37:93
+          Cell 02 - Address: D4:DC:09:5D:3E:23
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11gn
                     Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
+                    Frequency:2.412 GHz (Channel 1)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=30/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 08 - Address: D4:DC:09:5D:37:94
+                    Quality=45/100  Signal level=40/100  
+                    Extra:fm=0003
+          Cell 03 - Address: D4:DC:09:5D:3E:24
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11gn
                     Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
+                    Frequency:2.412 GHz (Channel 1)
                     Encryption key:on
                     Bit Rates:144 Mb/s
                     Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
@@ -84,9 +34,27 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=30/100  Signal level=29/100  
+                    Quality=51/100  Signal level=40/100  
                     Extra:fm=0003
-          Cell 09 - Address: D4:DC:09:5D:33:A2
+          Cell 04 - Address: D4:DC:09:5D:3E:21
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=0/100  Signal level=39/100  
+                    Extra:fm=0001
+          Cell 05 - Address: D4:DC:09:5D:33:11
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=57/100  Signal level=40/100  
+                    Extra:fm=0001
+          Cell 06 - Address: D4:DC:09:5D:33:12
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -98,18 +66,134 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=50/100  Signal level=41/100  
+                    Extra:fm=0003
+          Cell 07 - Address: D4:DC:09:5D:33:13
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=51/100  Signal level=39/100  
+                    Extra:fm=0001
+          Cell 08 - Address: C8:78:67:3F:05:E2
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030d00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                       Preauthentication Supported
+                    Quality=46/100  Signal level=42/100  
+                    Extra:fm=0003
+          Cell 09 - Address: D4:DC:09:5D:37:92
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=45/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 10 - Address: D4:DC:09:5D:37:93
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=45/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 11 - Address: D4:DC:09:5D:37:94
+                    ESSID:"WVU.Encrypted"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=51/100  Signal level=31/100  
+                    Extra:fm=0001
+          Cell 12 - Address: D4:DC:09:5D:33:A1
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=27/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 13 - Address: D4:DC:09:5D:33:A2
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=15/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 14 - Address: D4:DC:09:5D:33:A3
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
                     Quality=24/100  Signal level=30/100  
                     Extra:fm=0001
-          Cell 10 - Address: C8:78:67:3F:05:E3
+          Cell 15 - Address: D4:DC:09:5D:33:A4
+                    ESSID:"WVU.Encrypted"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=27/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 16 - Address: C8:78:67:3F:05:E1
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=78/100  Signal level=42/100  
+                    Extra:fm=0001
+          Cell 17 - Address: C8:78:67:3F:05:E3
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.437 GHz (Channel 6)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=59/100  Signal level=51/100  
-                    Extra:fm=0003
-          Cell 11 - Address: C8:78:67:3F:05:E4
+                    Quality=57/100  Signal level=42/100  
+                    Extra:fm=0001
+          Cell 18 - Address: C8:78:67:3F:05:E4
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -122,92 +206,7 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
                        Preauthentication Supported
-                    Quality=72/100  Signal level=51/100  
-                    Extra:fm=0003
-          Cell 12 - Address: C8:78:67:3F:05:E2
-                    ESSID:"eduroam"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030d00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                       Preauthentication Supported
-                    Quality=55/100  Signal level=52/100  
-                    Extra:fm=0003
-          Cell 13 - Address: E0:70:EA:69:4A:22
-                    ESSID:"DIRECT-21-HP OfficeJet Pro 6970"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:72 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    IE: Unknown: DDA00050F204104A000110104400010210570001011041000100103B0001031047001032711BF31D77D3FAF84D36DAFA6C42091021000248501023000130102400013010420001301054000800030050F20400051011001F4449524543542D32312D4850204F66666963654A65742050726F20363937301008000200001049000600372A000120104900170001371006001032711BF31D77D3FAF84D36DAFA6C4209
-                    Quality=100/100  Signal level=44/100  
-                    Extra:fm=0003
-          Cell 14 - Address: D4:DC:09:5D:33:11
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=66/100  Signal level=42/100  
-                    Extra:fm=0001
-          Cell 15 - Address: D4:DC:09:5D:33:12
-                    ESSID:"eduroam"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=69/100  Signal level=42/100  
-                    Extra:fm=0001
-          Cell 16 - Address: D4:DC:09:5D:33:13
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=63/100  Signal level=39/100  
-                    Extra:fm=0003
-          Cell 17 - Address: D4:DC:09:5D:33:14
-                    ESSID:"WVU.Encrypted"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=65/100  Signal level=41/100  
-                    Extra:fm=0001
-          Cell 18 - Address: C8:78:67:3F:05:E1
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=82/100  Signal level=51/100  
+                    Quality=72/100  Signal level=40/100  
                     Extra:fm=0001
           Cell 19 - Address: 18:A6:F7:4B:DC:9E
                     ESSID:"ViconConnection"
@@ -226,34 +225,19 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    IE: Unknown: DD9A0050F204104A0001101044000102103B00010310470010000102030405060708090A0B0C0D0E0F1021000754502D4C494E4B10230009544C2D57523834314E1024000431312E3010420003312E301054000800060050F204000110110019576972656C65737320526F7574657220544C2D57523834314E100800020086103C000101104900140024E26002000101600000020001600100020001
-                    Quality=98/100  Signal level=50/100  
-                    Extra:fm=0003
-          Cell 20 - Address: 24:F5:A2:C1:6D:D9
-                    ESSID:"IRL_ROBONET"
-                    Protocol:IEEE 802.11bgn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020000
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    IE: Unknown: DD1D0050F204104A0001101044000102103C0001011049000600372A000120
-                    Quality=36/100  Signal level=48/100  
+                    IE: Unknown: DD260050F204104A0001101044000102104900140024E26002000101600000020001600100020001
+                    Quality=0/100  Signal level=54/100  
                     Extra:fm=0001
-          Cell 21 - Address: D4:DC:09:8F:C8:31
+          Cell 20 - Address: D4:DC:09:5D:3C:71
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=20/100  Signal level=30/100  
+                    Quality=21/100  Signal level=23/100  
                     Extra:fm=0001
-          Cell 22 - Address: D4:DC:09:5C:CB:92
+          Cell 21 - Address: D4:DC:09:5D:3C:72
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -265,18 +249,41 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=33/100  Signal level=34/100  
-                    Extra:fm=0003
-          Cell 23 - Address: D4:DC:09:5C:CB:93
+                    Quality=30/100  Signal level=26/100  
+                    Extra:fm=0001
+          Cell 22 - Address: D4:DC:09:5D:3C:73
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=27/100  Signal level=34/100  
+                    Quality=24/100  Signal level=27/100  
+                    Extra:fm=0001
+          Cell 23 - Address: D4:DC:09:5C:CB:92
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=18/100  Signal level=30/100  
                     Extra:fm=0003
-          Cell 24 - Address: D4:DC:09:5C:CB:94
+          Cell 24 - Address: D4:DC:09:5C:CB:93
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=21/100  Signal level=37/100  
+                    Extra:fm=0003
+          Cell 25 - Address: D4:DC:09:5C:CB:94
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -288,16 +295,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=29/100  Signal level=35/100  
-                    Extra:fm=0003
-          Cell 25 - Address: D4:DC:09:8F:C8:33
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=9/100  Signal level=29/100  
+                    Quality=12/100  Signal level=33/100  
                     Extra:fm=0003
           Cell 26 - Address: D4:DC:09:8F:C8:34
                     ESSID:"WVU.Encrypted"
@@ -311,18 +309,27 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=10/100  Signal level=28/100  
+                    Quality=28/100  Signal level=31/100  
                     Extra:fm=0003
-          Cell 27 - Address: D4:DC:09:5D:3C:71
+          Cell 27 - Address: D4:DC:09:5C:CB:91
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=17/100  Signal level=24/100  
+                    Quality=33/100  Signal level=37/100  
                     Extra:fm=0001
-          Cell 28 - Address: D4:DC:09:5D:3C:72
+          Cell 28 - Address: D4:DC:09:8F:C8:33
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=39/100  Signal level=31/100  
+                    Extra:fm=0001
+          Cell 29 - Address: D4:DC:09:5D:3C:42
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -334,9 +341,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=27/100  Signal level=25/100  
+                    Quality=24/100  Signal level=26/100  
                     Extra:fm=0001
-          Cell 29 - Address: D4:DC:09:5D:3C:74
+          Cell 30 - Address: D4:DC:09:5D:3C:44
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -348,22 +355,8 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=24/100  Signal level=25/100  
+                    Quality=9/100  Signal level=25/100  
                     Extra:fm=0001
-          Cell 30 - Address: D4:DC:09:8F:C8:32
-                    ESSID:"eduroam"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=10/100  Signal level=27/100  
-                    Extra:fm=0003
           Cell 31 - Address: 2C:59:E5:AD:A4:70
                     ESSID:"HP-Print-70-Photosmart 5520"
                     Protocol:IEEE 802.11bgn
@@ -371,7 +364,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:65 Mb/s
-                    Quality=0/100  Signal level=42/100  
+                    Quality=100/100  Signal level=42/100  
                     Extra:fm=0001
           Cell 32 - Address: D4:DC:09:5C:CB:71
                     ESSID:""
@@ -380,7 +373,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.18 GHz (Channel 36)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=53/100  Signal level=34/100  
+                    Quality=46/100  Signal level=32/100  
                     Extra:fm=0001
           Cell 33 - Address: D4:DC:09:5C:CB:72
                     ESSID:"eduroam"
@@ -394,7 +387,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=49/100  Signal level=33/100  
+                    Quality=27/100  Signal level=31/100  
                     Extra:fm=0003
           Cell 34 - Address: D4:DC:09:5C:CB:73
                     ESSID:"WVU.Guest"
@@ -403,7 +396,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.18 GHz (Channel 36)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=48/100  Signal level=33/100  
+                    Quality=47/100  Signal level=31/100  
                     Extra:fm=0003
           Cell 35 - Address: D4:DC:09:5C:CB:74
                     ESSID:"WVU.Encrypted"
@@ -417,22 +410,17 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=39/100  Signal level=34/100  
+                    Quality=44/100  Signal level=31/100  
                     Extra:fm=0003
-          Cell 36 - Address: D4:DC:09:5D:3C:24
-                    ESSID:"WVU.Encrypted"
+          Cell 36 - Address: D4:DC:09:5D:3C:21
+                    ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.2 GHz (Channel 40)
-                    Encryption key:on
+                    Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=17/100  Signal level=25/100  
-                    Extra:fm=0003
+                    Quality=19/100  Signal level=27/100  
+                    Extra:fm=0001
           Cell 37 - Address: D4:DC:09:5D:3C:22
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11AC
@@ -445,7 +433,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=19/100  Signal level=25/100  
+                    Quality=28/100  Signal level=27/100  
                     Extra:fm=0003
           Cell 38 - Address: D4:DC:09:5D:3C:23
                     ESSID:"WVU.Guest"
@@ -454,17 +442,22 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.2 GHz (Channel 40)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=19/100  Signal level=24/100  
+                    Quality=24/100  Signal level=28/100  
                     Extra:fm=0003
-          Cell 39 - Address: D4:DC:09:5D:3C:21
-                    ESSID:""
+          Cell 39 - Address: D4:DC:09:5D:3C:24
+                    ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.2 GHz (Channel 40)
-                    Encryption key:off
+                    Encryption key:on
                     Bit Rates:1.3 Gb/s
-                    Quality=21/100  Signal level=26/100  
-                    Extra:fm=0001
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=22/100  Signal level=27/100  
+                    Extra:fm=0003
           Cell 40 - Address: D4:DC:09:5D:31:41
                     ESSID:""
                     Protocol:IEEE 802.11AC
@@ -472,7 +465,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.24 GHz (Channel 48)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=77/100  Signal level=65/100  
+                    Quality=81/100  Signal level=65/100  
                     Extra:fm=0001
           Cell 41 - Address: D4:DC:09:5D:31:42
                     ESSID:"eduroam"
@@ -486,7 +479,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=84/100  Signal level=64/100  
+                    Quality=87/100  Signal level=65/100  
                     Extra:fm=0003
           Cell 42 - Address: D4:DC:09:5D:31:43
                     ESSID:"WVU.Guest"
@@ -495,7 +488,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.24 GHz (Channel 48)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=85/100  Signal level=64/100  
+                    Quality=81/100  Signal level=64/100  
                     Extra:fm=0003
           Cell 43 - Address: D4:DC:09:5D:31:44
                     ESSID:"WVU.Encrypted"
@@ -524,7 +517,7 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
                     IE: Unknown: DDC70050F204104A0001101044000102103B0001001047001064F3C8CBC28F46919C51A5BD39D8E125102100094D6963726F736F66741023000438324A571024000A31302E302E313930343510420001301054000800070050F20000001011000F4C4150544F502D4C304C36505655331008000200081049000600372A0001201049001700013710060010D832E95617C24DA987B2CBD5767160741049002A00013720010001072002000F4C4150544F502D4C304C36505655332005000B31302E37332E34382E3139
-                    Quality=90/100  Signal level=80/100  
+                    Quality=88/100  Signal level=81/100  
                     Extra:fm=0003
           Cell 45 - Address: D4:DC:09:5D:3C:E1
                     ESSID:""
@@ -533,7 +526,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.28 GHz (Channel 56)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=38/100  Signal level=44/100  
+                    Quality=63/100  Signal level=43/100  
                     Extra:fm=0001
           Cell 46 - Address: D4:DC:09:5D:3C:E2
                     ESSID:"eduroam"
@@ -547,7 +540,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=62/100  Signal level=40/100  
+                    Quality=64/100  Signal level=43/100  
                     Extra:fm=0001
           Cell 47 - Address: D4:DC:09:5D:3C:E3
                     ESSID:"WVU.Guest"
@@ -556,7 +549,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.28 GHz (Channel 56)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=42/100  Signal level=42/100  
+                    Quality=63/100  Signal level=43/100  
                     Extra:fm=0001
           Cell 48 - Address: D4:DC:09:5D:3C:E4
                     ESSID:"WVU.Encrypted"
@@ -570,7 +563,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=55/100  Signal level=39/100  
+                    Quality=64/100  Signal level=44/100  
                     Extra:fm=0001
           Cell 49 - Address: D4:DC:09:5D:09:E1
                     ESSID:""
@@ -579,7 +572,7 @@ wlx00c0cab09070  Scan completed :
                     Frequency:5.3 GHz (Channel 60)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=25/100  Signal level=24/100  
+                    Quality=24/100  Signal level=25/100  
                     Extra:fm=0001
           Cell 50 - Address: D4:DC:09:5D:09:E2
                     ESSID:"eduroam"
@@ -593,9 +586,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=15/100  Signal level=26/100  
+                    Quality=15/100  Signal level=24/100  
                     Extra:fm=0001
-          Cell 51 - Address: D4:DC:09:5D:09:E4
+          Cell 51 - Address: D4:DC:09:5D:09:E3
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.3 GHz (Channel 60)
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=9/100  Signal level=24/100  
+                    Extra:fm=0001
+          Cell 52 - Address: D4:DC:09:5D:09:E4
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -607,18 +609,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=19/100  Signal level=26/100  
+                    Quality=15/100  Signal level=24/100  
                     Extra:fm=0001
-          Cell 52 - Address: D4:DC:09:5D:3C:51
+          Cell 53 - Address: D4:DC:09:5D:3C:51
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.52 GHz (Channel 104)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=20/100  Signal level=32/100  
+                    Quality=54/100  Signal level=37/100  
                     Extra:fm=0001
-          Cell 53 - Address: D4:DC:09:5D:3C:52
+          Cell 54 - Address: D4:DC:09:5D:3C:52
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -630,18 +632,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=47/100  Signal level=38/100  
+                    Quality=54/100  Signal level=38/100  
                     Extra:fm=0001
-          Cell 54 - Address: D4:DC:09:5D:3C:53
+          Cell 55 - Address: D4:DC:09:5D:3C:53
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.52 GHz (Channel 104)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=41/100  Signal level=36/100  
+                    Quality=54/100  Signal level=38/100  
                     Extra:fm=0001
-          Cell 55 - Address: D4:DC:09:5D:3C:54
+          Cell 56 - Address: D4:DC:09:5D:3C:54
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -653,10 +655,34 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=41/100  Signal level=37/100  
+                    Quality=52/100  Signal level=41/100  
                     Extra:fm=0001
-          Cell 56 - Address: C8:78:67:3F:05:D1
+          Cell 57 - Address: C8:78:67:3F:05:D1
                     ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.54 GHz (Channel 108)
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=78/100  Signal level=50/100  
+                    Extra:fm=0001
+          Cell 58 - Address: C8:78:67:3F:05:D2
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.54 GHz (Channel 108)
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030d00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                       Preauthentication Supported
+                    Quality=67/100  Signal level=51/100  
+                    Extra:fm=0001
+          Cell 59 - Address: C8:78:67:3F:05:D3
+                    ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.54 GHz (Channel 108)
@@ -664,31 +690,7 @@ wlx00c0cab09070  Scan completed :
                     Bit Rates:1.3 Gb/s
                     Quality=65/100  Signal level=50/100  
                     Extra:fm=0001
-          Cell 57 - Address: C8:78:67:3F:05:D2
-                    ESSID:"eduroam"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.54 GHz (Channel 108)
-                    Encryption key:on
-                    Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030d00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                       Preauthentication Supported
-                    Quality=76/100  Signal level=50/100  
-                    Extra:fm=0001
-          Cell 58 - Address: C8:78:67:3F:05:D3
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.54 GHz (Channel 108)
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=69/100  Signal level=50/100  
-                    Extra:fm=0001
-          Cell 59 - Address: C8:78:67:3F:05:D4
+          Cell 60 - Address: C8:78:67:3F:05:D4
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -701,50 +703,18 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
                        Preauthentication Supported
-                    Quality=76/100  Signal level=50/100  
+                    Quality=67/100  Signal level=49/100  
                     Extra:fm=0001
-          Cell 60 - Address: D4:DC:09:5D:0A:01
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=6/100  Signal level=27/100  
-                    Extra:fm=0001
-          Cell 61 - Address: D4:DC:09:5D:3E:01
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=66/100  Signal level=49/100  
-                    Extra:fm=0001
-          Cell 62 - Address: D4:DC:09:5D:3E:02
-                    ESSID:"eduroam"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:on
-                    Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=76/100  Signal level=49/100  
-                    Extra:fm=0001
-          Cell 63 - Address: D4:DC:09:5D:3E:03
+          Cell 61 - Address: D4:DC:09:5D:0A:03
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.56 GHz (Channel 112)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=71/100  Signal level=49/100  
+                    Quality=15/100  Signal level=24/100  
                     Extra:fm=0001
-          Cell 64 - Address: D4:DC:09:5D:3E:04
+          Cell 62 - Address: D4:DC:09:5D:0A:04
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -756,27 +726,110 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=72/100  Signal level=49/100  
+                    Quality=15/100  Signal level=26/100  
                     Extra:fm=0001
-          Cell 65 - Address: D4:DC:09:5D:45:83
+          Cell 63 - Address: D4:DC:09:5D:3E:01
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.56 GHz (Channel 112)
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=75/100  Signal level=50/100  
+                    Extra:fm=0001
+          Cell 64 - Address: D4:DC:09:5D:3E:02
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.56 GHz (Channel 112)
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=81/100  Signal level=50/100  
+                    Extra:fm=0001
+          Cell 65 - Address: D4:DC:09:5D:3E:03
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.56 GHz (Channel 112)
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=78/100  Signal level=50/100  
+                    Extra:fm=0001
+          Cell 66 - Address: D4:DC:09:5D:3E:04
+                    ESSID:"WVU.Encrypted"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.56 GHz (Channel 112)
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=78/100  Signal level=50/100  
+                    Extra:fm=0001
+          Cell 67 - Address: D4:DC:09:5D:45:81
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.58 GHz (Channel 116)
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=9/100  Signal level=27/100  
+                    Extra:fm=0001
+          Cell 68 - Address: D4:DC:09:5D:45:82
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.58 GHz (Channel 116)
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=8/100  Signal level=26/100  
+                    Extra:fm=0001
+          Cell 69 - Address: D4:DC:09:5D:45:83
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.58 GHz (Channel 116)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=6/100  Signal level=26/100  
+                    Quality=12/100  Signal level=26/100  
                     Extra:fm=0001
-          Cell 66 - Address: D4:DC:09:5D:33:81
+          Cell 70 - Address: D4:DC:09:5D:45:84
+                    ESSID:"WVU.Encrypted"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.58 GHz (Channel 116)
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=12/100  Signal level=25/100  
+                    Extra:fm=0001
+          Cell 71 - Address: D4:DC:09:5D:33:81
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.62 GHz (Channel 124)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=45/100  Signal level=31/100  
+                    Quality=35/100  Signal level=30/100  
                     Extra:fm=0001
-          Cell 67 - Address: D4:DC:09:5D:33:82
+          Cell 72 - Address: D4:DC:09:5D:33:82
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -788,18 +841,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=38/100  Signal level=32/100  
+                    Quality=33/100  Signal level=30/100  
                     Extra:fm=0001
-          Cell 68 - Address: D4:DC:09:5D:33:83
+          Cell 73 - Address: D4:DC:09:5D:33:83
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.62 GHz (Channel 124)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=41/100  Signal level=32/100  
+                    Quality=36/100  Signal level=32/100  
                     Extra:fm=0001
-          Cell 69 - Address: D4:DC:09:5D:33:84
+          Cell 74 - Address: D4:DC:09:5D:33:84
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -811,18 +864,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=43/100  Signal level=32/100  
+                    Quality=36/100  Signal level=30/100  
                     Extra:fm=0001
-          Cell 70 - Address: D4:DC:09:5D:32:91
+          Cell 75 - Address: D4:DC:09:5D:32:91
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.7 GHz (Channel 140)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=56/100  Signal level=40/100  
+                    Quality=71/100  Signal level=46/100  
                     Extra:fm=0001
-          Cell 71 - Address: D4:DC:09:5D:32:92
+          Cell 76 - Address: D4:DC:09:5D:32:92
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -834,18 +887,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=56/100  Signal level=40/100  
+                    Quality=62/100  Signal level=45/100  
                     Extra:fm=0001
-          Cell 72 - Address: D4:DC:09:5D:32:93
+          Cell 77 - Address: D4:DC:09:5D:32:93
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.7 GHz (Channel 140)
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=55/100  Signal level=38/100  
+                    Quality=66/100  Signal level=45/100  
                     Extra:fm=0001
-          Cell 73 - Address: D4:DC:09:5D:32:94
+          Cell 78 - Address: D4:DC:09:5D:32:94
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -857,23 +910,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=61/100  Signal level=40/100  
+                    Quality=72/100  Signal level=45/100  
                     Extra:fm=0001
-          Cell 74 - Address: C8:7F:54:B2:7C:8C
-                    ESSID:"WVUBiometrics"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.745 GHz
-                    Encryption key:on
-                    Bit Rates:1.17 Gb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=29/100  Signal level=31/100  
-                    Extra:fm=0003
-          Cell 75 - Address: 24:F5:A2:C1:6D:DA
+          Cell 79 - Address: 24:F5:A2:C1:6D:DA
                     ESSID:"IRL_ROBONET_5GHz"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -886,123 +925,46 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
                     IE: Unknown: DD1D0050F204104A0001101044000102103C0001021049000600372A000120
+                    Quality=21/100  Signal level=28/100  
+                    Extra:fm=0001
+          Cell 80 - Address: C8:7F:54:B2:7C:8C
+                    ESSID:"WVUBiometrics"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.745 GHz
+                    Encryption key:on
+                    Bit Rates:1.17 Gb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=27/100  Signal level=28/100  
+                    Extra:fm=0003
+          Cell 81 - Address: D4:DC:09:5D:1E:52
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.765 GHz
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
                     Quality=30/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 76 - Address: D4:DC:09:5D:33:A3
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=27/100  Signal level=21/100  
-                    Extra:fm=0001
-          Cell 77 - Address: D4:DC:09:5D:33:A4
-                    ESSID:"WVU.Encrypted"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=27/100  Signal level=29/100  
-                    Extra:fm=0001
-          Cell 78 - Address: D4:DC:09:5D:33:A1
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=27/100  Signal level=34/100  
-                    Extra:fm=0001
-          Cell 79 - Address: D4:DC:09:5D:3C:73
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=6/100  Signal level=25/100  
-                    Extra:fm=0001
-          Cell 80 - Address: D4:DC:09:5C:CB:91
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=45/100  Signal level=38/100  
-                    Extra:fm=0001
-          Cell 81 - Address: D4:DC:09:5D:09:E3
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.3 GHz (Channel 60)
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=12/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 82 - Address: D4:DC:09:5D:0A:04
-                    ESSID:"WVU.Encrypted"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:on
-                    Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=0/100  Signal level=39/100  
-                    Extra:fm=0001
-          Cell 83 - Address: D4:DC:09:5D:45:81
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.58 GHz (Channel 116)
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=12/100  Signal level=27/100  
-                    Extra:fm=0001
-          Cell 84 - Address: D4:DC:09:5D:45:84
-                    ESSID:"WVU.Encrypted"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.58 GHz (Channel 116)
-                    Encryption key:on
-                    Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=15/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 85 - Address: D4:DC:09:8F:C8:11
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.765 GHz
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=21/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 86 - Address: D4:DC:09:8F:C8:13
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.765 GHz
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=36/100  Signal level=30/100  
                     Extra:fm=0003
-          Cell 87 - Address: D4:DC:09:8F:C8:14
+          Cell 82 - Address: D4:DC:09:5D:1E:53
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.765 GHz
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=28/100  Signal level=30/100  
+                    Extra:fm=0003
+          Cell 83 - Address: D4:DC:09:5D:1E:54
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1014,9 +976,69 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=33/100  Signal level=29/100  
+                    Quality=36/100  Signal level=31/100  
                     Extra:fm=0003
-          Cell 88 - Address: 92:E8:68:F8:C5:33
+          Cell 84 - Address: D4:DC:09:8F:C8:14
+                    ESSID:"WVU.Encrypted"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.765 GHz
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=36/100  Signal level=27/100  
+                    Extra:fm=0003
+          Cell 85 - Address: D4:DC:09:5D:1E:51
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.765 GHz
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=0/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 86 - Address: D4:DC:09:5D:32:F2
+                    ESSID:"eduroam"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.785 GHz
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=88/100  Signal level=61/100  
+                    Extra:fm=0003
+          Cell 87 - Address: D4:DC:09:5D:32:F3
+                    ESSID:"WVU.Guest"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.785 GHz
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=82/100  Signal level=61/100  
+                    Extra:fm=0003
+          Cell 88 - Address: D4:DC:09:5D:32:F4
+                    ESSID:"WVU.Encrypted"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.785 GHz
+                    Encryption key:on
+                    Bit Rates:1.3 Gb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : 802.1x unknown (3)
+                    Quality=98/100  Signal level=61/100  
+                    Extra:fm=0003
+          Cell 89 - Address: 92:E8:68:F8:C5:33
                     ESSID:"DIRECT-lHKAYS_LAPTOPmsVE"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1029,55 +1051,18 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
                     IE: Unknown: DDC50050F204104A0001101044000102103B000100104700101C139E7671444F5F83E53E454C0A0776102100094D6963726F736F66741023000A57696E646F77732050431024000A31302E302E323632303010420001301054000800070050F20000001011000B4B6179735F4C6170746F701008000200081049000600372A0001201049001700013710060010E5AA7B3D895B4179AD9306420DCA7B411049002600013720010001272002000B4B6179735F4C6170746F702005000B3139322E3136382E312E33
-                    Quality=81/100  Signal level=63/100  
+                    Quality=87/100  Signal level=57/100  
                     Extra:fm=0003
-          Cell 89 - Address: D4:DC:09:5D:32:F1
+          Cell 90 - Address: D4:DC:09:5D:32:F1
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.785 GHz
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=81/100  Signal level=58/100  
+                    Quality=84/100  Signal level=61/100  
                     Extra:fm=0001
-          Cell 90 - Address: D4:DC:09:5D:32:F2
-                    ESSID:"eduroam"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.785 GHz
-                    Encryption key:on
-                    Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=96/100  Signal level=58/100  
-                    Extra:fm=0001
-          Cell 91 - Address: D4:DC:09:5D:32:F3
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.785 GHz
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=84/100  Signal level=58/100  
-                    Extra:fm=0001
-          Cell 92 - Address: D4:DC:09:5D:32:F4
-                    ESSID:"WVU.Encrypted"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.785 GHz
-                    Encryption key:on
-                    Bit Rates:1.3 Gb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac01000fac030c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=87/100  Signal level=58/100  
-                    Extra:fm=0001
-          Cell 93 - Address: C8:78:67:3F:09:12
+          Cell 91 - Address: C8:78:67:3F:09:12
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1090,18 +1075,18 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
                        Preauthentication Supported
-                    Quality=87/100  Signal level=58/100  
+                    Quality=80/100  Signal level=59/100  
                     Extra:fm=0003
-          Cell 94 - Address: C8:78:67:3F:09:13
+          Cell 92 - Address: C8:78:67:3F:09:13
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.805 GHz
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=83/100  Signal level=57/100  
+                    Quality=86/100  Signal level=60/100  
                     Extra:fm=0003
-          Cell 95 - Address: C8:78:67:3F:09:14
+          Cell 93 - Address: C8:78:67:3F:09:14
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1114,27 +1099,27 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
                        Preauthentication Supported
-                    Quality=93/100  Signal level=57/100  
+                    Quality=84/100  Signal level=59/100  
                     Extra:fm=0003
-          Cell 96 - Address: C8:78:67:3F:09:11
+          Cell 94 - Address: C8:78:67:3F:09:11
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.805 GHz
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=100/100  Signal level=58/100  
+                    Quality=72/100  Signal level=59/100  
                     Extra:fm=0001
-          Cell 97 - Address: D4:DC:09:5D:37:71
+          Cell 95 - Address: D4:DC:09:5D:37:71
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.825 GHz
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=33/100  Signal level=30/100  
+                    Quality=30/100  Signal level=30/100  
                     Extra:fm=0001
-          Cell 98 - Address: D4:DC:09:5D:37:72
+          Cell 96 - Address: D4:DC:09:5D:37:72
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1146,18 +1131,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=33/100  Signal level=30/100  
+                    Quality=45/100  Signal level=32/100  
                     Extra:fm=0001
-          Cell 99 - Address: D4:DC:09:5D:37:73
+          Cell 97 - Address: D4:DC:09:5D:37:73
                     ESSID:"WVU.Guest"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.825 GHz
                     Encryption key:off
                     Bit Rates:1.3 Gb/s
-                    Quality=33/100  Signal level=30/100  
+                    Quality=45/100  Signal level=32/100  
                     Extra:fm=0001
-          Cell 100 - Address: D4:DC:09:5D:37:74
+          Cell 98 - Address: D4:DC:09:5D:37:74
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1169,9 +1154,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=36/100  Signal level=30/100  
+                    Quality=42/100  Signal level=31/100  
+                    Extra:fm=0003
+          Cell 99 - Address: D4:DC:09:5D:08:31
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.825 GHz
+                    Encryption key:off
+                    Bit Rates:1.3 Gb/s
+                    Quality=54/100  Signal level=35/100  
                     Extra:fm=0001
-          Cell 101 - Address: D4:DC:09:5D:08:32
+          Cell 100 - Address: D4:DC:09:5D:08:32
                     ESSID:"eduroam"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1183,18 +1177,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=27/100  Signal level=40/100  
-                    Extra:fm=0003
-          Cell 102 - Address: D4:DC:09:5D:08:33
-                    ESSID:"WVU.Guest"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.825 GHz
-                    Encryption key:off
-                    Bit Rates:1.3 Gb/s
-                    Quality=54/100  Signal level=39/100  
-                    Extra:fm=0003
-          Cell 103 - Address: D4:DC:09:5D:08:34
+                    Quality=57/100  Signal level=35/100  
+                    Extra:fm=0001
+          Cell 101 - Address: D4:DC:09:5D:08:34
                     ESSID:"WVU.Encrypted"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1206,6 +1191,6 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : 802.1x unknown (3)
-                    Quality=54/100  Signal level=37/100  
-                    Extra:fm=0003
+                    Quality=54/100  Signal level=35/100  
+                    Extra:fm=0001
 

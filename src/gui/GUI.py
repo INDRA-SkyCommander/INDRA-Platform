@@ -17,6 +17,7 @@ README stuff
 
 # Standard Library
 import os
+import sys
 import time
 import threading
 import subprocess
@@ -410,7 +411,7 @@ class MainGUI:
 			print(f"Launching module: {gui_selected_module} on target: {target_name}")
 			
 			try:
-				module_return_code = subprocess.call(['/usr/bin/python3.11', module_file_path])
+				module_return_code = subprocess.call([sys.executable, module_file_path])
 				print(f"Module {gui_selected_module} finished with return code {module_return_code}")
 				return module_return_code
 			except Exception as e:
