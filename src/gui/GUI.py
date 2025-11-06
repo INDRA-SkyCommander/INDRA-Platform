@@ -17,6 +17,7 @@ README stuff
 
 # Standard Library
 import os
+import sys
 import time
 import threading
 import subprocess
@@ -201,7 +202,7 @@ class MainGUI:
 		exploit_button_style.configure("exploit_button.TButton", foreground=colors.ORANGE)
 
 		filter_button_style = ttk.Style()
-		filter_button_style.configure("filter_button.TButton", foreground = "YELLOW")
+		filter_button_style.configure("filter_button.TButton", foreground = "RED")
 
 		dropdown_style = ttk.Style()
 		dropdown_style.configure("dropdown.TOptionsMenu", background=colors.SLATE)
@@ -410,7 +411,7 @@ class MainGUI:
 			print(f"Launching module: {gui_selected_module} on target: {target_name}")
 			
 			try:
-				module_return_code = subprocess.call(['/usr/bin/python3.11', module_file_path])
+				module_return_code = subprocess.call([sys.executable, module_file_path])
 				print(f"Module {gui_selected_module} finished with return code {module_return_code}")
 				return module_return_code
 			except Exception as e:
@@ -496,7 +497,10 @@ class MainGUI:
 		
 		def filterThread():
 			self.tello_filter = not self.tello_filter
-			self.log(str(self.tello_filter))
+			if self.tello_filter:
+				filter_button_style.configure("filter_button.TButton", foreground = "GREEN")
+			else:
+				filter_button_style.configure("filter_button.TButton", foreground = "RED")
 
 		filter_button = ttk.Button(self.side_box,
 								text="Filter",
