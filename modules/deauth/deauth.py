@@ -14,13 +14,9 @@ scan_info = None
 with open(target_data_file, 'r') as file:
     scan_info = json.load(file)
 
-target_name = scan_info.get("target_name")
 target_info = scan_info.get("target_info", {})
-
 target_mac = target_info.get("mac_address")
 target_channel = target_info.get("channel")
-target_signal = target_info.get("signal_strength")
-
 
 ##################
 ## START MODULE ##
