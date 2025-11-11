@@ -4,6 +4,7 @@ import socket
 import time
 import shutil
 import sys
+import json
 from src.utils import sudo_exec
 
 AIRMON = "airmon-ng"
@@ -17,7 +18,7 @@ tepsotspy_file_path = os.path.dirname(__file__) + '/../../src/video/tepsots/teps
 tepsotssh_file_path = os.path.dirname(__file__) + '/../../src/video/tepsots/tepsots.sh'
 
 with open(module_input_file_path, "r") as f:
-    target_information = f.readlines()
+    target_information = json.load(f)
     
 ##################
 ## START MODULE ##
@@ -49,9 +50,9 @@ sudo_exec(f"{AIRMON} check kill")
 sudo_exec(f"{AIRMON} start {INTERFACE}")
 
 # Set network adapter channel to that of the target network
-sudo_exec(f"{tepsotssh_file_path} set {target_information[4]}")
+sudo_exec(f"{tepsotssh_file_path} set {target_information['target_info']['channel']}")
 
-target_source_address = target_information[2].replace(':','').lower()
+target_source_address = target_information['target_info']['mac_address'].replace(':','').lower()
 sniff_cmd = ('sudo', 'python3', tepsotspy_file_path, '-i', INTERFACE, '-sa', target_source_address.replace('\n',''), '-v')
 # Start sniffer and output to log
 with open(log_file_path, 'w') as log_file:
