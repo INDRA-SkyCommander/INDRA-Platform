@@ -18,11 +18,7 @@ def sudo_exec(cmd: Union[List[str], str]) -> subprocess.CompletedProcess:
 	try:
 		# Runs sudo command and captures output
 		result = subprocess.run(
-			['sudo'] + cmd_list,
-			check=True,
-			stdout=subprocess.PIPE,
-			stderr=subprocess.PIPE,
-			text=True,
+			' '.join(['sudo'] + cmd_list),
 			shell=True
 		)
 		return result

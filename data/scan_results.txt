@@ -1,101 +1,118 @@
-eduroam - D4:DC:09:5D:3E:22
-WVU.Guest - D4:DC:09:5D:3E:23
-WVU.Encrypted - D4:DC:09:5D:3E:24
-N/A - D4:DC:09:5D:3E:21
-N/A - D4:DC:09:5D:33:11
-eduroam - D4:DC:09:5D:33:12
-WVU.Guest - D4:DC:09:5D:33:13
-eduroam - C8:78:67:3F:05:E2
-eduroam - D4:DC:09:5D:37:92
-WVU.Guest - D4:DC:09:5D:37:93
-WVU.Encrypted - D4:DC:09:5D:37:94
-N/A - D4:DC:09:5D:33:A1
-eduroam - D4:DC:09:5D:33:A2
-WVU.Guest - D4:DC:09:5D:33:A3
-WVU.Encrypted - D4:DC:09:5D:33:A4
-N/A - C8:78:67:3F:05:E1
-WVU.Guest - C8:78:67:3F:05:E3
-WVU.Encrypted - C8:78:67:3F:05:E4
-ViconConnection - 18:A6:F7:4B:DC:9E
-N/A - D4:DC:09:5D:3C:71
-eduroam - D4:DC:09:5D:3C:72
-WVU.Guest - D4:DC:09:5D:3C:73
-eduroam - D4:DC:09:5C:CB:92
-WVU.Guest - D4:DC:09:5C:CB:93
-WVU.Encrypted - D4:DC:09:5C:CB:94
-WVU.Encrypted - D4:DC:09:8F:C8:34
-N/A - D4:DC:09:5C:CB:91
-WVU.Guest - D4:DC:09:8F:C8:33
-eduroam - D4:DC:09:5D:3C:42
-WVU.Encrypted - D4:DC:09:5D:3C:44
-HP-Print-70-Photosmart 5520 - 2C:59:E5:AD:A4:70
-N/A - D4:DC:09:5C:CB:71
-eduroam - D4:DC:09:5C:CB:72
-WVU.Guest - D4:DC:09:5C:CB:73
-WVU.Encrypted - D4:DC:09:5C:CB:74
-N/A - D4:DC:09:5D:3C:21
-eduroam - D4:DC:09:5D:3C:22
-WVU.Guest - D4:DC:09:5D:3C:23
-WVU.Encrypted - D4:DC:09:5D:3C:24
-N/A - D4:DC:09:5D:31:41
-eduroam - D4:DC:09:5D:31:42
-WVU.Guest - D4:DC:09:5D:31:43
-WVU.Encrypted - D4:DC:09:5D:31:44
-DIRECT-MsLAPTOP-L0L6PVU3msAL - 96:5A:FC:0A:4B:81
-N/A - D4:DC:09:5D:3C:E1
-eduroam - D4:DC:09:5D:3C:E2
-WVU.Guest - D4:DC:09:5D:3C:E3
-WVU.Encrypted - D4:DC:09:5D:3C:E4
-N/A - D4:DC:09:5D:09:E1
-eduroam - D4:DC:09:5D:09:E2
-WVU.Guest - D4:DC:09:5D:09:E3
-WVU.Encrypted - D4:DC:09:5D:09:E4
-N/A - D4:DC:09:5D:3C:51
-eduroam - D4:DC:09:5D:3C:52
-WVU.Guest - D4:DC:09:5D:3C:53
-WVU.Encrypted - D4:DC:09:5D:3C:54
-N/A - C8:78:67:3F:05:D1
-eduroam - C8:78:67:3F:05:D2
-WVU.Guest - C8:78:67:3F:05:D3
-WVU.Encrypted - C8:78:67:3F:05:D4
-WVU.Guest - D4:DC:09:5D:0A:03
-WVU.Encrypted - D4:DC:09:5D:0A:04
-N/A - D4:DC:09:5D:3E:01
-eduroam - D4:DC:09:5D:3E:02
-WVU.Guest - D4:DC:09:5D:3E:03
-WVU.Encrypted - D4:DC:09:5D:3E:04
-N/A - D4:DC:09:5D:45:81
-eduroam - D4:DC:09:5D:45:82
-WVU.Guest - D4:DC:09:5D:45:83
-WVU.Encrypted - D4:DC:09:5D:45:84
-N/A - D4:DC:09:5D:33:81
-eduroam - D4:DC:09:5D:33:82
-WVU.Guest - D4:DC:09:5D:33:83
-WVU.Encrypted - D4:DC:09:5D:33:84
-N/A - D4:DC:09:5D:32:91
-eduroam - D4:DC:09:5D:32:92
-WVU.Guest - D4:DC:09:5D:32:93
-WVU.Encrypted - D4:DC:09:5D:32:94
-IRL_ROBONET_5GHz - 24:F5:A2:C1:6D:DA
-WVUBiometrics - C8:7F:54:B2:7C:8C
-eduroam - D4:DC:09:5D:1E:52
-WVU.Guest - D4:DC:09:5D:1E:53
-WVU.Encrypted - D4:DC:09:5D:1E:54
-WVU.Encrypted - D4:DC:09:8F:C8:14
-N/A - D4:DC:09:5D:1E:51
-eduroam - D4:DC:09:5D:32:F2
-WVU.Guest - D4:DC:09:5D:32:F3
-WVU.Encrypted - D4:DC:09:5D:32:F4
-DIRECT-lHKAYS_LAPTOPmsVE - 92:E8:68:F8:C5:33
-N/A - D4:DC:09:5D:32:F1
-eduroam - C8:78:67:3F:09:12
-WVU.Guest - C8:78:67:3F:09:13
-WVU.Encrypted - C8:78:67:3F:09:14
-N/A - C8:78:67:3F:09:11
-N/A - D4:DC:09:5D:37:71
-eduroam - D4:DC:09:5D:37:72
-WVU.Guest - D4:DC:09:5D:37:73
-WVU.Encrypted - D4:DC:09:5D:37:74
-N/A - D4:DC:09:5D:08:31
-eduroam - D4:DC:09:5D:08:32
-WVU.Encrypted - D4:DC:09:5D:08:34
+N/A - 62:45:B7:D6:47:66
+MyResNet Start Here - 0C:D5:D3:7A:FF:69
+MyResNet-5G - 0C:D5:D3:7A:FF:6B
+MyResNet-2G - 0C:D5:D3:7A:FF:6C
+N/A - 0C:D5:D3:7A:FF:6E
+N/A - 62:45:B9:2D:9B:90
+N/A - 62:9C:8E:0A:7B:A0
+MyResNet Start Here - 08:7B:87:7C:A1:A9
+MyResNet-5G - 08:7B:87:7C:A1:AB
+MyResNet-2G - 08:7B:87:7C:A1:AC
+N/A - 08:7B:87:7C:A1:AE
+MyResNet Start Here - F8:C6:50:D6:39:29
+MyResNet-5G - F8:C6:50:D6:39:2B
+MyResNet-2G - F8:C6:50:D6:39:2C
+N/A - F8:C6:50:D6:39:2E
+N/A - AA:B5:7C:D8:90:D3
+N/A - E2:3E:CB:A9:E9:B1
+MyResNet Start Here - F8:C6:50:D7:43:49
+MyResNet-5G - F8:C6:50:D7:43:4B
+MyResNet-2G - F8:C6:50:D7:43:4C
+N/A - F8:C6:50:D7:43:4E
+MyResNet Start Here - F8:C6:50:D7:2E:89
+MyResNet-5G - F8:C6:50:D7:2E:8B
+MyResNet-2G - F8:C6:50:D7:2E:8C
+N/A - F8:C6:50:D7:2E:8E
+MyResNet-5G - 0C:D5:D3:7B:53:EB
+MyResNet-2G - 0C:D5:D3:7B:53:EC
+MyResNet Start Here - F8:C6:50:D6:B8:89
+MyResNet-5G - F8:C6:50:D6:B8:8B
+MyResNet-2G - F8:C6:50:D6:B8:8C
+N/A - F8:C6:50:D6:B8:8E
+DIRECT-roku-R21-FB8426 - 72:93:C3:9D:F4:F7
+MyResNet-5G - 0C:D5:D3:7A:EE:4B
+MyResNet-2G - 0C:D5:D3:7A:EE:4C
+MyResNet-5G - F8:C6:50:D7:07:0B
+MyResNet-2G - F8:C6:50:D7:07:0C
+N/A - F8:C6:50:D7:07:0E
+MyResNet Start Here - 0C:D5:D3:7B:53:E9
+N/A - 4E:6B:B8:EC:64:7D
+MyResNet Start Here - 18:F9:35:BB:F0:29
+MyResNet-5G - 18:F9:35:BB:F0:2B
+MyResNet-2G - 18:F9:35:BB:F0:2C
+N/A - 18:F9:35:BB:F0:2E
+MyResNet Start Here - F8:C6:50:D7:1C:E9
+MyResNet-5G - F8:C6:50:D7:1C:EB
+MyResNet-2G - F8:C6:50:D7:1C:EC
+N/A - F8:C6:50:D7:1C:EE
+MyResNet Start Here - 0C:D5:D3:7B:A9:49
+MyResNet-5G - 0C:D5:D3:7B:A9:4B
+MyResNet-2G - 0C:D5:D3:7B:A9:4C
+N/A - 0C:D5:D3:7B:A9:4E
+MyResNet Start Here - F8:C6:50:D7:0A:A9
+MyResNet-5G - F8:C6:50:D7:0A:AB
+MyResNet-2G - F8:C6:50:D7:0A:AC
+N/A - F8:C6:50:D7:0A:AE
+MyResNet Start Here - 08:7B:87:7D:A8:49
+N/A - 08:7B:87:7D:A8:4E
+MyResNet-5G - E4:A4:1C:4D:AE:4B
+MyResNet-2G - E4:A4:1C:4D:AE:4C
+N/A - E4:A4:1C:4D:AE:4E
+MyResNet Start Here - E4:A4:1C:4D:AE:49
+N/A - 62:45:B7:CF:36:39
+N/A - 62:45:B1:FD:B9:FA
+N/A - 62:45:B8:37:A6:8D
+MyResNet-2G - F8:C6:50:D6:39:23
+MyResNet Start Here - 18:F9:35:BB:F0:26
+N/A - 08:7B:87:7C:A1:A1
+MyResNet-2G - 08:7B:87:7C:A1:A3
+MyResNet Start Here - 08:7B:87:7C:A1:A6
+N/A - 0C:D5:D3:7A:1E:A1
+27eace51 - 1C:BF:CE:FC:26:9D
+N/A - CC:B0:DA:1E:D9:7A
+N/A - F8:C6:50:D6:39:21
+MyResNet Start Here - F8:C6:50:D6:39:26
+N/A - 18:F9:35:BB:F0:21
+MyResNet-2G - 18:F9:35:BB:F0:23
+3f509b56 - 1C:BF:CE:AD:D5:0D
+MyResNet-2G - F8:C6:50:D6:51:43
+b2785ce9 - 1C:BF:CE:FD:32:64
+Volcano - 90:9A:4A:33:F0:D6
+TELLO-F17756 - 34:D2:62:F1:77:56
+N/A - 0C:D5:D3:7B:53:E1
+MyResNet-2G - 0C:D5:D3:7B:53:E3
+N/A - F8:C6:50:D6:B8:81
+MyResNet-2G - F8:C6:50:D6:B8:83
+MyResNet Start Here - F8:C6:50:D6:B8:86
+MyResNet Start Here - 0C:D5:D3:7A:FF:66
+N/A - F8:C6:50:D7:43:41
+N/A - F8:C6:50:D7:0A:A1
+MyResNet Start Here - F8:C6:50:D7:0A:A6
+MyResNet-2G - 0C:D5:D3:7A:FF:63
+DIRECT-EC-HP Smart Tank 5100 - 00:04:EA:EA:D5:AB
+N/A - E4:A4:1C:4D:C6:41
+MyResNet Start Here - 0C:D5:D3:7B:53:E6
+MyResNet Start Here - F8:C6:50:D6:6C:66
+MyResNet-2G - F8:C6:50:D7:43:43
+MyResNet-2G - F8:C6:50:D7:0A:A3
+N/A - 0C:D5:D3:7A:4C:C1
+N/A - E4:A4:1C:4D:AE:41
+MyResNet-2G - E4:A4:1C:4D:AE:43
+MyResNet Start Here - E4:A4:1C:4D:AE:46
+N/A - 0C:D5:D3:7A:98:61
+MyResNet-2G - 0C:D5:D3:7A:EE:43
+MyResNet-2G - 0C:D5:D3:7B:A9:43
+MyResNet Start Here - 0C:D5:D3:7B:A9:46
+MyResNet Start Here - F8:C6:50:D7:2E:86
+N/A - F8:C6:50:D6:BA:A1
+N/A - F8:C6:50:D7:2E:81
+MyResNet-2G - F8:C6:50:D7:2E:83
+N/A - 0C:D5:D3:7B:A9:41
+MyResNet Start Here - 08:7B:87:7D:A8:46
+MyResNet Start Here - 0C:D5:D3:7B:66:66
+MyResNet-2G - 0C:D5:D3:7A:98:63
+MyResNet Start Here - 0C:D5:D3:7A:98:66
+MyResNet-5G - F8:C6:50:D6:51:4B
+N/A - F8:C6:50:D6:51:4E
+N/A - 0C:D5:D3:7B:53:EE
+MyResNet-2G - 08:7B:87:7D:A8:4C
