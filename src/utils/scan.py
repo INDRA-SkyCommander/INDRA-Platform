@@ -67,4 +67,4 @@ def scan(interface="wlan0"):
 				
 			f.write(target_name + "\n")
 			
-		return cell_info
+	return cell_info

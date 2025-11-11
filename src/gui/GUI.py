@@ -57,15 +57,12 @@ class MainGUI:
 
 	# Scan configuration
 	interval = 1000
-	packets = 10000
+	packets = 10
 	scan_toggle = False
 	is_scanning = False
 	scanning_interface = ''
 	auto_scanning_cooldown = 12  # seconds between auto-scans
 	target_info = {}
-
-	# Add module-required variables to the options list
-	module_options.append(packets)
 
 	# Filter variables
 	tello_filter = False
@@ -186,6 +183,7 @@ class MainGUI:
 		self.scan_toggle = False
 
 		self.tello_filter = MainGUI.tello_filter
+		self.module_options = MainGUI.module_options
 
 		# Styling
 		frame_style = ttk.Style()
@@ -395,9 +393,10 @@ class MainGUI:
 					"signal_level": target_info[4].strip() if len(target_info) > 4 else "",
 					"encryption": target_info[5].strip() if len(target_info) > 5 else ""
 				},
-				# No clue what writing 10000 to the file does, but it's in the original code
+				
 				"options": {
-					"packets": options_info[0] if len(options_info) > 0 else 10000
+					"packets": options_info[0] if len(options_info) > 0 else 10000,
+					"interface": options_info[1] if len(options_info) > 1 else ""
 				}                
 			}
 			
@@ -444,6 +443,9 @@ class MainGUI:
 			update_target()
 			current_target = self.current_target
 			target_info_list = get_target_info(current_target)
+			self.module_options = []
+			self.module_options.append(self.packets)
+			self.module_options.append(self.selected_interface.get())
 			options_info_list = self.module_options
 			
 			# Implement and import exploit
