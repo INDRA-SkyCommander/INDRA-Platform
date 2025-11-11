@@ -29,6 +29,7 @@ import signal
 import numpy as np
 import subprocess as sp
 import PIL.Image as pil
+import select
 
 def split(value, size=2):
 	return tuple(value[0 + i:size + i] for i in range(0, len(value), size))
@@ -118,6 +119,8 @@ if __name__ == '__main__':
 	signal.signal(signal.SIGINT, cleanup_handler)
 	signal.signal(signal.SIGTERM, cleanup_handler)
 
+	poller = select.poll()
+
 	max_wait = 30
 	wait_time = 0
 
@@ -132,6 +135,7 @@ if __name__ == '__main__':
 	print(f"Watching log file: {log}")
 		
 	with open(log, 'r') as file:
+		poller.register(file, select.POLLIN)
 		file.seek(0, os.SEEK_END)  # Move the pointer to the end of the file
 
 		sps, pps, key = None, None, None
@@ -141,85 +145,94 @@ if __name__ == '__main__':
 
 		while True:
 			try:
-				line = file.readline()
-				
-				if not line:
-					time.sleep(0.01)
+				events = poller.poll(timeout=1000)
+				if not events:
 					continue
-
-				r = collect(line)
-
-				if r is None:
-					continue
-
-				if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
-					sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
-
-					if fn == 0:  # chunk or first fragment of chunk
-						# No need to strip headers, sniff output is clean enough
-						# qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
-						# data = data[(qos + llc + ip + udp) * 2:]
-						vsn, vfn = data[0:2], data[2:4]
-						vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
-						vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
-						data = data[4:]  # cut off video app data
-
-					else:  # fragment of chunk
-						# qos = 8 * 3 + 2
-						vsn, vfn = -1, -1
-						# data = data[qos * 2:]
-
-					data = data[:-8]  # cut off crc
-
-					# Check for reset packet
-					if '0000000141' == data[:10]:  # for sure, reset (optionally)
-						print("DEBUG: Found 041 reset packet.")
-						sps, pps, key, buffer = None, None, None, ''
+				for fd, event in events:
+					if event is None:
 						continue
+					if event & select.POLLIN:
 
-					# Check for SPS
-					if '0000000167' == data[:10]:  # SPS
-						print("DEBUG: Found SPS packet.")
-						sps, pps, key, buffer = vsn, None, None, ''
-						buffer += data
+						line = file.readline()
+						
+						if not line:
+							time.sleep(0.01)
+							continue
 
-					# Check for PPS
-					if '0000000168' == data[:10] and sps is not None:  # PPS
-						# vsn is not incrementing
-						if vsn >= sps:
-							print("DEBUG: Found PPS packet.")
-							pps = vsn
-							buffer += data
-						else:
-							print("DEBUG: Found PPS packet, but SN mismatch.")
-							sps, buffer = None, ''
+						r = collect(line)
 
-					# Check for Keyframe
-					if '0000000165' == data[:10] and pps is not None:  # keyframe
-						if vsn >= pps:
-							print("DEBUG: Found Keyframe packet.")
-							key = vsn
-						else:
-							print("DEBUG: Found PPS packet, but SN mismatch.")
-							pps, buffer = None, ''
+						if r is None:
+							continue
 
-					# Collect frame data if we have key
-					if key is not None:
-						buffer += data
+						if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
+							sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
 
-					# Check for end of frame
-					if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
-						print("DEBUG: Found EOF.")
-						sps, pps = None, None
+							if fn == 0:  # chunk or first fragment of chunk
+								# No need to strip headers, sniff output is clean enough
+								# qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
+								# data = data[(qos + llc + ip + udp) * 2:]
+								vsn, vfn = data[0:2], data[2:4]
+								vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
+								vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
+								data = data[4:]  # cut off video app data
 
-					if sps is None and pps is None and vsn != key:  # last fragment of last chunk
-						if len(buffer) > 0:
-							print("DEBUG: CALLING FFMPEG.")
-							create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
-							frame_count += 1
-							sps, pps, key, buffer = None, None, None, ''
+							else:  # fragment of chunk
+								# qos = 8 * 3 + 2
+								vsn, vfn = -1, -1
+								# data = data[qos * 2:]
+
+							data = data[:-8]  # cut off crc
+
+							# Check for reset packet
+							if '0000000141' == data[:10]:  # for sure, reset (optionally)
+								print("DEBUG: Found 041 reset packet.")
+								sps, pps, key, buffer = None, None, None, ''
+								continue
+
+							# Check for SPS
+							if '0000000167' == data[:10]:  # SPS
+								print("DEBUG: Found SPS packet.")
+								sps, pps, key, buffer = vsn, None, None, ''
+								buffer += data
+
+							# Check for PPS
+							if '0000000168' == data[:10] and sps is not None:  # PPS
+								# vsn is not incrementing
+								if vsn >= sps:
+									print("DEBUG: Found PPS packet.")
+									pps = vsn
+									buffer += data
+								else:
+									print("DEBUG: Found PPS packet, but SN mismatch.")
+									sps, buffer = None, ''
+
+							# Check for Keyframe
+							if '0000000165' == data[:10] and pps is not None:  # keyframe
+								if vsn >= pps:
+									print("DEBUG: Found Keyframe packet.")
+									key = vsn
+								else:
+									print("DEBUG: Found PPS packet, but SN mismatch.")
+									pps, buffer = None, ''
+
+							# Collect frame data if we have key
+							if key is not None:
+								buffer += data
+
+							# Check for end of frame
+							if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
+								print("DEBUG: Found EOF.")
+								sps, pps = None, None
+
+							if sps is None and pps is None and vsn != key:  # last fragment of last chunk
+								if len(buffer) > 0:
+									print("DEBUG: CALLING FFMPEG.")
+									create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
+									frame_count += 1
+									sps, pps, key, buffer = None, None, None, ''
 
 			except KeyboardInterrupt:
+				poller.unregister(file)
 				cleanup_handler(None, None)
 
 			except Exception as e:
