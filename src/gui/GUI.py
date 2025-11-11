@@ -75,6 +75,11 @@ class MainGUI:
 		"""
 		self.is_scanning = True
 
+		# RESET interface after attack
+		sudo_exec(f"ifconfig {self.scanning_interface} down")
+		sudo_exec(f"iwconfig {self.scanning_interface} mode managed")
+		sudo_exec(f"ifconfig {self.scanning_interface} up")
+		
 		self.log("Beep boop. Scanning...")
 		
 		# Single scan
@@ -425,6 +430,10 @@ class MainGUI:
 				module_return_code = -1
 			finally:
 
+				if gui_selected_module == "video_interceptor":
+					self.log("Video module exited. Stopping player.")
+					self.root.after(0, self.image_player.stop)
+		
 				if len(options_info) > 1:
 
 					# RESET interface after attack
@@ -450,6 +459,11 @@ class MainGUI:
 			
 			self.log(f"Running module: {module_name}")
 			
+			if module_name == "video_interceptor":
+				self.log("Clearing image cache and starting video player...")
+				self.image_player._clear_folder()
+				self.image_player.start()
+
 			update_target()
 			current_target = self.current_target
 			target_info_list = get_target_info(current_target)
@@ -636,7 +650,7 @@ class ImagePlayer(ttk.Frame):
 		self.current_image_index = 0
 		self.paused = True
 
-		self.label = ttk.Label(self)
+		self.label = tk.Label(self)
 		self.label.pack(expand=True, fill="both")
 
 		os.makedirs(self.image_folder, exist_ok=True)
@@ -690,11 +704,12 @@ class ImagePlayer(ttk.Frame):
 		if not self.paused and self.new_images:
 			img_path = self.new_images.pop(0)
 			try:
+				print("Playing images.")
 				img = Image.open(img_path)
 				img = img.resize((730, 300))
 				tk_img = ImageTk.PhotoImage(img)
 				self.label.config(image=tk_img)
-				# self.label.image = tk_img # Reference to avoid garbage collection
+				self.label.image = tk_img # Reference to avoid garbage collection
 				self.after(int(1000 / self.frame_rate), self.play_images)
 			except Exception as e:
 				print(f"Error displaying {img_path}: {e}")

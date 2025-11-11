@@ -63,11 +63,12 @@ sudo_exec(f"airmon-ng check kill")
 
 # Start monitor mode
 sudo_exec(f"airmon-ng start {interface}")
+monitor_interface = f"{interface}mon"
 
 # Set network adapter channel to that of the target network
 sudo_exec(f"{tepsotssh_path} set {target_channel}")
 
-sniff_cmd = ('sudo', 'python3', tepsotspy_path, '-i', interface, '-sa', target_source.replace('\n',''), '-v')
+sniff_cmd = ('sudo', 'python3', '-u', tepsotspy_path, '-i', monitor_interface, '-sa', target_source.replace('\n',''), '-v')
 decoder_cmd = ('sudo', 'python3', decoder_path, sniff_output_path, image_folder_path)
 
 sniff_process = None
@@ -76,8 +77,9 @@ decoder_process = None
 try:
     # Start sniffer and output to log
     with open(sniff_output_path, 'w') as log_file:
+        print("Starting sniffer...")
         # Start the subprocess and redirect stdout to the log file 
-        sniff_process = subprocess.Popen(sniff_cmd, stdout=log_file)
+        sniff_process = subprocess.Popen(sniff_cmd, stdout=log_file, stderr=sys.stdout, text=True)
 
     print("Starting decoder...")
     decoder_process = subprocess.Popen(decoder_cmd)
@@ -85,7 +87,18 @@ try:
     print("\n Interceptor is running. Press Ctrl+C to stop.")
 
     # Wait for decoder process to finish
-    decoder_process.wait()
+    while True:
+        sniffer_status = sniff_process.poll()
+        if sniffer_status is not None:
+            print(f"Error: Sniffer process exited unexpectedly with code {sniffer_status}")
+            break
+
+        decoder_status = decoder_process.poll()
+        if decoder_status is not None:
+            print(f"Error: Decoder process exited unepectedly with code {decoder_status}.")
+            break
+
+        time.sleep(1)
 
 except KeyboardInterrupt:
     print("Shutting down video interceptor...")
@@ -95,12 +108,12 @@ except Exception as e:
     
 finally:
 
-    if sniff_process:
+    if sniff_process and sniff_process.poll() is None:
         print("Terminating sniffer.")
         sniff_process.terminate()
         sniff_process.wait()
 
-    if decoder_process:
+    if decoder_process and decoder_process.poll() is None:
         print("Terminating decoder.")
         decoder_process.terminate()
         decoder_process.wait()

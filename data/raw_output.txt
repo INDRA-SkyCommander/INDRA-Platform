@@ -1,18 +1,17 @@
 wlx00c0cab09070  Scan completed :
-          Cell 01 - Address: 1C:BF:CE:FC:26:9D
-                    ESSID:"27eace51"
-                    Protocol:IEEE 802.11bgn
+          Cell 01 - Address: F8:C6:50:D7:29:63
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.412 GHz (Channel 1)
                     Encryption key:on
-                    Bit Rates:72 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac02000fac060c00
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
                     IE: IEEE 802.11i/WPA2 Version 1
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : PSK unknown (6)
-                    IE: Unknown: DD180050F204104A00011010440001021049000600372A000120
-                    Quality=100/100  Signal level=71/100  
+                        Authentication Suites (1) : PSK
+                    Quality=21/100  Signal level=31/100  
                     Extra:fm=0001
           Cell 02 - Address: 1C:BF:CE:F4:1F:BB
                     ESSID:"77fe7569"
@@ -29,55 +28,7 @@ wlx00c0cab09070  Scan completed :
                     IE: Unknown: DD180050F204104A00011010440001021049000600372A000120
                     Quality=100/100  Signal level=50/100  
                     Extra:fm=0001
-          Cell 03 - Address: CC:B0:DA:1E:D9:7A
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    IE: Unknown: DD520050F204104A00011010440001021047001022210203040506070809CCB0DA1ED97A1049000600372A0001201054000800060050F204000110110016496E7369676E696120526F6B75205456202D20363633
-                    Quality=87/100  Signal level=63/100  
-                    Extra:fm=0001
-          Cell 04 - Address: 1C:BF:CE:FD:32:64
-                    ESSID:"b2785ce9"
-                    Protocol:IEEE 802.11bgn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:72 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac02000fac060c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : PSK unknown (6)
-                    IE: Unknown: DD5C0050F204104A0001101044000102103B0001031047001062F4CE65ADC65260B55A0F0195FC0A4B102100012010230001201024000120104200012010540008000000000000000010110001201008000221081049000600372A000120
-                    Quality=100/100  Signal level=72/100  
-                    Extra:fm=0003
-          Cell 05 - Address: F8:C6:50:D7:1C:E6
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=62/100  Signal level=45/100  
-                    Extra:fm=0003
-          Cell 06 - Address: 18:F9:35:BB:F0:26
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=73/100  Signal level=53/100  
-                    Extra:fm=0003
-          Cell 07 - Address: 18:F9:35:BB:F0:23
+          Cell 03 - Address: F8:C6:50:D6:2E:23
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -89,9 +40,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=73/100  Signal level=51/100  
-                    Extra:fm=0003
-          Cell 08 - Address: 18:F9:35:BB:F0:21
+                    Quality=30/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 04 - Address: F8:C6:50:D6:2E:26
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=18/100  Signal level=31/100  
+                    Extra:fm=0001
+          Cell 05 - Address: F8:C6:50:D6:51:41
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -103,9 +63,32 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=82/100  Signal level=50/100  
+                    Quality=42/100  Signal level=39/100  
                     Extra:fm=0001
-          Cell 09 - Address: 1C:BF:CE:AD:D5:0D
+          Cell 06 - Address: F8:C6:50:D6:51:43
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=54/100  Signal level=38/100  
+                    Extra:fm=0001
+          Cell 07 - Address: F8:C6:50:D6:51:46
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=39/100  Signal level=40/100  
+                    Extra:fm=0001
+          Cell 08 - Address: 1C:BF:CE:AD:D5:0D
                     ESSID:"3f509b56"
                     Protocol:IEEE 802.11bgn
                     Mode:Master
@@ -118,23 +101,9 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (2) : PSK unknown (6)
                     IE: Unknown: DD5C0050F204104A0001101044000102103B000103104700105057F2E7492A52A1B326153FF5054453102100012010230001201024000120104200012010540008000000000000000010110001201008000221081049000600372A000120
-                    Quality=100/100  Signal level=71/100  
+                    Quality=100/100  Signal level=56/100  
                     Extra:fm=0003
-          Cell 10 - Address: 0C:D5:D3:7A:59:43
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=18/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 11 - Address: F8:C6:50:D6:51:41
+          Cell 09 - Address: F8:C6:50:D6:39:21
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -146,9 +115,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=24/100  Signal level=36/100  
+                    Quality=84/100  Signal level=56/100  
                     Extra:fm=0001
-          Cell 12 - Address: F8:C6:50:D6:51:43
+          Cell 10 - Address: F8:C6:50:D6:39:23
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -160,32 +129,33 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=28/100  Signal level=36/100  
+                    Quality=72/100  Signal level=56/100  
                     Extra:fm=0001
-          Cell 13 - Address: F8:C6:50:D6:39:23
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=32/100  Signal level=55/100  
-                    Extra:fm=0001
-          Cell 14 - Address: F8:C6:50:D6:39:26
+          Cell 11 - Address: F8:C6:50:D7:1C:E6
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.412 GHz (Channel 1)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=16/100  Signal level=56/100  
-                    Extra:fm=0001
-          Cell 15 - Address: 08:7B:87:7C:A1:A1
+                    Quality=60/100  Signal level=48/100  
+                    Extra:fm=0003
+          Cell 12 - Address: 1C:BF:CE:FC:26:9D
+                    ESSID:"27eace51"
+                    Protocol:IEEE 802.11bgn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:on
+                    Bit Rates:72 Mb/s
+                    Extra:rsn_ie=30180100000fac040100000fac040200000fac02000fac060c00
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (2) : PSK unknown (6)
+                    IE: Unknown: DD5C0050F204104A0001101044000102103B0001031047001076F891D47B2258518E43451EE105DE8C102100012010230001201024000120104200012010540008000000000000000010110001201008000221081049000600372A000120
+                    Quality=100/100  Signal level=64/100  
+                    Extra:fm=0003
+          Cell 13 - Address: 18:F9:35:BB:F0:21
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -197,9 +167,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=3/100  Signal level=36/100  
+                    Quality=81/100  Signal level=53/100  
                     Extra:fm=0001
-          Cell 16 - Address: 0C:D5:D3:7A:1E:A3
+          Cell 14 - Address: 18:F9:35:BB:F0:23
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -211,23 +181,161 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=0/100  Signal level=31/100  
+                    Quality=84/100  Signal level=53/100  
                     Extra:fm=0001
-          Cell 17 - Address: 02:3B:46:09:9D:C3
-                    ESSID:"KYOCERA E7110 4d9c"
-                    Protocol:IEEE 802.11bgn
+          Cell 15 - Address: 18:F9:35:BB:F0:26
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
                     Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=92/100  Signal level=54/100  
+                    Extra:fm=0003
+          Cell 16 - Address: F8:C6:50:D7:29:66
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=30/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 17 - Address: F8:C6:50:D7:1C:E1
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
                     Encryption key:on
-                    Bit Rates:780 Mb/s
-                    Extra:rsn_ie=30180100000fac040100000fac040200000fac02000fac088c00
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
                     IE: IEEE 802.11i/WPA2 Version 1
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (2) : PSK unknown (8)
-                    Quality=20/100  Signal level=57/100  
+                        Authentication Suites (1) : PSK
+                    Quality=87/100  Signal level=50/100  
+                    Extra:fm=0001
+          Cell 18 - Address: F8:C6:50:D7:1C:E3
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=81/100  Signal level=48/100  
+                    Extra:fm=0001
+          Cell 19 - Address: F8:C6:50:D6:39:26
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.412 GHz (Channel 1)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=0/100  Signal level=57/100  
+                    Extra:fm=0001
+          Cell 20 - Address: 34:D2:62:F1:77:56
+                    ESSID:"TELLO-F17756"
+                    Protocol:IEEE 802.11bg
+                    Mode:Master
+                    Frequency:2.457 GHz (Channel 10)
+                    Encryption key:off
+                    Bit Rates:54 Mb/s
+                    Quality=36/100  Signal level=80/100  
                     Extra:fm=0003
-          Cell 18 - Address: 00:04:EA:EA:D5:AB
+          Cell 21 - Address: 9A:9A:4A:33:F0:D6
+                    ESSID:""
+                    Protocol:IEEE 802.11bgn
+                    Mode:Master
+                    Frequency:2.417 GHz (Channel 2)
+                    Encryption key:on
+                    Bit Rates:300 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020000
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=0/100  Signal level=52/100  
+                    Extra:fm=0001
+          Cell 22 - Address: 08:7B:87:7D:3B:43
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=24/100  Signal level=28/100  
+                    Extra:fm=0001
+          Cell 23 - Address: 0C:D5:D3:7A:FF:61
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=63/100  Signal level=42/100  
+                    Extra:fm=0001
+          Cell 24 - Address: 0C:D5:D3:7A:FF:63
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=63/100  Signal level=42/100  
+                    Extra:fm=0001
+          Cell 25 - Address: 0C:D5:D3:7A:FF:66
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=63/100  Signal level=41/100  
+                    Extra:fm=0001
+          Cell 26 - Address: F8:C6:50:D7:0A:A1
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=21/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 27 - Address: F8:C6:50:D7:0A:A6
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.437 GHz (Channel 6)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=33/100  Signal level=22/100  
+                    Extra:fm=0001
+          Cell 28 - Address: 00:04:EA:EA:D5:AB
                     ESSID:"DIRECT-EC-HP Smart Tank 5100"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -240,23 +348,18 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
                     IE: Unknown: DD9D0050F204104A000110104400010210570001011041000100103B0001031047001081C801F416194EB8A722749A59F25B9F1021000248501023000130102400013010420001301054000800030050F20400051011001C4449524543542D45432D485020536D6172742054616E6B20353130301008000200001049000600372A000120104900170001371006001081C801F416194EB8A722749A59F25B9F
-                    Quality=68/100  Signal level=55/100  
+                    Quality=100/100  Signal level=74/100  
                     Extra:fm=0003
-          Cell 19 - Address: F8:C6:50:D6:B8:81
-                    ESSID:""
+          Cell 29 - Address: F8:C6:50:D6:B8:86
+                    ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
+                    Encryption key:off
                     Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
                     Quality=100/100  Signal level=72/100  
-                    Extra:fm=0001
-          Cell 20 - Address: F8:C6:50:D6:B8:83
+                    Extra:fm=0003
+          Cell 30 - Address: F8:C6:50:D6:B8:83
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -268,32 +371,32 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=97/100  Signal level=72/100  
+                    Quality=93/100  Signal level=73/100  
                     Extra:fm=0003
-          Cell 21 - Address: F8:C6:50:D6:B8:86
-                    ESSID:"MyResNet Start Here"
+          Cell 31 - Address: D4:20:B0:32:D0:EA
+                    ESSID:"WVU.HG_IoT"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.437 GHz (Channel 6)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=95/100  Signal level=71/100  
-                    Extra:fm=0003
-          Cell 22 - Address: F8:C6:50:D7:0A:A3
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
+                    Quality=0/100  Signal level=26/100  
+                    Extra:fm=0001
+          Cell 32 - Address: 86:1F:C8:41:36:82
+                    ESSID:""
+                    Protocol:IEEE 802.11bgn
                     Mode:Master
                     Frequency:2.437 GHz (Channel 6)
                     Encryption key:on
                     Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020c00
                     IE: IEEE 802.11i/WPA2 Version 1
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=25/100  Signal level=36/100  
+                    Quality=0/100  Signal level=52/100  
                     Extra:fm=0001
-          Cell 23 - Address: 0C:D5:D3:7B:53:E1
+          Cell 33 - Address: F8:C6:50:D6:6C:61
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -305,9 +408,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=60/100  Signal level=55/100  
+                    Quality=0/100  Signal level=36/100  
                     Extra:fm=0001
-          Cell 24 - Address: 0C:D5:D3:7B:53:E3
+          Cell 34 - Address: F8:C6:50:D6:6C:63
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -319,152 +422,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=41/100  Signal level=56/100  
+                    Quality=0/100  Signal level=34/100  
                     Extra:fm=0001
-          Cell 25 - Address: F8:C6:50:D7:43:43
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=46/100  Signal level=39/100  
-                    Extra:fm=0001
-          Cell 26 - Address: F8:C6:50:D7:43:46
+          Cell 35 - Address: F8:C6:50:D6:6C:66
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.437 GHz (Channel 6)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=42/100  Signal level=40/100  
+                    Quality=0/100  Signal level=35/100  
                     Extra:fm=0001
-          Cell 27 - Address: 0C:D5:D3:7A:4C:C1
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=29/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 28 - Address: 34:D2:62:F1:77:56
-                    ESSID:"TELLO-F17756"
-                    Protocol:IEEE 802.11bg
-                    Mode:Master
-                    Frequency:2.447 GHz (Channel 8)
-                    Encryption key:off
-                    Bit Rates:54 Mb/s
-                    Quality=72/100  Signal level=88/100  
-                    Extra:fm=0003
-          Cell 29 - Address: F8:C6:50:D7:07:03
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=28/100  Signal level=49/100  
-                    Extra:fm=0003
-          Cell 30 - Address: 0C:D5:D3:7A:FF:66
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=59/100  Signal level=41/100  
-                    Extra:fm=0003
-          Cell 31 - Address: 0C:D5:D3:7A:FF:63
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=45/100  Signal level=41/100  
-                    Extra:fm=0003
-          Cell 32 - Address: F8:C6:50:D7:43:41
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=21/100  Signal level=42/100  
-                    Extra:fm=0001
-          Cell 33 - Address: 0C:D5:D3:7A:4C:C3
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=24/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 34 - Address: 0C:D5:D3:7A:4C:C6
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=21/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 35 - Address: 0C:D5:D3:7A:FF:61
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=12/100  Signal level=43/100  
-                    Extra:fm=0001
-          Cell 36 - Address: F8:C6:50:D7:07:06
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=0/100  Signal level=48/100  
-                    Extra:fm=0001
-          Cell 37 - Address: F8:C6:50:D7:2E:81
+          Cell 36 - Address: 0C:D5:D3:7B:A9:41
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -476,9 +445,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=86/100  Signal level=56/100  
+                    Quality=95/100  Signal level=65/100  
                     Extra:fm=0001
-          Cell 38 - Address: F8:C6:50:D7:2E:83
+          Cell 37 - Address: 0C:D5:D3:7B:A9:43
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -490,8 +459,17 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=90/100  Signal level=57/100  
-                    Extra:fm=0003
+                    Quality=94/100  Signal level=65/100  
+                    Extra:fm=0001
+          Cell 38 - Address: 0C:D5:D3:7B:A9:46
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=96/100  Signal level=65/100  
+                    Extra:fm=0001
           Cell 39 - Address: F8:C6:50:D7:2E:86
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11gn
@@ -499,9 +477,9 @@ wlx00c0cab09070  Scan completed :
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=80/100  Signal level=55/100  
-                    Extra:fm=0003
-          Cell 40 - Address: E4:A4:1C:4D:AE:41
+                    Quality=100/100  Signal level=55/100  
+                    Extra:fm=0001
+          Cell 40 - Address: 0C:D5:D3:7B:66:61
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -513,18 +491,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=69/100  Signal level=48/100  
+                    Quality=36/100  Signal level=30/100  
                     Extra:fm=0001
-          Cell 41 - Address: E4:A4:1C:4D:AE:46
+          Cell 41 - Address: 0C:D5:D3:7B:66:66
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=63/100  Signal level=48/100  
-                    Extra:fm=0003
-          Cell 42 - Address: 0C:D5:D3:7B:A9:41
+                    Quality=24/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 42 - Address: E4:A4:1C:4D:AE:41
                     ESSID:""
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -536,9 +514,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=98/100  Signal level=69/100  
+                    Quality=78/100  Signal level=55/100  
                     Extra:fm=0001
-          Cell 43 - Address: 0C:D5:D3:7B:A9:43
+          Cell 43 - Address: E4:A4:1C:4D:AE:43
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -550,46 +528,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=85/100  Signal level=68/100  
-                    Extra:fm=0003
-          Cell 44 - Address: 0C:D5:D3:7B:A9:46
+                    Quality=75/100  Signal level=54/100  
+                    Extra:fm=0001
+          Cell 44 - Address: E4:A4:1C:4D:AE:46
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=91/100  Signal level=70/100  
-                    Extra:fm=0003
-          Cell 45 - Address: F8:C6:50:D6:BA:A1
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=32/100  Signal level=37/100  
+                    Quality=87/100  Signal level=54/100  
                     Extra:fm=0001
-          Cell 46 - Address: 0C:D5:D3:7A:98:61
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=33/100  Signal level=38/100  
-                    Extra:fm=0001
-          Cell 47 - Address: 0C:D5:D3:7A:98:63
+          Cell 45 - Address: 0C:D5:D3:7A:98:63
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -601,32 +551,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=31/100  Signal level=38/100  
+                    Quality=42/100  Signal level=33/100  
                     Extra:fm=0001
-          Cell 48 - Address: 0C:D5:D3:7A:98:66
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=28/100  Signal level=39/100  
-                    Extra:fm=0001
-          Cell 49 - Address: 08:7B:87:7D:A8:41
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=27/100  Signal level=41/100  
-                    Extra:fm=0001
-          Cell 50 - Address: F8:C6:50:D6:BA:A3
+          Cell 46 - Address: F8:C6:50:D6:BA:A3
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11gn
                     Mode:Master
@@ -638,36 +565,101 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=27/100  Signal level=37/100  
+                    Quality=48/100  Signal level=34/100  
                     Extra:fm=0001
-          Cell 51 - Address: F8:C6:50:D6:BA:A6
+          Cell 47 - Address: F8:C6:50:D6:BA:A6
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11gn
                     Mode:Master
                     Frequency:2.462 GHz (Channel 11)
                     Encryption key:off
                     Bit Rates:144 Mb/s
-                    Quality=32/100  Signal level=35/100  
+                    Quality=45/100  Signal level=35/100  
                     Extra:fm=0001
-          Cell 52 - Address: E4:A4:1C:4D:3E:69
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
+          Cell 48 - Address: 08:7B:87:7D:A8:41
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
                     Mode:Master
-                    Frequency:5.18 GHz (Channel 36)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=21/100  Signal level=26/100  
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=55/100  Signal level=39/100  
                     Extra:fm=0001
-          Cell 53 - Address: 0C:D5:D3:7A:FF:69
+          Cell 49 - Address: 08:7B:87:7D:A8:43
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=53/100  Signal level=39/100  
+                    Extra:fm=0001
+          Cell 50 - Address: 08:7B:87:7D:A8:46
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:off
+                    Bit Rates:144 Mb/s
+                    Quality=60/100  Signal level=38/100  
+                    Extra:fm=0001
+          Cell 51 - Address: 0C:D5:D3:7A:EE:41
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=36/100  Signal level=28/100  
+                    Extra:fm=0001
+          Cell 52 - Address: F8:C6:50:D7:2E:81
+                    ESSID:""
+                    Protocol:IEEE 802.11gn
+                    Mode:Master
+                    Frequency:2.462 GHz (Channel 11)
+                    Encryption key:on
+                    Bit Rates:144 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=66/100  Signal level=56/100  
+                    Extra:fm=0001
+          Cell 53 - Address: 62:45:B7:D6:47:66
+                    ESSID:""
+                    Protocol:IEEE 802.11b
+                    Mode:Master
+                    Frequency:5.2 GHz (Channel 40)
+                    Encryption key:on
+                    Bit Rates:0 kb/s
+                    Quality=7/100  Signal level=24/100  
+                    Extra:fm=0001
+          Cell 54 - Address: 0C:D5:D3:7A:FF:69
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.2 GHz (Channel 40)
                     Encryption key:off
                     Bit Rates:867 Mb/s
-                    Quality=50/100  Signal level=35/100  
+                    Quality=59/100  Signal level=43/100  
                     Extra:fm=0003
-          Cell 54 - Address: 0C:D5:D3:7A:FF:6B
+          Cell 55 - Address: 0C:D5:D3:7A:FF:6B
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -679,9 +671,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=47/100  Signal level=35/100  
+                    Quality=63/100  Signal level=42/100  
                     Extra:fm=0003
-          Cell 55 - Address: 0C:D5:D3:7A:FF:6C
+          Cell 56 - Address: 0C:D5:D3:7A:FF:6C
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -693,9 +685,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=48/100  Signal level=36/100  
+                    Quality=61/100  Signal level=41/100  
                     Extra:fm=0003
-          Cell 56 - Address: 0C:D5:D3:7A:FF:6E
+          Cell 57 - Address: 0C:D5:D3:7A:FF:6E
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -707,18 +699,55 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=49/100  Signal level=35/100  
+                    Quality=67/100  Signal level=43/100  
                     Extra:fm=0001
-          Cell 57 - Address: 62:45:B9:2D:9B:90
+          Cell 58 - Address: 62:45:B9:2D:9B:90
                     ESSID:""
                     Protocol:IEEE 802.11b
                     Mode:Master
-                    Frequency:5.24 GHz (Channel 48)
+                    Frequency:5.22 GHz (Channel 44)
                     Encryption key:on
                     Bit Rates:0 kb/s
-                    Quality=33/100  Signal level=31/100  
+                    Quality=36/100  Signal level=30/100  
                     Extra:fm=0001
-          Cell 58 - Address: 66:E0:03:A4:57:7D
+          Cell 59 - Address: F8:C6:50:D6:BA:A9
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.26 GHz (Channel 52)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=15/100  Signal level=24/100  
+                    Extra:fm=0001
+          Cell 60 - Address: F8:C6:50:D6:BA:AC
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.26 GHz (Channel 52)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=18/100  Signal level=23/100  
+                    Extra:fm=0001
+          Cell 61 - Address: F8:C6:50:D6:BA:AE
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.26 GHz (Channel 52)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=18/100  Signal level=24/100  
+                    Extra:fm=0001
+          Cell 62 - Address: 66:E0:03:A4:57:7D
                     ESSID:""
                     Protocol:IEEE 802.11an
                     Mode:Master
@@ -731,22 +760,226 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
                     IE: Unknown: DD550050F204104A00011010440001021049000600372A0001201049001800013720010001052002000C594B30305356373533303135101100114C696C6C79E280997320726F6B752074761054000800070050F2040001
+                    Quality=42/100  Signal level=32/100  
+                    Extra:fm=0001
+          Cell 63 - Address: 08:7B:87:7C:A1:A9
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.28 GHz (Channel 56)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
                     Quality=30/100  Signal level=27/100  
                     Extra:fm=0001
-          Cell 59 - Address: F8:C6:50:D7:43:49
+          Cell 64 - Address: 08:7B:87:7C:A1:AB
+                    ESSID:"MyResNet-5G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.28 GHz (Channel 56)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=27/100  Signal level=28/100  
+                    Extra:fm=0001
+          Cell 65 - Address: 08:7B:87:7C:A1:AC
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.28 GHz (Channel 56)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=21/100  Signal level=27/100  
+                    Extra:fm=0001
+          Cell 66 - Address: 08:7B:87:7C:A1:AE
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.28 GHz (Channel 56)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=27/100  Signal level=29/100  
+                    Extra:fm=0001
+          Cell 67 - Address: F8:C6:50:D7:2E:89
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.32 GHz (Channel 64)
                     Encryption key:off
                     Bit Rates:867 Mb/s
-                    Quality=28/100  Signal level=27/100  
+                    Quality=91/100  Signal level=53/100  
                     Extra:fm=0001
-          Cell 60 - Address: F8:C6:50:D7:43:4B
+          Cell 68 - Address: F8:C6:50:D7:2E:8B
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.32 GHz (Channel 64)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=90/100  Signal level=52/100  
+                    Extra:fm=0001
+          Cell 69 - Address: F8:C6:50:D7:2E:8C
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.32 GHz (Channel 64)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=91/100  Signal level=50/100  
+                    Extra:fm=0001
+          Cell 70 - Address: F8:C6:50:D7:2E:8E
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.32 GHz (Channel 64)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=84/100  Signal level=52/100  
+                    Extra:fm=0001
+          Cell 71 - Address: F8:C6:50:D7:43:49
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.32 GHz (Channel 64)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=48/100  Signal level=35/100  
+                    Extra:fm=0001
+          Cell 72 - Address: F8:C6:50:D7:43:4B
+                    ESSID:"MyResNet-5G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.32 GHz (Channel 64)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=52/100  Signal level=34/100  
+                    Extra:fm=0001
+          Cell 73 - Address: F8:C6:50:D7:43:4C
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.32 GHz (Channel 64)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=52/100  Signal level=34/100  
+                    Extra:fm=0001
+          Cell 74 - Address: F8:C6:50:D7:43:4E
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.32 GHz (Channel 64)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=54/100  Signal level=34/100  
+                    Extra:fm=0001
+          Cell 75 - Address: F8:C6:50:D7:07:09
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.5 GHz (Channel 100)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=72/100  Signal level=46/100  
+                    Extra:fm=0001
+          Cell 76 - Address: F8:C6:50:D7:07:0B
+                    ESSID:"MyResNet-5G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.5 GHz (Channel 100)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=69/100  Signal level=45/100  
+                    Extra:fm=0001
+          Cell 77 - Address: F8:C6:50:D7:07:0C
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.5 GHz (Channel 100)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=72/100  Signal level=46/100  
+                    Extra:fm=0001
+          Cell 78 - Address: F8:C6:50:D7:07:0E
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.5 GHz (Channel 100)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=81/100  Signal level=45/100  
+                    Extra:fm=0001
+          Cell 79 - Address: 0C:D5:D3:7B:53:E9
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.5 GHz (Channel 100)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=27/100  Signal level=30/100  
+                    Extra:fm=0001
+          Cell 80 - Address: 0C:D5:D3:7B:53:EB
+                    ESSID:"MyResNet-5G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.5 GHz (Channel 100)
                     Encryption key:on
                     Bit Rates:867 Mb/s
                     Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
@@ -756,218 +989,7 @@ wlx00c0cab09070  Scan completed :
                         Authentication Suites (1) : PSK
                     Quality=24/100  Signal level=28/100  
                     Extra:fm=0001
-          Cell 61 - Address: F8:C6:50:D7:43:4C
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=25/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 62 - Address: F8:C6:50:D6:39:29
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=82/100  Signal level=48/100  
-                    Extra:fm=0001
-          Cell 63 - Address: F8:C6:50:D6:39:2B
-                    ESSID:"MyResNet-5G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=81/100  Signal level=46/100  
-                    Extra:fm=0001
-          Cell 64 - Address: F8:C6:50:D6:39:2C
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=77/100  Signal level=47/100  
-                    Extra:fm=0001
-          Cell 65 - Address: F8:C6:50:D6:39:2E
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=83/100  Signal level=48/100  
-                    Extra:fm=0001
-          Cell 66 - Address: F8:C6:50:D7:2E:89
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=89/100  Signal level=54/100  
-                    Extra:fm=0001
-          Cell 67 - Address: F8:C6:50:D7:2E:8B
-                    ESSID:"MyResNet-5G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=85/100  Signal level=54/100  
-                    Extra:fm=0001
-          Cell 68 - Address: F8:C6:50:D7:2E:8C
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=82/100  Signal level=51/100  
-                    Extra:fm=0001
-          Cell 69 - Address: E2:3E:CB:A9:E9:B1
-                    ESSID:""
-                    Protocol:IEEE 802.11an
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:72 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    IE: Unknown: DD550050F204104A00011010440001021049000600372A0001201049001800013720010001052002000C583032373030364139324859101100115475636B65727320646F726D20726F6F6D1054000800070050F2040001
-                    Quality=66/100  Signal level=60/100  
-                    Extra:fm=0001
-          Cell 70 - Address: AA:B5:7C:D8:90:D3
-                    ESSID:""
-                    Protocol:IEEE 802.11an
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    IE: Unknown: DD490050F204104A00011010440001021049000600372A0001201049001800013720010001052002000C58303235303045544D504832101100054D792074761054000800070050F2040001
-                    Quality=10/100  Signal level=23/100  
-                    Extra:fm=0001
-          Cell 71 - Address: F8:C6:50:D7:43:4E
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=29/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 72 - Address: F8:C6:50:D7:2E:8E
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.32 GHz (Channel 64)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=90/100  Signal level=53/100  
-                    Extra:fm=0001
-          Cell 73 - Address: 0C:D5:D3:7A:EE:49
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=30/100  Signal level=27/100  
-                    Extra:fm=0001
-          Cell 74 - Address: 0C:D5:D3:7A:EE:4B
-                    ESSID:"MyResNet-5G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=28/100  Signal level=27/100  
-                    Extra:fm=0001
-          Cell 75 - Address: 0C:D5:D3:7A:EE:4C
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=29/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 76 - Address: 0C:D5:D3:7A:EE:4E
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=28/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 77 - Address: F8:C6:50:D6:B8:89
+          Cell 81 - Address: F8:C6:50:D6:B8:89
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -976,21 +998,7 @@ wlx00c0cab09070  Scan completed :
                     Bit Rates:867 Mb/s
                     Quality=100/100  Signal level=71/100  
                     Extra:fm=0001
-          Cell 78 - Address: F8:C6:50:D6:B8:8B
-                    ESSID:"MyResNet-5G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=100/100  Signal level=71/100  
-                    Extra:fm=0001
-          Cell 79 - Address: F8:C6:50:D6:B8:8C
+          Cell 82 - Address: F8:C6:50:D6:B8:8C
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1002,9 +1010,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=100/100  Signal level=72/100  
+                    Quality=93/100  Signal level=71/100  
                     Extra:fm=0001
-          Cell 80 - Address: F8:C6:50:D6:B8:8E
+          Cell 83 - Address: F8:C6:50:D6:B8:8E
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1016,22 +1024,22 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=100/100  Signal level=71/100  
+                    Quality=100/100  Signal level=70/100  
                     Extra:fm=0001
-          Cell 81 - Address: F8:C6:50:D7:07:09
+          Cell 84 - Address: 18:F9:35:BB:F0:29
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
+                    Frequency:5.56 GHz (Channel 112)
                     Encryption key:off
                     Bit Rates:867 Mb/s
-                    Quality=65/100  Signal level=43/100  
+                    Quality=92/100  Signal level=55/100  
                     Extra:fm=0001
-          Cell 82 - Address: F8:C6:50:D7:07:0B
+          Cell 85 - Address: 18:F9:35:BB:F0:2B
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
+                    Frequency:5.56 GHz (Channel 112)
                     Encryption key:on
                     Bit Rates:867 Mb/s
                     Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
@@ -1039,13 +1047,13 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=73/100  Signal level=42/100  
+                    Quality=90/100  Signal level=55/100  
                     Extra:fm=0001
-          Cell 83 - Address: F8:C6:50:D7:07:0C
+          Cell 86 - Address: 18:F9:35:BB:F0:2C
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
+                    Frequency:5.56 GHz (Channel 112)
                     Encryption key:on
                     Bit Rates:867 Mb/s
                     Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
@@ -1053,13 +1061,13 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=68/100  Signal level=43/100  
+                    Quality=85/100  Signal level=56/100  
                     Extra:fm=0001
-          Cell 84 - Address: F8:C6:50:D7:07:0E
+          Cell 87 - Address: 18:F9:35:BB:F0:2E
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
+                    Frequency:5.56 GHz (Channel 112)
                     Encryption key:on
                     Bit Rates:867 Mb/s
                     Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
@@ -1067,9 +1075,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=66/100  Signal level=42/100  
+                    Quality=92/100  Signal level=55/100  
                     Extra:fm=0001
-          Cell 85 - Address: 4E:6B:B8:EC:64:7D
+          Cell 88 - Address: 4E:6B:B8:EC:64:7D
                     ESSID:""
                     Protocol:IEEE 802.11an
                     Mode:Master
@@ -1082,69 +1090,18 @@ wlx00c0cab09070  Scan completed :
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
                     IE: Unknown: DD4E0050F204104A00011010440001021049000600372A0001201049001800013720010001052002000C583032373030344D3632534B1011000A526176656E27732054761054000800070050F2040001
-                    Quality=84/100  Signal level=52/100  
+                    Quality=87/100  Signal level=54/100  
                     Extra:fm=0001
-          Cell 86 - Address: 18:F9:35:BB:F0:29
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=94/100  Signal level=57/100  
-                    Extra:fm=0001
-          Cell 87 - Address: 18:F9:35:BB:F0:2B
-                    ESSID:"MyResNet-5G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=81/100  Signal level=56/100  
-                    Extra:fm=0001
-          Cell 88 - Address: 18:F9:35:BB:F0:2C
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=82/100  Signal level=58/100  
-                    Extra:fm=0001
-          Cell 89 - Address: 18:F9:35:BB:F0:2E
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.56 GHz (Channel 112)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=83/100  Signal level=57/100  
-                    Extra:fm=0001
-          Cell 90 - Address: 0C:D5:D3:7B:A9:49
+          Cell 89 - Address: F8:C6:50:D7:1C:E9
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.58 GHz (Channel 116)
                     Encryption key:off
                     Bit Rates:867 Mb/s
-                    Quality=90/100  Signal level=65/100  
+                    Quality=69/100  Signal level=44/100  
                     Extra:fm=0001
-          Cell 91 - Address: 0C:D5:D3:7B:A9:4B
+          Cell 90 - Address: F8:C6:50:D7:1C:EB
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1156,9 +1113,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=82/100  Signal level=66/100  
+                    Quality=72/100  Signal level=45/100  
                     Extra:fm=0001
-          Cell 92 - Address: 0C:D5:D3:7B:A9:4C
+          Cell 91 - Address: F8:C6:50:D7:1C:EC
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1170,60 +1127,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=88/100  Signal level=65/100  
+                    Quality=69/100  Signal level=46/100  
                     Extra:fm=0001
-          Cell 93 - Address: 0C:D5:D3:7B:A9:4E
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.58 GHz (Channel 116)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=90/100  Signal level=64/100  
-                    Extra:fm=0001
-          Cell 94 - Address: F8:C6:50:D7:1C:E9
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.58 GHz (Channel 116)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=75/100  Signal level=44/100  
-                    Extra:fm=0001
-          Cell 95 - Address: F8:C6:50:D7:1C:EB
-                    ESSID:"MyResNet-5G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.58 GHz (Channel 116)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=77/100  Signal level=44/100  
-                    Extra:fm=0001
-          Cell 96 - Address: F8:C6:50:D7:1C:EC
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.58 GHz (Channel 116)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=73/100  Signal level=46/100  
-                    Extra:fm=0001
-          Cell 97 - Address: F8:C6:50:D7:1C:EE
+          Cell 92 - Address: F8:C6:50:D7:1C:EE
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1237,6 +1143,66 @@ wlx00c0cab09070  Scan completed :
                         Authentication Suites (1) : PSK
                     Quality=72/100  Signal level=45/100  
                     Extra:fm=0001
+          Cell 93 - Address: 0C:D5:D3:7B:A9:49
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.58 GHz (Channel 116)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=100/100  Signal level=65/100  
+                    Extra:fm=0001
+          Cell 94 - Address: 0C:D5:D3:7B:A9:4B
+                    ESSID:"MyResNet-5G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.58 GHz (Channel 116)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=90/100  Signal level=65/100  
+                    Extra:fm=0001
+          Cell 95 - Address: 0C:D5:D3:7B:A9:4C
+                    ESSID:"MyResNet-2G"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.58 GHz (Channel 116)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=90/100  Signal level=64/100  
+                    Extra:fm=0001
+          Cell 96 - Address: 0C:D5:D3:7B:A9:4E
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.58 GHz (Channel 116)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=90/100  Signal level=65/100  
+                    Extra:fm=0001
+          Cell 97 - Address: F8:C6:50:D7:0A:A9
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.62 GHz (Channel 124)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=27/100  Signal level=28/100  
+                    Extra:fm=0001
           Cell 98 - Address: F8:C6:50:D7:0A:AB
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
@@ -1249,7 +1215,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=20/100  Signal level=26/100  
+                    Quality=36/100  Signal level=28/100  
                     Extra:fm=0001
           Cell 99 - Address: F8:C6:50:D7:0A:AC
                     ESSID:"MyResNet-2G"
@@ -1263,7 +1229,7 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=18/100  Signal level=25/100  
+                    Quality=21/100  Signal level=26/100  
                     Extra:fm=0001
           Cell 100 - Address: F8:C6:50:D7:0A:AE
                     ESSID:""
@@ -1277,9 +1243,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=19/100  Signal level=24/100  
+                    Quality=27/100  Signal level=27/100  
                     Extra:fm=0001
-          Cell 101 - Address: 08:7B:87:7D:A8:4B
+          Cell 101 - Address: 08:7B:87:7D:A8:49
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.66 GHz (Channel 132)
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=21/100  Signal level=24/100  
+                    Extra:fm=0001
+          Cell 102 - Address: 08:7B:87:7D:A8:4B
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1291,10 +1266,10 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=25/100  Signal level=23/100  
+                    Quality=21/100  Signal level=23/100  
                     Extra:fm=0001
-          Cell 102 - Address: 08:7B:87:7D:A8:4E
-                    ESSID:""
+          Cell 103 - Address: 08:7B:87:7D:A8:4C
+                    ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.66 GHz (Channel 132)
@@ -1307,16 +1282,30 @@ wlx00c0cab09070  Scan completed :
                         Authentication Suites (1) : PSK
                     Quality=21/100  Signal level=24/100  
                     Extra:fm=0001
-          Cell 103 - Address: E4:A4:1C:4D:AE:49
+          Cell 104 - Address: 08:7B:87:7D:A8:4E
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.66 GHz (Channel 132)
+                    Encryption key:on
+                    Bit Rates:867 Mb/s
+                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
+                    IE: IEEE 802.11i/WPA2 Version 1
+                        Group Cipher : CCMP
+                        Pairwise Ciphers (1) : CCMP
+                        Authentication Suites (1) : PSK
+                    Quality=18/100  Signal level=24/100  
+                    Extra:fm=0001
+          Cell 105 - Address: E4:A4:1C:4D:AE:49
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11AC
                     Mode:Master
                     Frequency:5.68 GHz (Channel 136)
                     Encryption key:off
                     Bit Rates:867 Mb/s
-                    Quality=58/100  Signal level=34/100  
+                    Quality=66/100  Signal level=44/100  
                     Extra:fm=0001
-          Cell 104 - Address: E4:A4:1C:4D:AE:4B
+          Cell 106 - Address: E4:A4:1C:4D:AE:4B
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1328,9 +1317,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=54/100  Signal level=34/100  
+                    Quality=69/100  Signal level=42/100  
                     Extra:fm=0001
-          Cell 105 - Address: E4:A4:1C:4D:AE:4C
+          Cell 107 - Address: E4:A4:1C:4D:AE:4C
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1342,9 +1331,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=58/100  Signal level=33/100  
+                    Quality=69/100  Signal level=41/100  
                     Extra:fm=0001
-          Cell 106 - Address: E4:A4:1C:4D:AE:4E
+          Cell 108 - Address: E4:A4:1C:4D:AE:4E
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1356,234 +1345,41 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=50/100  Signal level=34/100  
+                    Quality=63/100  Signal level=40/100  
                     Extra:fm=0001
-          Cell 107 - Address: F8:C6:50:D6:2E:21
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=30/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 108 - Address: F8:C6:50:D6:39:21
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=96/100  Signal level=54/100  
-                    Extra:fm=0001
-          Cell 109 - Address: 08:7B:87:7C:A1:A3
+          Cell 109 - Address: F8:C6:50:D6:39:2C
                     ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
+                    Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
+                    Frequency:5.745 GHz
                     Encryption key:on
-                    Bit Rates:144 Mb/s
+                    Bit Rates:867 Mb/s
                     Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
                     IE: IEEE 802.11i/WPA2 Version 1
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=21/100  Signal level=37/100  
-                    Extra:fm=0001
-          Cell 110 - Address: F8:C6:50:D7:1C:E1
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=54/100  Signal level=47/100  
-                    Extra:fm=0001
-          Cell 111 - Address: F8:C6:50:D7:1C:E3
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=63/100  Signal level=44/100  
-                    Extra:fm=0001
-          Cell 112 - Address: F8:C6:50:D6:2E:23
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=27/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 113 - Address: F8:C6:50:D6:51:46
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.412 GHz (Channel 1)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=36/100  Signal level=39/100  
-                    Extra:fm=0001
-          Cell 114 - Address: E4:A4:1C:4D:C6:43
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=34/100  Signal level=36/100  
-                    Extra:fm=0001
-          Cell 115 - Address: E4:A4:1C:4D:C6:46
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=31/100  Signal level=36/100  
-                    Extra:fm=0001
-          Cell 116 - Address: F8:C6:50:D6:6C:66
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=30/100  Signal level=36/100  
-                    Extra:fm=0001
-          Cell 117 - Address: F8:C6:50:D7:0A:A1
-                    ESSID:""
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=25/100  Signal level=34/100  
-                    Extra:fm=0001
-          Cell 118 - Address: F8:C6:50:D7:0A:A6
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=27/100  Signal level=36/100  
-                    Extra:fm=0001
-          Cell 119 - Address: 0C:D5:D3:7B:53:E6
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.437 GHz (Channel 6)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=0/100  Signal level=45/100  
-                    Extra:fm=0001
-          Cell 120 - Address: 08:7B:87:7D:A8:43
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:on
-                    Bit Rates:144 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=39/100  Signal level=42/100  
-                    Extra:fm=0001
-          Cell 121 - Address: 08:7B:87:7D:A8:46
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=29/100  Signal level=41/100  
+                    Quality=69/100  Signal level=45/100  
                     Extra:fm=0003
-          Cell 122 - Address: E4:A4:1C:4D:AE:43
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11gn
+          Cell 110 - Address: F8:C6:50:D6:39:2E
+                    ESSID:""
+                    Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
+                    Frequency:5.745 GHz
                     Encryption key:on
-                    Bit Rates:144 Mb/s
+                    Bit Rates:867 Mb/s
                     Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
                     IE: IEEE 802.11i/WPA2 Version 1
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=74/100  Signal level=48/100  
+                    Quality=67/100  Signal level=46/100  
                     Extra:fm=0001
-          Cell 123 - Address: 0C:D5:D3:7B:66:66
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11gn
-                    Mode:Master
-                    Frequency:2.462 GHz (Channel 11)
-                    Encryption key:off
-                    Bit Rates:144 Mb/s
-                    Quality=27/100  Signal level=29/100  
-                    Extra:fm=0001
-          Cell 124 - Address: 62:45:B7:D6:47:66
-                    ESSID:""
-                    Protocol:IEEE 802.11b
-                    Mode:Master
-                    Frequency:5.18 GHz (Channel 36)
-                    Encryption key:on
-                    Bit Rates:0 kb/s
-                    Quality=30/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 125 - Address: 08:7B:87:7C:A1:A9
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.28 GHz (Channel 56)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=33/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 126 - Address: 08:7B:87:7C:A1:AB
+          Cell 111 - Address: F8:C6:50:D6:39:2B
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:5.28 GHz (Channel 56)
+                    Frequency:5.745 GHz
                     Encryption key:on
                     Bit Rates:867 Mb/s
                     Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
@@ -1591,153 +1387,36 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=33/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 127 - Address: 08:7B:87:7C:A1:AC
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.28 GHz (Channel 56)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=36/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 128 - Address: 08:7B:87:7C:A1:AE
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.28 GHz (Channel 56)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=36/100  Signal level=28/100  
-                    Extra:fm=0001
-          Cell 129 - Address: 72:93:C3:9D:F4:F7
-                    ESSID:"DIRECT-roku-R21-FB8426"
-                    Protocol:IEEE 802.11a
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:54 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac020c00
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    IE: Unknown: DD570050F204104A00011010440001021049000600372A0001201049001800013720010001052002000C583032303030353035523231101100134B65616768616EE280997320526F6B752054561054000800070050F2040001
-                    Quality=12/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 130 - Address: 0C:D5:D3:7B:53:E9
+                    Quality=75/100  Signal level=44/100  
+                    Extra:fm=0003
+          Cell 112 - Address: F8:C6:50:D6:39:29
                     ESSID:"MyResNet Start Here"
                     Protocol:IEEE 802.11AC
                     Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
+                    Frequency:5.745 GHz
                     Encryption key:off
                     Bit Rates:867 Mb/s
-                    Quality=42/100  Signal level=32/100  
-                    Extra:fm=0001
-          Cell 131 - Address: 0C:D5:D3:7B:53:EB
-                    ESSID:"MyResNet-5G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=45/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 132 - Address: 0C:D5:D3:7B:53:EC
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=42/100  Signal level=33/100  
-                    Extra:fm=0001
-          Cell 133 - Address: 0C:D5:D3:7B:53:EE
-                    ESSID:""
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.5 GHz (Channel 100)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=36/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 134 - Address: F8:C6:50:D7:0A:A9
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.62 GHz (Channel 124)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=20/100  Signal level=26/100  
-                    Extra:fm=0001
-          Cell 135 - Address: 08:7B:87:7D:A8:49
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.66 GHz (Channel 132)
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=18/100  Signal level=25/100  
-                    Extra:fm=0001
-          Cell 136 - Address: 08:7B:87:7D:A8:4C
-                    ESSID:"MyResNet-2G"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.66 GHz (Channel 132)
-                    Encryption key:on
-                    Bit Rates:867 Mb/s
-                    Extra:rsn_ie=30140100000fac040100000fac040100000fac022800
-                    IE: IEEE 802.11i/WPA2 Version 1
-                        Group Cipher : CCMP
-                        Pairwise Ciphers (1) : CCMP
-                        Authentication Suites (1) : PSK
-                    Quality=24/100  Signal level=24/100  
-                    Extra:fm=0001
-          Cell 137 - Address: 62:45:B7:CF:36:39
-                    ESSID:""
-                    Protocol:IEEE 802.11b
-                    Mode:Master
-                    Frequency:5.805 GHz
-                    Encryption key:on
-                    Bit Rates:0 kb/s
-                    Quality=45/100  Signal level=30/100  
-                    Extra:fm=0001
-          Cell 138 - Address: 62:45:B1:FD:B9:FA
+                    Quality=64/100  Signal level=46/100  
+                    Extra:fm=0003
+          Cell 113 - Address: 62:45:B1:FD:B9:FA
                     ESSID:""
                     Protocol:IEEE 802.11b
                     Mode:Master
                     Frequency:5.785 GHz
                     Encryption key:on
                     Bit Rates:0 kb/s
-                    Quality=21/100  Signal level=25/100  
+                    Quality=21/100  Signal level=26/100  
                     Extra:fm=0001
-          Cell 139 - Address: F8:C6:50:D6:6C:6B
+          Cell 114 - Address: 62:45:B7:CF:36:39
+                    ESSID:""
+                    Protocol:IEEE 802.11b
+                    Mode:Master
+                    Frequency:5.785 GHz
+                    Encryption key:on
+                    Bit Rates:0 kb/s
+                    Quality=36/100  Signal level=31/100  
+                    Extra:fm=0001
+          Cell 115 - Address: F8:C6:50:D6:6C:6B
                     ESSID:"MyResNet-5G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1749,9 +1428,9 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=22/100  Signal level=25/100  
+                    Quality=25/100  Signal level=27/100  
                     Extra:fm=0003
-          Cell 140 - Address: F8:C6:50:D6:6C:6C
+          Cell 116 - Address: F8:C6:50:D6:6C:6C
                     ESSID:"MyResNet-2G"
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1763,9 +1442,18 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=31/100  Signal level=26/100  
+                    Quality=26/100  Signal level=28/100  
                     Extra:fm=0003
-          Cell 141 - Address: F8:C6:50:D6:6C:6E
+          Cell 117 - Address: F8:C6:50:D6:6C:69
+                    ESSID:"MyResNet Start Here"
+                    Protocol:IEEE 802.11AC
+                    Mode:Master
+                    Frequency:5.805 GHz
+                    Encryption key:off
+                    Bit Rates:867 Mb/s
+                    Quality=25/100  Signal level=25/100  
+                    Extra:fm=0003
+          Cell 118 - Address: F8:C6:50:D6:6C:6E
                     ESSID:""
                     Protocol:IEEE 802.11AC
                     Mode:Master
@@ -1777,24 +1465,15 @@ wlx00c0cab09070  Scan completed :
                         Group Cipher : CCMP
                         Pairwise Ciphers (1) : CCMP
                         Authentication Suites (1) : PSK
-                    Quality=24/100  Signal level=26/100  
+                    Quality=24/100  Signal level=27/100  
                     Extra:fm=0001
-          Cell 142 - Address: F8:C6:50:D6:6C:69
-                    ESSID:"MyResNet Start Here"
-                    Protocol:IEEE 802.11AC
-                    Mode:Master
-                    Frequency:5.805 GHz
-                    Encryption key:off
-                    Bit Rates:867 Mb/s
-                    Quality=21/100  Signal level=24/100  
-                    Extra:fm=0001
-          Cell 143 - Address: 62:45:B8:37:A6:8D
+          Cell 119 - Address: 62:45:B8:37:A6:8D
                     ESSID:""
                     Protocol:IEEE 802.11b
                     Mode:Master
                     Frequency:5.825 GHz
                     Encryption key:on
                     Bit Rates:0 kb/s
-                    Quality=79/100  Signal level=61/100  
+                    Quality=72/100  Signal level=56/100  
                     Extra:fm=0001
 

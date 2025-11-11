@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import time
 import yaml
 import sys
@@ -79,7 +80,6 @@ def set_gains(power):
         IF_gain = power + 34
     else:
         raise ValueError(f"Invalid jammer transmit power: {power} dB. Must be -40 to 5")
-        print("invalid Jammer Transmit power")
 
     return RF_gain, IF_gain
 
@@ -87,8 +87,10 @@ def set_gains(power):
 
 if __name__ == "__main__":
     
+    jammer_prefs = os.path.join(os.path.dirname(__file__), '..', '..', "data", "jaml.yaml")
+
     try:
-        config_file = open("jaml.yaml")
+        config_file = open(jammer_prefs)
     except FileNotFoundError:
         print("Error: 'jaml.yaml' configuration file not found.")
         sys.exit(1)
