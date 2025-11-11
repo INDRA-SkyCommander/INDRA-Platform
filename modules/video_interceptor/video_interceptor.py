@@ -119,10 +119,10 @@ try:
     decoder_cmd = ('sudo', 'python3', decoder_path, sniff_output_path, image_folder_path)
 
     # Start sniffer and output to log
-    with open(sniff_output_path, 'w') as log_file:
-        print("Starting sniffer...")
-        # Start the subprocess and redirect stdout to the log file 
-        sniff_process = subprocess.Popen(sniff_cmd, stdout=log_file, stderr=sys.stdout, text=True)
+    log_file = open(sniff_output_path, 'w', buffering=1)
+    print("Starting sniffer...")
+    # Start the subprocess and redirect stdout to the log file 
+    sniff_process = subprocess.Popen(sniff_cmd, stdout=log_file, stderr=sys.stdout, text=True)
 
     time.sleep(2)
 
@@ -156,5 +156,7 @@ except Exception as e:
 
 finally:
     cleanup()
+    if 'log_file' in locals() and not log_file.closed:
+        log_file.close()
     print("Video interceptor exited.")
     sys.exit(0)
