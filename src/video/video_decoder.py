@@ -25,10 +25,15 @@ import json
 import time
 import sys
 import os
+import signal
 import numpy as np
 import subprocess as sp
 import PIL.Image as pil
 from inotify_simple import INotify, flags
+
+# Global variables for cleanup
+i = None
+wd = None
 
 def split(value, size=2):
 	return tuple(value[0 + i:size + i] for i in range(0, len(value), size))
@@ -114,19 +119,39 @@ def cleanup_handler(signum, frame):
 		sys.exit(0)
 
 if __name__ == '__main__':
+
+	if len(sys.argv) < 3:
+		print("Usage: video_decoder.py <log_file> <image_folder>")
+		sys.exit(1)
+
 	frame_count = 0
 	log = sys.argv[1]
 	image_folder = sys.argv[2]
+
+	signal.signal(signal.SIGINT, cleanup_handler)
+	signal.signal(signal.SIGTERM, cleanup_handler)
 
 	# Setting up Inotify
 	i = INotify()
 	watch_flags = flags.MODIFY
 
+	max_wait = 30
+	wait_time = 0
+
+	while not os.path.exists(log) and wait_time < max_wait:
+		print(f"Waiting for log file to be created: {log}")
+		time.sleep(1)
+		wait_time += 1
+	
+	if not os.path.exists(log):
+		print(f"Error: Log file not found at {log} after {max_wait} seconds.")
+
+
 	try:
 		wd = i.add_watch(log, watch_flags)
-	except FileNotFoundError:
-		print(f"Error: Log file not found at {log}")
-		print("Please ensure the interceptor is running and has created file.")
+		print(f"Watching log file: {log}")
+	except Exception as e:
+		print(f"Error setting up file watch: {e}")
 		sys.exit(1)
 		
 	with open(log, 'r') as file:
@@ -135,66 +160,79 @@ if __name__ == '__main__':
 		sps, pps, key = None, None, None
 		buffer = ''
 
+		print("Decoder ready, waiting for data...")
+
 		while True:
-			for event in i.read():
-				if event is None:
+			try:
+				events = i.read(timeout=1000)
+				if not events:
 					continue
-				for flag in flags.from_mask(event.mask):
-					if 'MODIFY' in str(flag):
-						while True:
-							line = file.readline()
-							if not line:
-								# break to wait for next event
-								break
 
-							r = collect(line)
+				for event in events:
+					if event is None:
+						continue
 
-							if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
-								sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
+					for flag in flags.from_mask(event.mask):
+						if 'MODIFY' in str(flag):
+							while True:
+								line = file.readline()
+								if not line:
+									# break to wait for next event
+									break
 
-								if fn == 0:  # chunk or first fragment of chunk
-									qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
-									data = data[(qos + llc + ip + udp) * 2:]
-									vsn, vfn = data[0:2], data[2:4]
-									vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
-									vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
-									data = data[4:]  # cut off video app data
+								r = collect(line)
 
-								else:  # fragment of chunk
-									qos = 8 * 3 + 2
-									vsn, vfn = -1, -1
-									data = data[qos * 2:]
+								if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
+									sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
 
-								data = data[:-8]  # cut off crc
+									if fn == 0:  # chunk or first fragment of chunk
+										qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
+										data = data[(qos + llc + ip + udp) * 2:]
+										vsn, vfn = data[0:2], data[2:4]
+										vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
+										vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
+										data = data[4:]  # cut off video app data
 
-								if '0000000167' == data[:10]:  # SPS
-									sps, pps, key, buffer = vsn, None, None, ''
-									buffer += data
+									else:  # fragment of chunk
+										qos = 8 * 3 + 2
+										vsn, vfn = -1, -1
+										data = data[qos * 2:]
 
-								if '0000000168' == data[:10] and sps is not None:  # PPS
-									if vsn == sps + 1:
-										pps = vsn
+									data = data[:-8]  # cut off crc
+
+									if '0000000167' == data[:10]:  # SPS
+										sps, pps, key, buffer = vsn, None, None, ''
 										buffer += data
-									else:
-										sps, buffer = None, ''
 
-								if '0000000165' == data[:10] and pps is not None:  # keyframe
-									if vsn == pps + 1:
-										key = vsn
-									else:
-										pps, buffer = None, ''
+									if '0000000168' == data[:10] and sps is not None:  # PPS
+										if vsn == sps + 1:
+											pps = vsn
+											buffer += data
+										else:
+											sps, buffer = None, ''
 
-								if key is not None:
-									buffer += data
+									if '0000000165' == data[:10] and pps is not None:  # keyframe
+										if vsn == pps + 1:
+											key = vsn
+										else:
+											pps, buffer = None, ''
 
-								if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
-									sps, pps = None, None
+									if key is not None:
+										buffer += data
 
-								if sps is None and pps is None and vsn != key:  # last fragment of last chunk
-									if len(buffer) > 0:
-										create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
-										frame_count += 1
-									sps, pps, key, buffer = None, None, None, ''
+									if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
+										sps, pps = None, None
 
-								if '0000000141' == data[:10]:  # for sure, reset (optionally)
-									sps, pps, key, buffer = None, None, None, ''
+									if sps is None and pps is None and vsn != key:  # last fragment of last chunk
+										if len(buffer) > 0:
+											create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
+											frame_count += 1
+										sps, pps, key, buffer = None, None, None, ''
+
+									if '0000000141' == data[:10]:  # for sure, reset (optionally)
+										sps, pps, key, buffer = None, None, None, ''
+			except KeyboardInterrupt:
+				cleanup_handler(None, None)
+			except Exception as e:
+				print(f"Error in main loop: {e}", file=sys.stderr)
+				time.sleep(0.1)				

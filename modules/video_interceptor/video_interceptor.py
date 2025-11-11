@@ -5,11 +5,16 @@ import time
 import shutil
 import sys
 import json
+import signal
+import traceback
 from src.utils import sudo_exec
 
 ##################
 ### PREP MODULE ##
 ##################
+
+sniff_process = None
+decoder_process = None
 
 # Get path to project root directory (two levels up from this file)
 target_data_file = os.path.join(os.path.dirname(__file__), '..', '..', "data", "module_input_data.json")
@@ -54,39 +59,81 @@ if os.path.exists(image_folder_path):
              shutil.rmtree(file_path)
         except Exception as e: print(f'Failed to delete {file_path}. Reason: {e}')  
 
+def cleanup():
+    global sniff_process, decoder_process
+
+    print("Cleaning up...")
+
+    if sniff_process and sniff_process.poll() is None:
+        print("Terminating sniffer.")
+        sniff_process.terminate()
+        try:
+            sniff_process.wait(5)
+        except subprocess.TimeoutExpired:
+            sniff_process.kill()
+            sniff_process.wait()
+
+    if decoder_process and decoder_process.poll() is None:
+        print("Terminating decoder.")
+        decoder_process.terminate()
+        try:
+            decoder_process.wait(5)
+        except subprocess.TimeoutExpired:
+            decoder_process.kill()
+            decoder_process.wait()
+    
+    sudo_exec(f"{tepsotssh_path} managed")
+    print("Cleanup complete. Exiting video interceptor.")
+
+def signal_handler(signum, frame):
+    print("Recieved interrupt signal...")
+    cleanup()
+    sys.exit(0)
+
 ##################
 ## START MODULE ##
 ##################
 
-# Stop conflicting processes
-sudo_exec(f"airmon-ng check kill")
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
-# Start monitor mode
-sudo_exec(f"airmon-ng start {interface}")
-monitor_interface = f"{interface}mon"
+try: 
+    
+    # Stop conflicting processes
+    sudo_exec(f"airmon-ng check kill")
 
-# Set network adapter channel to that of the target network
-sudo_exec(f"{tepsotssh_path} set {target_channel}")
+    # Start monitor mode
+    sudo_exec(f"airmon-ng start {interface}")
+    monitor_interface = f"{interface}mon"
+    time.sleep(2)
 
-sniff_cmd = ('sudo', 'python3', '-u', tepsotspy_path, '-i', monitor_interface, '-sa', target_source.replace('\n',''), '-v')
-decoder_cmd = ('sudo', 'python3', decoder_path, sniff_output_path, image_folder_path)
+    result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+    if monitor_interface not in result.stdout:
+        monitor_interface = interface
 
-sniff_process = None
-decoder_process = None
+    # Set network adapter channel to that of the target network
+    sudo_exec(f"{tepsotssh_path} set {target_channel}")
+    time.sleep(1)
 
-try:
+    sniff_cmd = ('sudo', 'python3', '-u', tepsotspy_path, '-i', monitor_interface, '-sa', target_source, '-v')
+    decoder_cmd = ('sudo', 'python3', decoder_path, sniff_output_path, image_folder_path)
+
     # Start sniffer and output to log
     with open(sniff_output_path, 'w') as log_file:
         print("Starting sniffer...")
         # Start the subprocess and redirect stdout to the log file 
         sniff_process = subprocess.Popen(sniff_cmd, stdout=log_file, stderr=sys.stdout, text=True)
 
+    time.sleep(2)
+
     print("Starting decoder...")
-    decoder_process = subprocess.Popen(decoder_cmd)
+    decoder_process = subprocess.Popen(decoder_cmd, stdout=sys.stdout, stderr=sys.stderr)
+
+    time.sleep(1)
 
     print("\n Interceptor is running. Press Ctrl+C to stop.")
 
-    # Wait for decoder process to finish
+    # Wait for both processes to finish
     while True:
         sniffer_status = sniff_process.poll()
         if sniffer_status is not None:
@@ -105,18 +152,9 @@ except KeyboardInterrupt:
 
 except Exception as e:
     print(f"\nAs error occurred: {e}")
-    
+    traceback.print_exc()
+
 finally:
-
-    if sniff_process and sniff_process.poll() is None:
-        print("Terminating sniffer.")
-        sniff_process.terminate()
-        sniff_process.wait()
-
-    if decoder_process and decoder_process.poll() is None:
-        print("Terminating decoder.")
-        decoder_process.terminate()
-        decoder_process.wait()
-    
-    sudo_exec(f"{tepsotssh_path} managed")
-    print("Cleanup complete. Exiting video interceptor.")
+    cleanup()
+    print("Video interceptor exited.")
+    sys.exit(0)

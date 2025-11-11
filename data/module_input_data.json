@@ -3,9 +3,9 @@
     "target_info": {
         "raw_string": "TELLO-F17756",
         "mac_address": "34:D2:62:F1:77:56",
-        "quality": "36 %",
+        "quality": "58 %",
         "channel": "10",
-        "signal_level": "80/100",
+        "signal_level": "85/100",
         "encryption": "Open"
     },
     "options": {
