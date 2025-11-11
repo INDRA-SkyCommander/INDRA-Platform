@@ -87,7 +87,7 @@ def set_gains(power):
 
 if __name__ == "__main__":
     
-    jammer_prefs = os.path.join(os.path.dirname(__file__), '..', '..', "data", "jaml.yaml")
+    jammer_prefs = os.path.join(os.path.dirname(__file__), "jaml.yaml")
 
     try:
         config_file = open(jammer_prefs)
