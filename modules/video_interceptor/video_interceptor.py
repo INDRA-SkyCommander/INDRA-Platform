@@ -34,10 +34,10 @@ options_info = scan_info.get("options", {})
 interface = options_info.get("interface")
 
 # Initialize file paths
-video_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'video')
-tepsotspy_path = os.path.join(video_path, 'tepsots','tepsots.py')
-tepsotssh_path = os.path.join(video_path, 'tepsots', 'tepsots.sh')
-decoder_path = os.path.join(video_path, 'video_decoder.py')
+video_path = os.path.join(os.path.dirname(__file__), '..', '..', 'modules', 'video_interceptor')
+tepsotspy_path = os.path.join(video_path, 'utils','tepsots.py')
+tepsotssh_path = os.path.join(video_path, 'utils', 'tepsots.sh')
+decoder_path = os.path.join(video_path, 'utils', 'video_decoder.py')
 
 sniff_output_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'sniff_output.log')
 
