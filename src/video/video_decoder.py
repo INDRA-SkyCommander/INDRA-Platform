@@ -126,7 +126,7 @@ if __name__ == '__main__':
 
 				r = collect(line)
 
-				if r is not None and r['phy'] == 'g' and r['ft'] == 2:  # streaming
+				if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
 					sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
 
 					if fn == 0:  # chunk or first fragment of chunk

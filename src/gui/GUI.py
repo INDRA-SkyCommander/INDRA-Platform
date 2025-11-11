@@ -419,10 +419,20 @@ class MainGUI:
 			try:
 				module_return_code = subprocess.call([sys.executable, module_file_path], env=env)
 				self.log(f"Module {gui_selected_module} finished with return code {module_return_code}")
-				return module_return_code
+
 			except Exception as e:
 				self.log(f"Error running module {gui_selected_module}: {e}")
-				return -1
+				module_return_code = -1
+			finally:
+
+				if len(options_info) > 1:
+
+					# RESET interface after attack
+					sudo_exec(f"ifconfig {options_info[1]} down")
+					sudo_exec(f"iwconfig {options_info[1]} mode managed")
+					sudo_exec(f"ifconfig {options_info[1]} up")
+				
+				return module_return_code
 
 		def run_exploit_thread():
 			"""
