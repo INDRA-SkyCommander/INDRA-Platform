@@ -1,0 +1,143 @@
+27eace51 - 1C:BF:CE:FC:26:9D
+77fe7569 - 1C:BF:CE:F4:1F:BB
+N/A - CC:B0:DA:1E:D9:7A
+b2785ce9 - 1C:BF:CE:FD:32:64
+MyResNet Start Here - F8:C6:50:D7:1C:E6
+MyResNet Start Here - 18:F9:35:BB:F0:26
+MyResNet-2G - 18:F9:35:BB:F0:23
+N/A - 18:F9:35:BB:F0:21
+3f509b56 - 1C:BF:CE:AD:D5:0D
+MyResNet-2G - 0C:D5:D3:7A:59:43
+N/A - F8:C6:50:D6:51:41
+MyResNet-2G - F8:C6:50:D6:51:43
+MyResNet-2G - F8:C6:50:D6:39:23
+MyResNet Start Here - F8:C6:50:D6:39:26
+N/A - 08:7B:87:7C:A1:A1
+MyResNet-2G - 0C:D5:D3:7A:1E:A3
+KYOCERA E7110 4d9c - 02:3B:46:09:9D:C3
+DIRECT-EC-HP Smart Tank 5100 - 00:04:EA:EA:D5:AB
+N/A - F8:C6:50:D6:B8:81
+MyResNet-2G - F8:C6:50:D6:B8:83
+MyResNet Start Here - F8:C6:50:D6:B8:86
+MyResNet-2G - F8:C6:50:D7:0A:A3
+N/A - 0C:D5:D3:7B:53:E1
+MyResNet-2G - 0C:D5:D3:7B:53:E3
+MyResNet-2G - F8:C6:50:D7:43:43
+MyResNet Start Here - F8:C6:50:D7:43:46
+N/A - 0C:D5:D3:7A:4C:C1
+TELLO-F17756 - 34:D2:62:F1:77:56
+MyResNet-2G - F8:C6:50:D7:07:03
+MyResNet Start Here - 0C:D5:D3:7A:FF:66
+MyResNet-2G - 0C:D5:D3:7A:FF:63
+N/A - F8:C6:50:D7:43:41
+MyResNet-2G - 0C:D5:D3:7A:4C:C3
+MyResNet Start Here - 0C:D5:D3:7A:4C:C6
+N/A - 0C:D5:D3:7A:FF:61
+MyResNet Start Here - F8:C6:50:D7:07:06
+N/A - F8:C6:50:D7:2E:81
+MyResNet-2G - F8:C6:50:D7:2E:83
+MyResNet Start Here - F8:C6:50:D7:2E:86
+N/A - E4:A4:1C:4D:AE:41
+MyResNet Start Here - E4:A4:1C:4D:AE:46
+N/A - 0C:D5:D3:7B:A9:41
+MyResNet-2G - 0C:D5:D3:7B:A9:43
+MyResNet Start Here - 0C:D5:D3:7B:A9:46
+N/A - F8:C6:50:D6:BA:A1
+N/A - 0C:D5:D3:7A:98:61
+MyResNet-2G - 0C:D5:D3:7A:98:63
+MyResNet Start Here - 0C:D5:D3:7A:98:66
+N/A - 08:7B:87:7D:A8:41
+MyResNet-2G - F8:C6:50:D6:BA:A3
+MyResNet Start Here - F8:C6:50:D6:BA:A6
+MyResNet Start Here - E4:A4:1C:4D:3E:69
+MyResNet Start Here - 0C:D5:D3:7A:FF:69
+MyResNet-5G - 0C:D5:D3:7A:FF:6B
+MyResNet-2G - 0C:D5:D3:7A:FF:6C
+N/A - 0C:D5:D3:7A:FF:6E
+N/A - 62:45:B9:2D:9B:90
+N/A - 66:E0:03:A4:57:7D
+MyResNet Start Here - F8:C6:50:D7:43:49
+MyResNet-5G - F8:C6:50:D7:43:4B
+MyResNet-2G - F8:C6:50:D7:43:4C
+MyResNet Start Here - F8:C6:50:D6:39:29
+MyResNet-5G - F8:C6:50:D6:39:2B
+MyResNet-2G - F8:C6:50:D6:39:2C
+N/A - F8:C6:50:D6:39:2E
+MyResNet Start Here - F8:C6:50:D7:2E:89
+MyResNet-5G - F8:C6:50:D7:2E:8B
+MyResNet-2G - F8:C6:50:D7:2E:8C
+N/A - E2:3E:CB:A9:E9:B1
+N/A - AA:B5:7C:D8:90:D3
+N/A - F8:C6:50:D7:43:4E
+N/A - F8:C6:50:D7:2E:8E
+MyResNet Start Here - 0C:D5:D3:7A:EE:49
+MyResNet-5G - 0C:D5:D3:7A:EE:4B
+MyResNet-2G - 0C:D5:D3:7A:EE:4C
+N/A - 0C:D5:D3:7A:EE:4E
+MyResNet Start Here - F8:C6:50:D6:B8:89
+MyResNet-5G - F8:C6:50:D6:B8:8B
+MyResNet-2G - F8:C6:50:D6:B8:8C
+N/A - F8:C6:50:D6:B8:8E
+MyResNet Start Here - F8:C6:50:D7:07:09
+MyResNet-5G - F8:C6:50:D7:07:0B
+MyResNet-2G - F8:C6:50:D7:07:0C
+N/A - F8:C6:50:D7:07:0E
+N/A - 4E:6B:B8:EC:64:7D
+MyResNet Start Here - 18:F9:35:BB:F0:29
+MyResNet-5G - 18:F9:35:BB:F0:2B
+MyResNet-2G - 18:F9:35:BB:F0:2C
+N/A - 18:F9:35:BB:F0:2E
+MyResNet Start Here - 0C:D5:D3:7B:A9:49
+MyResNet-5G - 0C:D5:D3:7B:A9:4B
+MyResNet-2G - 0C:D5:D3:7B:A9:4C
+N/A - 0C:D5:D3:7B:A9:4E
+MyResNet Start Here - F8:C6:50:D7:1C:E9
+MyResNet-5G - F8:C6:50:D7:1C:EB
+MyResNet-2G - F8:C6:50:D7:1C:EC
+N/A - F8:C6:50:D7:1C:EE
+MyResNet-5G - F8:C6:50:D7:0A:AB
+MyResNet-2G - F8:C6:50:D7:0A:AC
+N/A - F8:C6:50:D7:0A:AE
+MyResNet-5G - 08:7B:87:7D:A8:4B
+N/A - 08:7B:87:7D:A8:4E
+MyResNet Start Here - E4:A4:1C:4D:AE:49
+MyResNet-5G - E4:A4:1C:4D:AE:4B
+MyResNet-2G - E4:A4:1C:4D:AE:4C
+N/A - E4:A4:1C:4D:AE:4E
+N/A - F8:C6:50:D6:2E:21
+N/A - F8:C6:50:D6:39:21
+MyResNet-2G - 08:7B:87:7C:A1:A3
+N/A - F8:C6:50:D7:1C:E1
+MyResNet-2G - F8:C6:50:D7:1C:E3
+MyResNet-2G - F8:C6:50:D6:2E:23
+MyResNet Start Here - F8:C6:50:D6:51:46
+MyResNet-2G - E4:A4:1C:4D:C6:43
+MyResNet Start Here - E4:A4:1C:4D:C6:46
+MyResNet Start Here - F8:C6:50:D6:6C:66
+N/A - F8:C6:50:D7:0A:A1
+MyResNet Start Here - F8:C6:50:D7:0A:A6
+MyResNet Start Here - 0C:D5:D3:7B:53:E6
+MyResNet-2G - 08:7B:87:7D:A8:43
+MyResNet Start Here - 08:7B:87:7D:A8:46
+MyResNet-2G - E4:A4:1C:4D:AE:43
+MyResNet Start Here - 0C:D5:D3:7B:66:66
+N/A - 62:45:B7:D6:47:66
+MyResNet Start Here - 08:7B:87:7C:A1:A9
+MyResNet-5G - 08:7B:87:7C:A1:AB
+MyResNet-2G - 08:7B:87:7C:A1:AC
+N/A - 08:7B:87:7C:A1:AE
+DIRECT-roku-R21-FB8426 - 72:93:C3:9D:F4:F7
+MyResNet Start Here - 0C:D5:D3:7B:53:E9
+MyResNet-5G - 0C:D5:D3:7B:53:EB
+MyResNet-2G - 0C:D5:D3:7B:53:EC
+N/A - 0C:D5:D3:7B:53:EE
+MyResNet Start Here - F8:C6:50:D7:0A:A9
+MyResNet Start Here - 08:7B:87:7D:A8:49
+MyResNet-2G - 08:7B:87:7D:A8:4C
+N/A - 62:45:B7:CF:36:39
+N/A - 62:45:B1:FD:B9:FA
+MyResNet-5G - F8:C6:50:D6:6C:6B
+MyResNet-2G - F8:C6:50:D6:6C:6C
+N/A - F8:C6:50:D6:6C:6E
+MyResNet Start Here - F8:C6:50:D6:6C:69
+N/A - 62:45:B8:37:A6:8D

