@@ -33,7 +33,7 @@ sudo_exec(f"iwconfig {interface} channel {target_channel}")
 
 # aireplay-ng
 # -0 : Deauth attack
-# 15 : Number of deauth packets to send
+# packets : Number of deauth packets to send
 # -a : Target BSSID (MAC address)
 # target_mac : Target BSSID (MAC) from input file
 # wlan0 : Network interface to use

@@ -29,11 +29,6 @@ import signal
 import numpy as np
 import subprocess as sp
 import PIL.Image as pil
-from inotify_simple import INotify, flags
-
-# Global variables for cleanup
-i = None
-wd = None
 
 def split(value, size=2):
 	return tuple(value[0 + i:size + i] for i in range(0, len(value), size))
@@ -108,15 +103,7 @@ def create_image_ffmpeg(data, fname):
 
 def cleanup_handler(signum, frame):
 	print("Stopping video decoder.")
-	try:
-		if i and wd:
-			i.rm_watch(wd)
-			print("INotify watch removed.")
-	except Exception as e:
-		print(f"Error during cleanup {e}")
-	finally:
-		print("Video decoder stopped.")
-		sys.exit(0)
+	sys.exit(0)
 
 if __name__ == '__main__':
 
@@ -131,28 +118,18 @@ if __name__ == '__main__':
 	signal.signal(signal.SIGINT, cleanup_handler)
 	signal.signal(signal.SIGTERM, cleanup_handler)
 
-	# Setting up Inotify
-	i = INotify()
-	watch_flags = flags.MODIFY
-
 	max_wait = 30
 	wait_time = 0
 
+	print(f"Waiting for log file to be created: {log}")
 	while not os.path.exists(log) and wait_time < max_wait:
-		print(f"Waiting for log file to be created: {log}")
 		time.sleep(1)
 		wait_time += 1
 	
 	if not os.path.exists(log):
 		print(f"Error: Log file not found at {log} after {max_wait} seconds.")
 
-
-	try:
-		wd = i.add_watch(log, watch_flags)
-		print(f"Watching log file: {log}")
-	except Exception as e:
-		print(f"Error setting up file watch: {e}")
-		sys.exit(1)
+	print(f"Watching log file: {log}")
 		
 	with open(log, 'r') as file:
 		file.seek(0, os.SEEK_END)  # Move the pointer to the end of the file
@@ -164,92 +141,87 @@ if __name__ == '__main__':
 
 		while True:
 			try:
-				events = i.read(timeout=1000)
-				if not events:
+				line = file.readline()
+				
+				if not line:
+					time.sleep(0.01)
 					continue
 
-				for event in events:
-					if event is None:
+				r = collect(line)
+
+				if r is None:
+					continue
+
+				if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
+					sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
+
+					if fn == 0:  # chunk or first fragment of chunk
+						# No need to strip headers, sniff output is clean enough
+						# qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
+						# data = data[(qos + llc + ip + udp) * 2:]
+						vsn, vfn = data[0:2], data[2:4]
+						vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
+						vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
+						data = data[4:]  # cut off video app data
+
+					else:  # fragment of chunk
+						# qos = 8 * 3 + 2
+						vsn, vfn = -1, -1
+						# data = data[qos * 2:]
+
+					data = data[:-8]  # cut off crc
+
+					# Check for reset packet
+					if '0000000141' == data[:10]:  # for sure, reset (optionally)
+						print("DEBUG: Found 041 reset packet.")
+						sps, pps, key, buffer = None, None, None, ''
 						continue
 
-					for flag in flags.from_mask(event.mask):
-						if 'MODIFY' in str(flag):
-							while True:
-								line = file.readline()
-								if not line:
-									# break to wait for next event
-									break
+					# Check for SPS
+					if '0000000167' == data[:10]:  # SPS
+						print("DEBUG: Found SPS packet.")
+						sps, pps, key, buffer = vsn, None, None, ''
+						buffer += data
 
-								r = collect(line)
+					# Check for PPS
+					if '0000000168' == data[:10] and sps is not None:  # PPS
+						# vsn is not incrementing
+						if vsn >= sps:
+							print("DEBUG: Found PPS packet.")
+							pps = vsn
+							buffer += data
+						else:
+							print("DEBUG: Found PPS packet, but SN mismatch.")
+							sps, buffer = None, ''
 
-								if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
-									sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
+					# Check for Keyframe
+					if '0000000165' == data[:10] and pps is not None:  # keyframe
+						if vsn >= pps:
+							print("DEBUG: Found Keyframe packet.")
+							key = vsn
+						else:
+							print("DEBUG: Found PPS packet, but SN mismatch.")
+							pps, buffer = None, ''
 
-									if fn == 0:  # chunk or first fragment of chunk
-										# No need to strip headers, sniff output is clean enough
-										# qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
-										# data = data[(qos + llc + ip + udp) * 2:]
-										vsn, vfn = data[0:2], data[2:4]
-										vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
-										vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
-										data = data[4:]  # cut off video app data
+					# Collect frame data if we have key
+					if key is not None:
+						buffer += data
 
-									else:  # fragment of chunk
-										# qos = 8 * 3 + 2
-										vsn, vfn = -1, -1
-										# data = data[qos * 2:]
+					# Check for end of frame
+					if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
+						print("DEBUG: Found EOF.")
+						sps, pps = None, None
 
-									data = data[:-8]  # cut off crc
+					if sps is None and pps is None and vsn != key:  # last fragment of last chunk
+						if len(buffer) > 0:
+							print("DEBUG: CALLING FFMPEG.")
+							create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
+							frame_count += 1
+							sps, pps, key, buffer = None, None, None, ''
 
-									# Check for reset packet
-									if '0000000141' == data[:10]:  # for sure, reset (optionally)
-										print("DEBUG: Found 041 reset packet.")
-										sps, pps, key, buffer = None, None, None, ''
-										continue
-
-									# Check for SPS
-									if '0000000167' == data[:10]:  # SPS
-										print("DEBUG: Found SPS packet.")
-										sps, pps, key, buffer = vsn, None, None, ''
-										buffer += data
-
-									# Check for PPS
-									if '0000000168' == data[:10] and sps is not None:  # PPS
-										# vsn is not incrementing
-										if vsn >= sps:
-											print("DEBUG: Found PPS packet.")
-											pps = vsn
-											buffer += data
-										else:
-											print("DEBUG: Found PPS packet, but SN mismatch.")
-											sps, buffer = None, ''
-
-									# Check for Keyframe
-									if '0000000165' == data[:10] and pps is not None:  # keyframe
-										if vsn >= pps:
-											print("DEBUG: Found Keyframe packet.")
-											key = vsn
-										else:
-											print("DEBUG: Found PPS packet, but SN mismatch.")
-											pps, buffer = None, ''
-
-									# Collect frame data if we have key
-									if key is not None:
-										buffer += data
-
-									# Check for end of frame
-									if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
-										print("DEBUG: Found EOF.")
-										sps, pps = None, None
-
-									if sps is None and pps is None and vsn != key:  # last fragment of last chunk
-										if len(buffer) > 0:
-											print("DEBUG: CALLING FFMPEG.")
-											create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
-											frame_count += 1
-										sps, pps, key, buffer = None, None, None, ''
 			except KeyboardInterrupt:
 				cleanup_handler(None, None)
+
 			except Exception as e:
 				print(f"Error in main loop: {e}", file=sys.stderr)
 				time.sleep(0.1)				
