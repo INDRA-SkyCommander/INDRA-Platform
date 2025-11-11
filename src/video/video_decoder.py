@@ -75,7 +75,7 @@ def create_image_ffmpeg(data, fname):
 	(out, err) = proc.communicate(np.asarray(frame, dtype='uint8').tobytes())
 
 	w, h = 960, 720  # TODO: extract image size from output of FFmpeg
-	nbcomp, bitpix, shape = None, None, None
+	nbcomp, bitpix, shape = 0, 0, None
 	if fmt == 'gray':
 		nbcomp, bitpix, shape = 1, 8, (h, w)
 	elif fmt == 'ya8':
@@ -92,6 +92,7 @@ def create_image_ffmpeg(data, fname):
 	frame_count = 0
 	while len(out) >= size:  # enough data in stream?
 		raw_image = out[:size]
+		# Ignore this error, it is handled by hard-coding fmt's value
 		image = np.frombuffer(raw_image, dtype='uint{}'.format(bitpix // nbcomp))
 		image = image.reshape(shape)
 		im = pil.fromarray(image)
@@ -114,7 +115,9 @@ if __name__ == '__main__':
 		sps, pps, key = None, None, None
 		buffer = ''
 
-		for event in inotify.event_gen(yield_nones=False):
+		for event in i.event_gen(yield_nones=False):
+			if event is None:
+				continue
 			(_, type_names, path, filename) = event
 			if 'IN_MODIFY' in type_names:
 				line = file.readline()

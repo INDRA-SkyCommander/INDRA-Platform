@@ -29,9 +29,10 @@ options_info = scan_info.get("options", {})
 interface = options_info.get("interface")
 
 # Initialize file paths
-tepsots_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'video', 'tepsots')
-tepsotspy_path = os.path.join(tepsots_path, 'tepsots.py')
-tepsotssh_path = os.path.join(tepsots_path, 'tepsots.sh')
+video_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'video')
+tepsotspy_path = os.path.join(video_path, 'tepsots','tepsots.py')
+tepsotssh_path = os.path.join(video_path, 'tepsots', 'tepsots.sh')
+decoder_path = os.path.join(video_path, 'video_decoder.py')
 
 sniff_output_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'sniff_output.log')
 
@@ -67,14 +68,42 @@ sudo_exec(f"airmon-ng start {interface}")
 sudo_exec(f"{tepsotssh_path} set {target_channel}")
 
 sniff_cmd = ('sudo', 'python3', tepsotspy_path, '-i', interface, '-sa', target_source.replace('\n',''), '-v')
-# Start sniffer and output to log
-with open(sniff_output_path, 'w') as log_file:
-    # Start the subprocess and redirect stdout to the log file 
-    sniff_process = subprocess.Popen(sniff_cmd, stdout=log_file)
+decoder_cmd = ('sudo', 'python3', decoder_path, sniff_output_path, image_folder_path)
 
-print("Intercepting video...")    
+sniff_process = None
+decoder_process = None
 
-decoder_cmd = ('sudo', 'python3', tepsotspy_path, sniff_output_path, image_folder_path)
+try:
+    # Start sniffer and output to log
+    with open(sniff_output_path, 'w') as log_file:
+        # Start the subprocess and redirect stdout to the log file 
+        sniff_process = subprocess.Popen(sniff_cmd, stdout=log_file)
 
-# Start the subprocess and create images from the log file
-decoder_process = subprocess.Popen(decoder_cmd, stdout=subprocess.PIPE)
+    print("Starting decoder...")
+    decoder_process = subprocess.Popen(decoder_cmd)
+
+    print("\n Interceptor is running. Press Ctrl+C to stop.")
+
+    # Wait for decoder process to finish
+    decoder_process.wait()
+
+except KeyboardInterrupt:
+    print("Shutting down video interceptor...")
+
+except Exception as e:
+    print(f"\nAs error occurred: {e}")
+    
+finally:
+
+    if sniff_process:
+        print("Terminating sniffer.")
+        sniff_process.terminate()
+        sniff_process.wait()
+
+    if decoder_process:
+        print("Terminating decoder.")
+        decoder_process.terminate()
+        decoder_process.wait()
+    
+    sudo_exec(f"{tepsotssh_path} managed")
+    print("Cleanup complete. Exiting video interceptor.")
