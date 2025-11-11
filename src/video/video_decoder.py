@@ -28,7 +28,7 @@ import os
 import numpy as np
 import subprocess as sp
 import PIL.Image as pil
-import inotify.adapters
+from inotify_simple import INotify, flags
 
 def split(value, size=2):
 	return tuple(value[0 + i:size + i] for i in range(0, len(value), size))
@@ -106,72 +106,74 @@ if __name__ == '__main__':
 	log = sys.argv[1]
 	image_folder = sys.argv[2]
 
-	i = inotify.adapters.Inotify()
-	i.add_watch(log)
-
+	# Setting up Inotify
+	i = INotify()
+	watch_flags = flags.MODIFY	
+	wd = i.add_watch(log, watch_flags)
+		
 	with open(log, 'r') as file:
 		file.seek(0, os.SEEK_END)  # Move the pointer to the end of the file
 
 		sps, pps, key = None, None, None
 		buffer = ''
 
-		for event in i.event_gen(yield_nones=False):
+		for event in i.read():
 			if event is None:
 				continue
-			(_, type_names, path, filename) = event
-			if 'IN_MODIFY' in type_names:
-				line = file.readline()
-				if not line:
-					continue
+			for flag in flags.from_mask(event.mask):
+				if 'MODIFY' in str(flag):
+					line = file.readline()
+					if not line:
+						continue
 
-				r = collect(line)
+					r = collect(line)
 
-				if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
-					sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
+					if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
+						sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
 
-					if fn == 0:  # chunk or first fragment of chunk
-						qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
-						data = data[(qos + llc + ip + udp) * 2:]
-						vsn, vfn = data[0:2], data[2:4]
-						vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
-						vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
-						data = data[4:]  # cut off video app data
+						if fn == 0:  # chunk or first fragment of chunk
+							qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
+							data = data[(qos + llc + ip + udp) * 2:]
+							vsn, vfn = data[0:2], data[2:4]
+							vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
+							vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
+							data = data[4:]  # cut off video app data
 
-					else:  # fragment of chunk
-						qos = 8 * 3 + 2
-						vsn, vfn = -1, -1
-						data = data[qos * 2:]
+						else:  # fragment of chunk
+							qos = 8 * 3 + 2
+							vsn, vfn = -1, -1
+							data = data[qos * 2:]
 
-					data = data[:-8]  # cut off crc
+						data = data[:-8]  # cut off crc
 
-					if '0000000167' == data[:10]:  # SPS
-						sps, pps, key, buffer = vsn, None, None, ''
-						buffer += data
-
-					if '0000000168' == data[:10] and sps is not None:  # PPS
-						if vsn == sps + 1:
-							pps = vsn
+						if '0000000167' == data[:10]:  # SPS
+							sps, pps, key, buffer = vsn, None, None, ''
 							buffer += data
-						else:
-							sps, buffer = None, ''
 
-					if '0000000165' == data[:10] and pps is not None:  # keyframe
-						if vsn == pps + 1:
-							key = vsn
-						else:
-							pps, buffer = None, ''
+						if '0000000168' == data[:10] and sps is not None:  # PPS
+							if vsn == sps + 1:
+								pps = vsn
+								buffer += data
+							else:
+								sps, buffer = None, ''
 
-					if key is not None:
-						buffer += data
+						if '0000000165' == data[:10] and pps is not None:  # keyframe
+							if vsn == pps + 1:
+								key = vsn
+							else:
+								pps, buffer = None, ''
 
-					if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
-						sps, pps = None, None
+						if key is not None:
+							buffer += data
 
-					if sps is None and pps is None and vsn != key:  # last fragment of last chunk
-						if len(buffer) > 0:
-							create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
-							frame_count += 1
-						sps, pps, key, buffer = None, None, None, ''
+						if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
+							sps, pps = None, None
 
-					if '0000000141' == data[:10]:  # for sure, reset (optionally)
-						sps, pps, key, buffer = None, None, None, ''
+						if sps is None and pps is None and vsn != key:  # last fragment of last chunk
+							if len(buffer) > 0:
+								create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
+								frame_count += 1
+							sps, pps, key, buffer = None, None, None, ''
+
+						if '0000000141' == data[:10]:  # for sure, reset (optionally)
+							sps, pps, key, buffer = None, None, None, ''
