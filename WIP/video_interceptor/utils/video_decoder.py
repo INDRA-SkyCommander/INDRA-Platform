@@ -126,6 +126,9 @@ def cleanup_handler(signum, frame):
 	sys.exit(0)
 
 def extract_image(line, frame_count):
+
+	global sps, pps, key, buffer
+
 	r = collect(line)
 
 	if r is None:
@@ -192,6 +195,8 @@ def extract_image(line, frame_count):
 				print("DEBUG: CALLING FFMPEG.")
 				create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
 				return 1
+			
+	return None
 
 if __name__ == '__main__':
 
@@ -233,5 +238,6 @@ if __name__ == '__main__':
 		image = extract_image(line, frame_count)
 		if (image == 1):
 			print("image saved!")
+			frame_count += 1
 		else:
 			print("SN mismatch!")
