@@ -65,7 +65,8 @@ class MainGUI:
 	target_info = {}
 
 	# Filter variables
-	tello_filter = False
+	scan_filter = False
+	filter_text = ''
 
 	# Threaded Scan helpers
 	def run_scan_once(self):
@@ -81,7 +82,7 @@ class MainGUI:
 		sudo_exec(f"ifconfig {self.scanning_interface} up")
 		
 		self.log("Beep boop. Scanning...")
-		
+
 		# Single scan
 		def _scan_and_exit():
 			try:
@@ -116,11 +117,12 @@ class MainGUI:
 			try:
 				with open(file_path, "r") as f:
 					for line in f:
-						if(self.tello_filter == False):
+						if(self.scan_filter == False):
 							self.host_list_data_box.insert(END, line)
 							continue
-						if ("TELLO" in line):
+						if (self.filter_text in line):
 							self.host_list_data_box.insert(END, line)
+				self.scan_filter = False
 			except FileNotFoundError:
 				self.log(f"Scan results file not found at {file_path}.")
 	
@@ -168,12 +170,12 @@ class MainGUI:
 		Initializes the INDRA Graphical User Interface (GUI).
 
 		Args:
-			root (tk.Tk): The main Tkinter root window object.
+			 (tk.Tk): The main Tkinter root window object.
 		"""
 
 		self.root = root
 		root.title("INDRA")
-		root.geometry("1200x675")
+		root.geometry("1200x750")
 		root.resizable(False, False)
 		root.update_idletasks()
 
@@ -187,7 +189,7 @@ class MainGUI:
 		self.packets = MainGUI.packets
 		self.scan_toggle = False
 
-		self.tello_filter = MainGUI.tello_filter
+		self.scan_filter = MainGUI.scan_filter
 		self.module_options = MainGUI.module_options
 
 		# Styling
@@ -528,21 +530,47 @@ class MainGUI:
 		# WORK IN PROGRESS
 		#
 		
-		def filterThread():
-			self.tello_filter = not self.tello_filter
-			if self.tello_filter:
-				filter_button_style.configure("filter_button.TButton", foreground = "GREEN")
-			else:
-				filter_button_style.configure("filter_button.TButton", foreground = "RED")
+		#def filterThread():
+		#	self.tello_filter = not self.tello_filter
+		#	if self.tello_filter:
+		#		filter_button_style.configure("filter_button.TButton", foreground = "GREEN")
+		#	else:
+		#		filter_button_style.configure("filter_button.TButton", foreground = "RED")
 
-		filter_button = ttk.Button(self.side_box,
-								text="Filter",
-								command= filterThread,
-								style="filter_button.TButton")
-		filter_button.grid(row=0, column=0, sticky = "ne", padx = 30, pady = 3)
+		#filter_button = ttk.Button(self.side_box,
+		#						text="Filter",
+		#						command= filterThread,
+		#						style="filter_button.TButton")
+		#filter_button.grid(row=0, column=0, sticky = "ne", padx = 30, pady = 3)
 
+		#Filter Label
+		filter_label = ttk.Label(self.side_box, text="Filter", style="label.TLabel")
+		filter_label.configure(anchor="center",
+								  font=("default", 18, "bold"),
+								  foreground=colors.WHITE)
+		filter_label.grid(row = 1, column = 0, sticky = "w", padx = 30, pady =580)
+		
+		
+		#Filter Search Bar	
+	
+		filter_entry = ttk.Entry(self.side_box)
+		filter_entry.grid(row = 1, column = 0, sticky = "w", padx = 120, pady =580) 
 
-
+		#Filter Get Value
+		#
+		#This function gets the value of the filter search bar
+		#It sets the filter flag for scan
+		#Then it clears the search bar and runs scan 1 time
+		def filter_get_value(event):
+			self.filter_text = filter_entry.get()
+			
+			filter_entry.delete(0, tk.END)
+			self.scan_filter = True;
+			self.log(f"Filtering for: {self.filter_text}")
+			self.run_scan_once()
+			
+		filter_entry.bind("<Return>", filter_get_value)
+		
 		# CENTER BOX: Target Information and Options
 		self.center_box = ttk.Frame(root, style="box.TFrame")
 		self.center_box.pack(side="top", fill="x", expand=False, pady=5, padx=5, ipadx=5)
