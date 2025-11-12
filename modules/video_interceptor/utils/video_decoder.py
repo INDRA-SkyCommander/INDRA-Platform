@@ -1,6 +1,4 @@
 #!/bin/sh
-'''which' python3 > /dev/null && exec python3 "$0" "$@" || exec python "$0" "$@"
-'''
 
 #
 # Copyright (c) 2018, Manfred Constapel
@@ -29,12 +27,18 @@ import signal
 import numpy as np
 import subprocess as sp
 import PIL.Image as pil
-import select
 
 def split(value, size=2):
+	"""
+	Splits a hex string into a tuple of 2-char strings.
+	"""
 	return tuple(value[0 + i:size + i] for i in range(0, len(value), size))
 
 def hex2dec(value):
+	"""
+	Converts a hex string or tuple of hex strings to decimals.
+	"""
+
 	if isinstance(value, str):
 		value = value.strip()
 		if ' ' not in value:
@@ -45,8 +49,13 @@ def hex2dec(value):
 		return tuple(int(item, 16) for item in value)
 
 def collect(line):
+	"""
+	Parses a single line from sniff_output_log
+	Expecs 13 space-separated columns.
+	"""
 	line = line.strip().split(' ')
 	if len(line) != 13:
+		print("Invalid sniff format")
 		return None
 	line, data = line[:-1], line[-1]
 	t, phy, size, ft, fs, src, dst, fsn, ffn, chan, rate, rssi = line
@@ -58,12 +67,10 @@ def collect(line):
 	rate = float(rate) if rate != str(None) else None
 	return {'t': t, 'size': size, 'phy': phy, 'ft': ft, 'fs': fs, 'src': src, 'dst': dst, 'sn': fsn, 'fn': ffn, 'chan': chan, 'rate': rate, 'rssi': rssi, 'data': data}
 
-def print_80211(name, sn, fn, size, vs, vf, data):
-	vs = vs if vs != -1 else ''
-	vf = vf if vf != -1 else ''
-	print('{} {:4d} {:1d} {:>3} {:>3} {:4d} {}'.format(name, sn, fn, vs, vf, len(data), data[:10]))
-
 def create_image_ffmpeg(data, fname):
+	"""
+	Uses FFmpeg to decode a raw H.264 and save it as a PNG.
+	"""
 
 	frame = hex2dec(split(data, 2))
 	if os.path.isfile(fname):
@@ -93,7 +100,6 @@ def create_image_ffmpeg(data, fname):
 	frame_count = 0
 	while len(out) >= size:  # enough data in stream?
 		raw_image = out[:size]
-		# Ignore this error, it is handled by hard-coding fmt's value
 		image = np.frombuffer(raw_image, dtype='uint{}'.format(bitpix // nbcomp))
 		image = image.reshape(shape)
 		im = pil.fromarray(image)
@@ -102,9 +108,90 @@ def create_image_ffmpeg(data, fname):
 		out = out[size:]
 		frame_count += 1
 
+def follow(sniff_file):
+	sniff_file.seek(0, os.SEEK_END) # EoF
+	while True:
+		line = sniff_file.readline()
+		if not line:
+			time.sleep(0.1)
+			continue
+		yield line
+
 def cleanup_handler(signum, frame):
+	"""
+	Exits gracefully.
+	"""
+
 	print("Stopping video decoder.")
 	sys.exit(0)
+
+def extract_image(line, frame_count):
+	r = collect(line)
+
+	if r is None:
+		print("None recieved!")
+		return None
+
+	if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
+		sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
+		
+		if fn == 0:  # chunk or first fragment of chunk
+			vsn, vfn = data[0:2], data[2:4]
+			vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
+			vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
+			data = data[4:]  # cut off video app data
+
+		else:  # fragment of chunk
+			vsn, vfn = -1, -1
+
+		data = data[:-8]  # cut off crc
+
+		# Check for reset packet
+		if '0000000141' == data[:10]:  # for sure, reset (optionally)
+			print("DEBUG: Found 041 reset packet.")
+			sps, pps, key, buffer = None, None, None, ''
+			return None
+
+		# Check for SPS
+		if '0000000167' == data[:10]:  # SPS
+			print("DEBUG: Found SPS packet.")
+			sps, pps, key, buffer = vsn, None, None, ''
+			buffer += data
+
+		# Check for PPS
+		if '0000000168' == data[:10] and sps is not None:  # PPS
+			# vsn is not incrementing
+			if vsn >= sps:
+				print("DEBUG: Found PPS packet.")
+				pps = vsn
+				buffer += data
+			else:
+				print("DEBUG: Found PPS packet, but SN mismatch.")
+				sps, buffer = None, ''
+
+		# Check for Keyframe
+		if '0000000165' == data[:10] and pps is not None:  # keyframe
+			if vsn >= pps:
+				print("DEBUG: Found Keyframe packet.")
+				key = vsn
+			else:
+				print("DEBUG: Found PPS packet, but SN mismatch.")
+				pps, buffer = None, ''
+
+		# Collect frame data if we have key
+		if key is not None:
+			buffer += data
+
+		# Check for end of frame
+		if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
+			print("DEBUG: Found EOF.")
+			sps, pps = None, None
+
+		if sps is None and pps is None and vsn != key:  # last fragment of last chunk
+			if len(buffer) > 0:
+				print("DEBUG: CALLING FFMPEG.")
+				create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
+				return 1
 
 if __name__ == '__main__':
 
@@ -119,8 +206,6 @@ if __name__ == '__main__':
 	signal.signal(signal.SIGINT, cleanup_handler)
 	signal.signal(signal.SIGTERM, cleanup_handler)
 
-	poller = select.poll()
-
 	max_wait = 30
 	wait_time = 0
 
@@ -133,108 +218,20 @@ if __name__ == '__main__':
 		print(f"Error: Log file not found at {log} after {max_wait} seconds.")
 
 	print(f"Watching log file: {log}")
-		
-	with open(log, 'r') as file:
-		poller.register(file, select.POLLIN)
-		file.seek(0, os.SEEK_END)  # Move the pointer to the end of the file
+	
+	sps, pps, key = None, None, None
+	buffer = ''
 
-		sps, pps, key = None, None, None
-		buffer = ''
+	print("Decoder ready, waiting for data...")
 
-		print("Decoder ready, waiting for data...")
+	frame_count = 0
+	logfile = open(log)
+	loglines = follow(logfile)
 
-		while True:
-			try:
-				events = poller.poll(timeout=1000)
-				if not events:
-					continue
-				for fd, event in events:
-					if event is None:
-						continue
-					if event & select.POLLIN:
-
-						line = file.readline()
-						
-						if not line:
-							time.sleep(0.01)
-							continue
-
-						r = collect(line)
-
-						if r is None:
-							continue
-
-						if r is not None and r['phy'] in ('g', 'n', 'ac') and r['ft'] == 2:  # streaming
-							sn, fn, size, data = r['sn'], r['fn'], r['size'], r['data']
-
-							if fn == 0:  # chunk or first fragment of chunk
-								# No need to strip headers, sniff output is clean enough
-								# qos, llc, ip, udp = 8 * 3 + 2, 8, 8 * 2 + 4, 8
-								# data = data[(qos + llc + ip + udp) * 2:]
-								vsn, vfn = data[0:2], data[2:4]
-								vsn = int(vsn, 16) if len(vsn) > 0 else -1  # app video sn
-								vfn = int(vfn, 16) if len(vfn) > 0 else -1  # app video fn
-								data = data[4:]  # cut off video app data
-
-							else:  # fragment of chunk
-								# qos = 8 * 3 + 2
-								vsn, vfn = -1, -1
-								# data = data[qos * 2:]
-
-							data = data[:-8]  # cut off crc
-
-							# Check for reset packet
-							if '0000000141' == data[:10]:  # for sure, reset (optionally)
-								print("DEBUG: Found 041 reset packet.")
-								sps, pps, key, buffer = None, None, None, ''
-								continue
-
-							# Check for SPS
-							if '0000000167' == data[:10]:  # SPS
-								print("DEBUG: Found SPS packet.")
-								sps, pps, key, buffer = vsn, None, None, ''
-								buffer += data
-
-							# Check for PPS
-							if '0000000168' == data[:10] and sps is not None:  # PPS
-								# vsn is not incrementing
-								if vsn >= sps:
-									print("DEBUG: Found PPS packet.")
-									pps = vsn
-									buffer += data
-								else:
-									print("DEBUG: Found PPS packet, but SN mismatch.")
-									sps, buffer = None, ''
-
-							# Check for Keyframe
-							if '0000000165' == data[:10] and pps is not None:  # keyframe
-								if vsn >= pps:
-									print("DEBUG: Found Keyframe packet.")
-									key = vsn
-								else:
-									print("DEBUG: Found PPS packet, but SN mismatch.")
-									pps, buffer = None, ''
-
-							# Collect frame data if we have key
-							if key is not None:
-								buffer += data
-
-							# Check for end of frame
-							if fn == 0 and vsn == key and vfn // 128 == 1:  # indicator for last chunk
-								print("DEBUG: Found EOF.")
-								sps, pps = None, None
-
-							if sps is None and pps is None and vsn != key:  # last fragment of last chunk
-								if len(buffer) > 0:
-									print("DEBUG: CALLING FFMPEG.")
-									create_image_ffmpeg(buffer, os.path.join(image_folder, '{}.png'.format(frame_count)))
-									frame_count += 1
-									sps, pps, key, buffer = None, None, None, ''
-
-			except KeyboardInterrupt:
-				poller.unregister(file)
-				cleanup_handler(None, None)
-
-			except Exception as e:
-				print(f"Error in main loop: {e}", file=sys.stderr)
-				time.sleep(0.1)				
+	for line in loglines:
+		# pass to image handler
+		image = extract_image(line, frame_count)
+		if (image == 1):
+			print("image saved!")
+		else:
+			print("SN mismatch!")

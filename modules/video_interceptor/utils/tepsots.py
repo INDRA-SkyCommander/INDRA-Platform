@@ -331,7 +331,8 @@ def sniff(sources=(), destinations=(), types=(), subtypes=(), length=(), strengt
                 amend(data)))
 
             sys.stdout.flush()
-
+            os.fsync(sys.stdout)
+            
         except Exception as e:
             log(e, head='(*)', more=dec2hex(packet), out=sys.stderr)
 
