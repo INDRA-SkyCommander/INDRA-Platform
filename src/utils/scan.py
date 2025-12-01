@@ -29,8 +29,11 @@ def scan(interface="wlan0"):
 	scan_results_file_path = os.path.join(data_folder, "scan_results.txt")
 
 	# run scan
-	os.system(f'iwlist {interface} scan > {raw_output_path}')
+	return_code = os.system(f'iwlist {interface} scan > {raw_output_path}')
 	
+	if return_code != 0:
+		return {}
+
 	# if new results are blank, don't overwrite previous results with blank results
 	if os.path.exists(raw_output_path):
 		file_size = os.stat(raw_output_path).st_size
