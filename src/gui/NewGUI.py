@@ -29,7 +29,7 @@ class IndraGUI(tk.Tk):
 
 		# Tkinter Window
 		self.title("INDRA")
-		self.geometry("1200x750")
+		self.geometry("1400x850")
 		self.resizable(False, False)
 
 		# Data Stuctures
@@ -45,7 +45,7 @@ class IndraGUI(tk.Tk):
 		self.selected_interface = tk.StringVar(value="interfaces")
 		self.selected_module = tk.StringVar(value="modules")
 		self.options_list = ["", "Restart Network Adapter", "Stop Monitor Mode"]
-		self.selected_option = tk.StringVar(value="")
+		self.selected_option = tk.StringVar(value="options")
 
 		# Host list variables
 		self.packets = 30
@@ -54,7 +54,7 @@ class IndraGUI(tk.Tk):
 
 		# Appearance
 		self._setup_styles()
-		self.config(bg=self.background_dark)
+		self.config(bg=self.background_slate)
 
 		# Main Layout
 		self.grid_rowconfigure(0, weight=0, minsize=50) # Top Bar
@@ -78,6 +78,7 @@ class IndraGUI(tk.Tk):
 		self.style.theme_use("clam")
 
 		# Colors
+		self.background_slate = colors.TKINTER_SLATE
 		self.background_dark = colors.BLACK
 		self.background_grey = colors.GREY
 		self.background_light = colors.LIGHT_GREY
@@ -93,6 +94,7 @@ class IndraGUI(tk.Tk):
 		self.button_font = font.Font(family="Consolas", size=10, weight="bold")
 		self.label_font = font.Font(family="Consolas", size=10)
 		self.monospace_font = font.Font(family="Consolas", size=10)
+		self.exploit_font = font.Font(family="Consolas", size=24, weight="bold")
 
 		# Widget styles
 		self.style.configure("Tframe", background=self.background_dark)
@@ -104,16 +106,16 @@ class IndraGUI(tk.Tk):
 		self.style.configure("TFilter", background=self.background_grey, foreground=self.text_color, font=self.label_font)
 
 		# Button styles
-		self.style.configure("TButton.ORANGE", background=self.accent_orange, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
-		self.style.map("TButton.Orange", background=[('active', self.accent_orange)])
-		self.style.configure("TButton.RED", background=self.accent_red, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
-		self.style.map("TButton.RED", background=[('active', self.accent_red)])
-		self.style.configure("TButton.GREEN", background=self.accent_green, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
-		self.style.map("TButton.GREEN", background=[('active', self.accent_green)])
-		self.style.configure("TButton.BLUE", background=self.accent_blue, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
-		self.style.map("TButton.BLUE", background=[('active', self.accent_blue)])
-		self.style.configure("TButton.EXPLOIT", background=self.accent_orange, foreground=self.background_dark, font=self.header_font, padding=[10, 5], relief="flat")
-		self.style.map("TButton.EXLPOIT", background=[('active', self.accent_orange)])
+		self.style.configure("Orange.TButton", background=self.accent_orange, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
+		self.style.map("Orange.TButton", background=[('active', self.accent_orange)])
+		self.style.configure("Red.TButton", background=self.accent_red, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
+		self.style.map("Red.TButton", background=[('active', self.accent_red)])
+		self.style.configure("Green.TButton", background=self.accent_green, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
+		self.style.map("Green.TButton", background=[('active', self.accent_green)])
+		self.style.configure("Blue.TButton", background=self.accent_blue, foreground=self.text_color, font=self.button_font, padding=[10, 5], relief="flat")
+		self.style.map("Blue.TButton", background=[('active', self.accent_blue)])
+		self.style.configure("Exploit.TButton", background=self.accent_orange, foreground=self.text_color, font=self.exploit_font, padding=[4, 4], relief="flat")
+		self.style.map("Exploit.TButton", background=[('active', self.accent_orange)])
 
 	def _init_top_bar(self, row, col):
 		"""
@@ -129,10 +131,6 @@ class IndraGUI(tk.Tk):
 
 		for i in range(9): top_bar_frame.grid_columnconfigure(i, weight=0 if i in [2, 6] else 1)
 
-		# Title
-		title_label = ttk.Label(self, text="INDRA", font=self.header_font, background=self.background_dark, foreground=self.background_grey)
-		title_label.place(x=600, y=10, anchor="n")
-
 		# ======================
 		# Buttons and Dropdowns
 		# ======================
@@ -140,14 +138,14 @@ class IndraGUI(tk.Tk):
 		# Toggle Scan Button
 		self.toggle_btn = ttk.Button(top_bar_frame,
 							   text="Toggle Scan", 
-							   style="TButton.ORANGE", 
+							   style="Orange.TButton", 
 							   command=self._handle_toggle_scan
 							   )
 
 		# Single Scan Button
 		self.scan_btn = ttk.Button(top_bar_frame,
 							 text="Scan Once",
-							 style="TButton.ORANGE",
+							 style="Orange.TButton",
 							 command=self._handle_single_scan
 							 )
 
@@ -172,14 +170,14 @@ class IndraGUI(tk.Tk):
 		# Exploit Button
 		self.exploit_btn = ttk.Button(top_bar_frame,
 								text="EXPLOIT",
-								style="TButton.EXPLOIT",
+								style="Exploit.TButton",
 								command=self._handle_run_exploit
 								)
 		
 		# Misc Options button
 		self.options_btn = ttk.Button(top_bar_frame,
 								text="Execute Option",
-								style="TButton.Orange",
+								style="Orange.TButton",
 								command=self._handle_option_execute
 								)
 		
@@ -226,10 +224,10 @@ class IndraGUI(tk.Tk):
 
 		if self.scan_toggled:
 			self.toggle_btn.config(text="Stop Scanning")
-			self.toggle_btn.config(style="TButton.RED")
+			self.toggle_btn.config(style="Red.TButton")
 		else:
 			self.toggle_btn.config(text="Start Scanning")
-			self.toggle_btn.config(style="TButton.GREEN")
+			self.toggle_btn.config(style="Green.TButton")
 	
 	def _handle_single_scan(self):
 		"""
@@ -246,8 +244,8 @@ class IndraGUI(tk.Tk):
 		Returns a list of available network interfaces on the system.
 		"""
 
-		output = subprocess.check_output("ifconfig | cut -d " " -fl", shell=True, text=True).strip()
-		return [interface.replace(':', "") for interface in output.splitlines() if interface]
+		output = subprocess.check_output('ifconfig | cut -d " " -f1', shell=True, text=True).strip()
+		return [interface.replace(':', '') for interface in output.splitlines() if interface]
 	
 	def _handle_interface_change(self, event=None):
 		"""
@@ -446,7 +444,7 @@ class IndraGUI(tk.Tk):
 		filter_bar = ttk.Frame(host_list_frame, style="TFrame")
 		filter_bar.pack(fill=tk.X, padx=5, pady=(0, 5))
 
-		ttk.Label(filter_bar, text="Filter: ", style="TFilter").pack(side=tk.LEFT, padx=(0, 10))
+		ttk.Label(filter_bar, text="Filter: ", style="TLabel").pack(side=tk.LEFT, padx=(0, 10))
 
 		# Filter box
 		self.filter_entry = ttk.Entry(filter_bar,
@@ -500,10 +498,11 @@ class IndraGUI(tk.Tk):
 		"""
 
 		try:
-			selected = self.host_listbox.get(self.host_listbox.curselection())
-			if not selected:
+			selection = self.host_listbox.get(self.host_listbox.curselection())
+			if not selection:
 				self.selected_target.set("No target selected")
 				return
+			selected = self.host_listbox.get(selection[0])
 			self.selected_target.set(selected)
 		except Exception:
 			self.selected_target.set("No target selected")
@@ -544,7 +543,8 @@ class IndraGUI(tk.Tk):
 		self.target_info_label.grid(row=0, column=0, sticky="w", padx=5, pady=5)
 		
 		# Video Player Frame
-		video_frame  = ttk.LabelFrame(right_panel_frame, text="Live Video Feed").grid(row=1, column=1, sticky="ew", padx=5, pady=10)
+		video_frame  = ttk.LabelFrame(right_panel_frame, text="Live Video Feed")
+		video_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=10)
 		self.video_label = ttk.Label(video_frame, text="Video Feed Unavailable", font=self.label_font, background=self.video_bg, foreground=self.background_grey, anchor="center")
 		self.video_label.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
