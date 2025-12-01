@@ -1,20 +1,3 @@
-"""
-README stuff
-====================================================================
- INDRA GUI Main Module
---------------------------------------------------------------------
- File: GUI.py
- Description:
-	 This file defines the main graphical user interface for the
-	 INDRA software suite. The GUI provides functionality to:
-		 - Start, stop, and monitor live network scans
-		 - Display detected hosts and target information
-		 - Control modules and options
-		 - Run exploits through the exploitation framework
-		 - Display live visual data through the ImagePlayer widget
-====================================================================
-"""
-
 # Standard Library
 import os
 import sys
@@ -39,7 +22,7 @@ from utils import sudo_exec, module_setup, scan, colors
 # CLASS: MainGUI
 # ===============================================================
 
-class MainGUI:
+class MainGUI(tk.Tk):
 	"""
 	The MainGUI class initializes and controls the main graphical user interface
 	for the INDRA application. It contains GUI layout definitions, user interface
@@ -51,7 +34,7 @@ class MainGUI:
 	# Class-Level Variables
 	# ---------------------------------------------------------------
 	module_options = []
-	#host_list_update = True
+	
 	selected_host = None
 	switch = False
 
@@ -565,7 +548,7 @@ class MainGUI:
 			self.filter_text = filter_entry.get()
 			
 			filter_entry.delete(0, tk.END)
-			self.scan_filter = True;
+			self.scan_filter = True
 			self.log(f"Filtering for: {self.filter_text}")
 			self.run_scan_once()
 			
