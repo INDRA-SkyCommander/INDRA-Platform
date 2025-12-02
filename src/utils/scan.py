@@ -20,6 +20,7 @@ def scan(interface="wlan0"):
 
 	cell_list = [[]]
 	global cell_info
+	cell_info = {}
 	
 	current_dir = os.path.dirname(__file__)
 	data_folder = os.path.join(current_dir, "..", "..", "data")

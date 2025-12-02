@@ -2,6 +2,7 @@
 import os
 import sys
 import json
+import time
 import threading
 import subprocess
 
@@ -69,19 +70,28 @@ class IndraGUI(tb.Window):
 		self._init_host_list(row=1, col=0)
 		self._init_info_video_terminal_panel(row=1, col=1)
 
-		self.log("Welcome to INDRA.\n> Systems initialized. Ready for action.")
+		# ==============
+		# Start Program
+		# ==============
 
+		self._log("Welcome to INDRA.\n> Systems initialized. Ready for action.")
+
+		# =====================
 		# Call autoscan thread
+		# =====================
+
+		self.auto_scan_thread = threading.Thread(target=self._auto_scan_loop, daemon=True)
+		self.auto_scan_thread.start()
 
 	def _setup_styles(self):
 		"""
-		Defines all fonts in one place.
+		Defines all fonts and styles in one place.
 		"""
 
 		self.styles = tb.Style()
 
 		self.label_font = font.Font(family="Consolas", size=10)
-		self.monospace_font = font.Font(family="Consolas", size=12)
+		self.monospace_font = font.Font(family="Consolas", size=10)
 		self.exploit_font = font.Font(family="Consolas", size=24, weight="bold")
 
 		self.style.configure("Large.Danger.TButton",
@@ -201,7 +211,7 @@ class IndraGUI(tb.Window):
 
 		self.scan_toggled = not self.scan_toggled
 
-		self.log(f"Toggle scan state: {self.scan_toggled}")
+		self._log(f"Toggle scan state: {self.scan_toggled}")
 
 		if self.scan_toggled:
 			self.toggle_btn.config(text="Stop Scanning")
@@ -210,6 +220,17 @@ class IndraGUI(tb.Window):
 			self.toggle_btn.config(text="Start Scanning")
 			self.toggle_btn.config(bootstyle="success-outline")
 	
+	def _auto_scan_loop(self):
+		"""
+		Continuously runs scans in a loop with a cooldown period.
+		Runs recursively in a separate thread.
+		"""
+
+		while True:
+			if self.scan_toggled and not self.is_scanning:
+				self._handle_single_scan()
+			time.sleep(self.auto_scan_cooldown)
+
 	def _handle_single_scan(self):
 		"""
 		Handles a single scan event.
@@ -219,11 +240,11 @@ class IndraGUI(tb.Window):
 
 		interface = self._get_interface()
 		if interface is None:
-			self.log("Please select network interface first.")
+			self._log("Please select network interface first.")
 			return -1
 
 		if self.is_scanning:
-			self.log("Only one scan can be run at a time.")
+			self._log("Only one scan can be run at a time.")
 			return -1
 		
 		self.is_scanning = True
@@ -233,13 +254,13 @@ class IndraGUI(tb.Window):
 		sudo_exec(f"iwconfig {interface} mode managed")
 		sudo_exec(f"ifconfig {interface} up")
 
-		self.log("Beep boop. Scanning...")
+		self._log("Beep boop. Scanning...")
 
 		def _scan_and_exit():
 			try:
 				self.all_targets = scan(interface)
 			except Exception as e:
-				self.log(f"Error! aborting scan: {e}")
+				self._log(f"Error! aborting scan: {e}")
 				return
 
 		t = threading.Thread(target=_scan_and_exit)
@@ -250,11 +271,11 @@ class IndraGUI(tb.Window):
 		self.is_scanning = False
 
 		if len(self.all_targets) < 1:
-			self.log("Error! Aborting scan.")
+			self._log("Error! Aborting scan.")
 			return
 		else:
 			self._get_scan_results()
-			self.log("Scan successfully completed!")
+			self._log("Scan successfully completed!")
 
 		return
 	
@@ -269,7 +290,7 @@ class IndraGUI(tb.Window):
 				for line in f:
 					self.host_listbox.insert(END, line)
 		except FileNotFoundError:
-			self.log(f"Scan results not found at {file_path}.")
+			self._log(f"Scan results not found at {file_path}.")
 		
 		self._handle_filter_change()
 
@@ -317,7 +338,7 @@ class IndraGUI(tb.Window):
 		try:
 			target = self.host_listbox.get(tk.ACTIVE)
 		except Exception:
-			self.log("Error retrieving selected target.")
+			self._log("Error retrieving selected target.")
 			return None
 		
 		return target
@@ -360,27 +381,27 @@ class IndraGUI(tb.Window):
 		"""
 
 		if self.is_scanning:
-			self.log("Please stop scanning before running an exploit.")
+			self._log("Please stop scanning before running an exploit.")
 			return -1
 
 		target_name = self._get_target()
 		if target_name is None:
-			self.log("Please select target first.")
+			self._log("Please select target first.")
 			return -1
 		
 		exploit = self._get_module()
 		if exploit is None:
-			self.log("Please select exploit module first.")
+			self._log("Please select exploit module first.")
 			return -1
 
 		interface = self._get_interface()
 		if interface is None:
-			self.log("Please select network interface first.")
+			self._log("Please select network interface first.")
 			return -1
 		
 		target_info = self._get_target_info(target_name)
 		if target_info is None:
-			self.log("Error retrieving target info.")
+			self._log("Error retrieving target info.")
 			return -1
 
 		target_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "target_data.json")
@@ -415,7 +436,7 @@ class IndraGUI(tb.Window):
 			with open(target_data_path, "w") as f:
 				json.dump(target_data, f, indent=4)
 		except Exception as e:
-			self.log(f"Error writing to JSON file: {e}")
+			self._log(f"Error writing to JSON file: {e}")
 			return -1
 
 		exploit_path = os.path.join(os.path.dirname(__file__), "..", "..", "modules", f"{exploit}", f"{exploit}.py")
@@ -423,14 +444,14 @@ class IndraGUI(tb.Window):
 		env = os.environ.copy()
 		env["PYTHONPATH"] = f"{src_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
 
-		self.log(f"Launching exploit: {exploit} on target: {target_name}")
+		self._log(f"Launching exploit: {exploit} on target: {target_name}")
 		self.exploit_btn.config(text="RUNNING", state=tk.DISABLED, bootstyle="success")
 
 		try: 
 			module_return_code = subprocess.call([sys.executable, exploit_path], env=env)
-			self.log(f"Module {exploit} finished with return code: {module_return_code}")
+			self._log(f"Module {exploit} finished with return code: {module_return_code}")
 		except Exception as e:
-			self.log(f"Error executing module {exploit}: {e}")
+			self._log(f"Error executing module {exploit}: {e}")
 			return -1
 		finally:
 			sudo_exec(f"ifconfig {interface} down")
@@ -448,16 +469,16 @@ class IndraGUI(tb.Window):
 
 		match self.selected_option.get():
 			case "Restart Network Adapter":
-				self.log("Restarting Network Adapter...")
+				self._log("Restarting Network Adapter...")
 				sudo_exec("service NetworkManager restart")
 			case "Stop Monitor Mode":
 				if self.selected_interface.get() == "interfaces":
-					self.log("Please select a network interface first.")
+					self._log("Please select a network interface first.")
 				else:
-					self.log("Stopping Monitor Mode...")
+					self._log("Stopping Monitor Mode...")
 					sudo_exec(f"airmon-ng stop {self.selected_interface.get()}")
 			case _:
-				self.log("No option selected or unrecognized option.")
+				self._log("No option selected or unrecognized option.")
 
 	def _handle_option_change(self, event=None):
 		"""
@@ -554,11 +575,11 @@ class IndraGUI(tb.Window):
 			self.selected_target.set("No target selected")
 			return
 		
-		self.log(f"Selected target: {self.selected_target.get()}")
+		self._log(f"Selected target: {self.selected_target.get()}")
 	
 	def _init_info_video_terminal_panel(self, row, col):
 		"""
-		Creates the right hand panel with target info, video feed and terminal log.
+		Creates the right hand panel with target info, video feed and terminal _log.
 		"""
 
 		# ==========
@@ -623,7 +644,7 @@ class IndraGUI(tb.Window):
 	# Functions for info, video, terminal
 	# ====================================
 
-	def log(self, message):
+	def _log(self, message):
 		"""
 		Logs a message to the terminal output window.
 		"""
