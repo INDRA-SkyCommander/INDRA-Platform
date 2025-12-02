@@ -55,13 +55,16 @@ class IndraGUI(tb.Window):
 
 		# Host list variables
 		self.packets = 30
-		interval = 1000
 		self.filter_text = tk.StringVar(value="")
 		self.selected_target = tk.StringVar(value="No target selected")
 
 		# Video variables
 		self.current_video_frame = None
 		self.video_queue = queue.Queue()
+
+		# Log variables
+		self.log_queue = queue.Queue()
+		self.is_logging = False
 
 		# Appearance
 		self._setup_styles()
@@ -77,16 +80,18 @@ class IndraGUI(tb.Window):
 		self._init_host_list(row=1, col=0)
 		self._init_info_video_terminal_panel(row=1, col=1)
 
-		# ==============
-		# Start Program
-		# ==============
+		# ======================
+		# Setup message logging
+		# ======================
 
-		self._log("Welcome to INDRA.\n> Systems initialized. Ready for action.")
+		self._process_log_queue()
+		self._log_slow("Initializing system log...")
 
 		# =====================
 		# Call autoscan thread
 		# =====================
 
+		self._log_slow("Initializing autoscan thread...")
 		self.auto_scan_thread = threading.Thread(target=self._auto_scan_loop, daemon=True)
 		self.auto_scan_thread.start()
 
@@ -94,11 +99,20 @@ class IndraGUI(tb.Window):
 		# Call video threads
 		# ===================
 
-		self.video_thread = threading.Thread(target=self._monitor_sniff_log, daemon=True)
-		self.video_thread.start()
+		self._log_slow("Intializing video compiling thread...")
+		self.monitor_thread = threading.Thread(target=self._monitor_sniff_log, daemon=True)
+		self.monitor_thread.start()
 
-		self.player_thread = threading.Thread(target=self._start_video_player, daemon=True)
-		self.player_thread.start()
+		self._log_slow("Intializing video player...")
+		self.video_playing = True
+		self._start_video_player()
+
+		# ==============
+		# Start Program
+		# ==============
+
+		self._log_slow("Welcome to INDRA.")
+		self._log_slow("Systems initialized. Ready for action!")
 
 	def _setup_styles(self):
 		"""
@@ -240,7 +254,7 @@ class IndraGUI(tb.Window):
 	def _auto_scan_loop(self):
 		"""
 		Continuously runs scans in a loop with a cooldown period.
-		Runs recursively in a separate thread.
+		Runs in a separate thread.
 		"""
 
 		while True:
@@ -252,8 +266,6 @@ class IndraGUI(tb.Window):
 		"""
 		Handles a single scan event.
 		"""
-
-		# Call reference to scan here
 
 		interface = self._get_interface()
 		if interface is None:
@@ -271,7 +283,7 @@ class IndraGUI(tb.Window):
 		sudo_exec(f"iwconfig {interface} mode managed")
 		sudo_exec(f"ifconfig {interface} up")
 
-		self._log("Beep boop. Scanning...")
+		self._log_slow("Beep boop. Scanning...")
 
 		def _scan_and_exit():
 			try:
@@ -288,11 +300,11 @@ class IndraGUI(tb.Window):
 		self.is_scanning = False
 
 		if len(self.all_targets) < 1:
-			self._log("Error! Aborting scan.")
+			self._log("Error! Could not find any targets.")
 			return
 		else:
 			self._get_scan_results()
-			self._log("Scan successfully completed!")
+			self._log_slow("Scan successfully completed!")
 
 		return
 	
@@ -329,6 +341,8 @@ class IndraGUI(tb.Window):
 		selected = self.interface_dropdown.get()
 		self.selected_interface.set(selected)
 
+		return
+
 	def _get_exploit_modules(self):
 		"""
 		Returns a list of available exploit modules.
@@ -344,6 +358,8 @@ class IndraGUI(tb.Window):
 		
 		selected = self.exploit_dropdown.get()
 		self.selected_module.set(selected)
+
+		return
 	
 	def _get_target(self):
 		"""
@@ -421,7 +437,7 @@ class IndraGUI(tb.Window):
 			self._log("Error retrieving target info.")
 			return -1
 
-		target_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "target_data.json")
+		target_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "module_input_data.json")
 
 		self.target_info_label.configure(text=	f"Target: {target_name}\n"\
 								   				f"MAC: {target_info[1]}\n"\
@@ -445,7 +461,7 @@ class IndraGUI(tb.Window):
 				
 			"options": {
 				"packets": self.packets,
-				"interface": interface.strip() if interface else "",
+				"interface": interface.strip(),
 				}
 			}
 		
@@ -461,12 +477,12 @@ class IndraGUI(tb.Window):
 		env = os.environ.copy()
 		env["PYTHONPATH"] = f"{src_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
 
-		self._log(f"Launching exploit: {exploit} on target: {target_name}")
+		self._log_slow(f"Launching exploit: {exploit} on target: {target_name}")
 		self.exploit_btn.config(text="RUNNING", state=tk.DISABLED, bootstyle="success")
 
 		try: 
 			module_return_code = subprocess.call([sys.executable, exploit_path], env=env)
-			self._log(f"Module {exploit} finished with return code: {module_return_code}")
+			self._log_slow(f"Module {exploit} finished with return code: {module_return_code}")
 		except Exception as e:
 			self._log(f"Error executing module {exploit}: {e}")
 			return -1
@@ -486,16 +502,18 @@ class IndraGUI(tb.Window):
 
 		match self.selected_option.get():
 			case "Restart Network Adapter":
-				self._log("Restarting Network Adapter...")
+				self._log_slow("Restarting Network Adapter...")
 				sudo_exec("service NetworkManager restart")
 			case "Stop Monitor Mode":
 				if self.selected_interface.get() == "interfaces":
 					self._log("Please select a network interface first.")
 				else:
-					self._log("Stopping Monitor Mode...")
+					self._log_slow("Stopping Monitor Mode...")
 					sudo_exec(f"airmon-ng stop {self.selected_interface.get()}")
 			case _:
 				self._log("No option selected or unrecognized option.")
+		
+		return
 
 	def _handle_option_change(self, event=None):
 		"""
@@ -505,6 +523,8 @@ class IndraGUI(tb.Window):
 		selected = self.options_dropdown.get()
 		self.selected_option.set(selected)
 
+		return
+	
 	def _init_host_list(self, row, col):
 		"""
 		Creates the host list, filter bar, and binds its events.
@@ -575,6 +595,8 @@ class IndraGUI(tb.Window):
 			for host in self.all_targets:
 				if query in host:
 					self.host_listbox.insert(END, host)
+		
+		return
 
 	def _handle_host_selection(self, event=None):
 		"""
@@ -593,6 +615,8 @@ class IndraGUI(tb.Window):
 			return
 		
 		self._log(f"Selected target: {self.selected_target.get()}")
+
+		return
 	
 	def _init_info_video_terminal_panel(self, row, col):
 		"""
@@ -662,108 +686,185 @@ class IndraGUI(tb.Window):
 		terminal_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 		self.text_terminal.config(yscrollcommand=terminal_scrollbar.set)
 
-	# ====================================
-	# Functions for info, video, terminal
-	# ====================================
+	# ====================
+	# Functions for video
+	# ====================
 
 	def _monitor_sniff_log(self):
 		"""
 		Monitors a log file for video data being written to it.
+		Runs in a separate thread.
 		"""
+
 		sniff_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "sniff_output.log")
 		
+		# Make sure file exists, create it if it does not
 		if not os.path.exists(sniff_path):
-			time.sleep(1)
+			try:
+				os.makedirs(os.path.dirname(sniff_path), exist_ok=True)
+				open(sniff_path, 'a').close()
+			except Exception as e:
+				self._log(f"Error creating sniff output log: {e}")
+				return
+			
+		try:	
+			with open(sniff_path, 'r') as f:
+				f.seek(0, 2) # Go to EoF
+
+				while True:
+					line = f.readline()
+
+					# Handling unable to read line
+					if not line:
+						time.sleep(0.01)
+						continue
+
+					# Valid line, pass to processing
+					if line.strip():
+						self._process_packet(line.strip())
+
+		except Exception as e:
+			self._log(f"Error monitoring log: {e}")
 		
-		# Open file, prevet crashes by ignoring errors
-		with open(sniff_path, 'r', encoding='utf-8', errors='ignore') as f:
-			f.seek(0, 2) # Go to EoF
+		return
 
-			while True:
-				# Check for cleared file contents
-				current_pos = f.tell()
-
-				try:
-					if os.stat(sniff_path).st_size < current_pos:
-						f.seek(0, 0) # Reset to start
-
-				# Check for file deleted mid-read
-				except FileNotFoundError:
-					time.sleep(1)
-					continue
-
-				line = f.readline()
-
-				# Handling unable to read line
-				if not line:
-					time.sleep(0.05)
-					continue
-
-				# Handling partial line writes
-				if not line.endswith('\n'):
-					f.seek(current_pos)
-					time.sleep(0.05)
-					continue
-				
-				# Valid line, pass to processes
-				if line.strip():
-					self._process_packet(line.strip())
-	
 	def _process_packet(self, data_packet):
 		"""
-		Parses data packet to determine if it is a base64 image or text
-		Generates image frames from base64
+		Parses data packet from sniffer
 		"""
-
-		image_frame = None
 
 		try:
 			# Sanitizing base64 data
 			if ":" in data_packet:
-				clean_packet = data_packet.split(":")[-1].strip()
+				src_ip, clean_packet = data_packet.rsplit(":", 1)
+				clean_packet = clean_packet.strip()
 			else:
 				clean_packet = data_packet.strip()
 
+			if not clean_packet:
+				return
+			
 			# Processing image
 			image_bytes = base64.b64decode(clean_packet)
-			img = Image.open(io.BytesIO(image_bytes))
+			
+			with io.BytesIO(image_bytes) as img_stream:
+				img = Image.open(img_stream)
 
-			# Resize image
-			img = img.resize((640, 360), Image.Resampling.NEAREST)
-			image_frame = ImageTk.PhotoImage(img)
+				# Resize image
+				img = img.resize((640, 360), Image.Resampling.NEAREST)
+				#image_frame = ImageTk.PhotoImage(img)
+
+				# Send to video queue
+				self.video_queue.put(img)
+
 		except Exception:
-			# Not a valid image
+			# Ignore malformed images
 			pass
 
-		if image_frame == None:
-			self._log("Error parsing image!")
-			return
-		
-		# Send to video queue
-		self.video_queue.put(image_frame)
+		return
 
 	def _start_video_player(self):
 		"""
-		Polls the video queue and updates the GUI.
+		Polls the video queue, converts images to ImageTk and updates the GUI.
 		"""
 
 		try:
-			while True:
+			while not self.video_queue.empty():
+
 				# Get frame from queue without blocking
 				frame = self.video_queue.get_nowait()
+				tk_frame = ImageTk.PhotoImage(frame)
 
 				# Update GUI
-				self.video_label.configure(image=frame, text="")
-				self.current_video_frame = frame # Prevent garbage collection
-		except queue.Empty:
-			self.after(30, self._start_video_player)
+				self.video_label.configure(image=tk_frame, text="")
+				self.current_video_frame = tk_frame # Prevent garbage collection
 
+		except queue.Empty:
+			pass
+		finally:
+			if self.video_playing:
+				self.after(15, self._start_video_player)
+		
+		return
+
+	# =============================
+	# Functions for system logging
+	# =============================
+	
 	def _log(self, message):
 		"""
-		Logs a message to the terminal output window.
+		Adds an instant message to the queue.
 		"""
 
+		self.log_queue.put(("fast", message))
+	
+		return
+	
+	def _log_slow(self, message, delay=45):
+		"""
+		Logs a message to the terminal output window with a typewriter effect
+		"""
+
+		self.log_queue.put(("slow", message, delay))
+
+		return
+
+	def _process_log_queue(self):
+		"""
+		Processes messages one by one.
+		Waits for previous message to finish before checking for new ones.
+		"""
+
+		if self.is_logging:
+			self.after(20, self._process_log_queue)
+			return
+		
+		try:
+			item = self.log_queue.get_nowait()
+			mode = item[0]
+			message = item[1]
+
+			if mode == "fast":
+				self.text_terminal.config(state=tk.NORMAL)
+				self.text_terminal.insert(tk.END, f"> {message}\n")
+				self.text_terminal.see(tk.END)
+				self.text_terminal.config(state=tk.DISABLED)
+
+				#Process next messsage immediately
+				self.after(10, self._process_log_queue)
+
+			elif mode == "slow":
+				delay = item[2]
+				self.is_logging = True # Block queue
+
+				self._type_message_loop(message, delay, 0)
+
+		except queue.Empty:
+
+			# Check frequently
+			self.after(100, self._process_log_queue)
+
+	def _type_message_loop(self, message, delay, index):
+		"""
+		Helper function to type characters one by one.
+		"""
 		self.text_terminal.config(state=tk.NORMAL)
-		self.text_terminal.insert(tk.END, f"> {message}\n")
-		self.text_terminal.see(tk.END)
-		self.text_terminal.config(state=tk.DISABLED)
+		
+		# Insert prompt prefix
+		if index == 0:
+			self.text_terminal.insert(tk.END, "> ")
+			self.text_terminal.see(tk.END)
+
+		if index < len(message):
+			self.text_terminal.insert(tk.END, message[index])
+			self.text_terminal.see(tk.END)
+			self.text_terminal.config(state=tk.DISABLED)
+
+			# Schedule next char
+			self.after(delay, self._type_message_loop, message, delay, index + 1)
+		else:
+			# Done typing
+			self.text_terminal.insert(tk.END, "\n")
+			self.text_terminal.config(state=tk.DISABLED)
+			self.is_logging = False
+			self._process_log_queue()
