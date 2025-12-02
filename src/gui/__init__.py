@@ -1,5 +1,5 @@
 """
 INDRA GUI package
 """
-from .GUI import MainGUI
+from ...WIP_old_code.GUI import MainGUI
 from .IndraGUI import IndraGUI
