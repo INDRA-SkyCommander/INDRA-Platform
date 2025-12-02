@@ -80,11 +80,19 @@ class IndraGUI(tb.Window):
 
 		self.styles = tb.Style()
 
-		self.header_font = font.Font(family="Consolas", size=16, weight="bold")
-		self.button_font = font.Font(family="Consolas", size=10, weight="bold")
 		self.label_font = font.Font(family="Consolas", size=10)
-		self.monospace_font = font.Font(family="Consolas", size=10)
-		self.exploit_font = font.Font(family="Consolas", size=20, weight="bold")
+		self.monospace_font = font.Font(family="Consolas", size=12)
+		self.exploit_font = font.Font(family="Consolas", size=24, weight="bold")
+
+		self.style.configure("Large.Danger.TButton",
+					   background="#c00000",
+					   foreground="#ffffff",
+					   focuscolor="#c00000",
+					   font=self.exploit_font,
+					   borderwidth=0,
+					   padding=(30, 10, 30, 10)
+					   )
+		self.style.map("Large.Danger.TButton", background=[("active", "#a30000")])
 
 	def _init_top_bar(self, row, col):
 		"""
@@ -98,7 +106,7 @@ class IndraGUI(tb.Window):
 		top_bar_frame = tb.Frame(self, style="TFrame")
 		top_bar_frame.grid(row=row, column=col, columnspan=2, sticky="nsew", padx=10, pady=(20, 10))
 
-		for i in range(9): top_bar_frame.grid_columnconfigure(i, weight=0 if i in [2, 6] else 1)
+		for i in range(9): top_bar_frame.grid_columnconfigure(i, weight=1)
 
 		# ======================
 		# Buttons and Dropdowns
@@ -137,13 +145,6 @@ class IndraGUI(tb.Window):
 									bootstyle="danger"
 									)
 		self.exploit_dropdown.bind("<<ComboboxSelected>>", self._handle_module_change)
-
-		# Exploit Button
-		self.exploit_btn = tb.Button(top_bar_frame,
-								text="EXPLOIT",
-								bootstyle="danger",
-								command=self._handle_run_exploit
-								)
 		
 		# Misc Options button
 		self.options_btn = tb.Button(top_bar_frame,
@@ -162,6 +163,12 @@ class IndraGUI(tb.Window):
 										)
 		self.options_dropdown.bind("<<ComboboxSelected>>", self._handle_option_change)
 
+		# Exploit Button
+		self.exploit_btn = tb.Button(top_bar_frame,
+								text="EXPLOIT",
+								style="Large.Danger.TButton",
+								command=self._handle_run_exploit
+								)
 		# ================
 		# Placing widgets
 		# ================
@@ -173,12 +180,13 @@ class IndraGUI(tb.Window):
 
 		self.interface_dropdown.grid(row=0, column=3, padx=5, pady=5)
 		self.exploit_dropdown.grid(row=0, column=4, padx=5, pady=5)
-		self.exploit_btn.grid(row=0, column=5, padx=10, pady=5, stick="ew")
+		
+		self.options_dropdown.grid(row=0, column=5, padx=2, pady=5)
+		self.options_btn.grid(row=0, column=6, padx=2, pady=5)
 
-		# Col 6 is spacer
+		# Col 7 is spacer
 
-		self.options_dropdown.grid(row=0, column=7, padx=2, pady=5)
-		self.options_btn.grid(row=0, column=8, padx=2, pady=5)
+		self.exploit_btn.grid(row=0, column=8, padx=10, pady=5, sticky="nsw")
 
 	# ======================
 	# Functions for top bar
