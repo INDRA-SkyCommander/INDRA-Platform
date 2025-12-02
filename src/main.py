@@ -1,5 +1,5 @@
 import tkinter as tk
-from gui import MainGUI
+# from gui import MainGUI
 from gui import IndraGUI
 
 # Primary entry point for the application

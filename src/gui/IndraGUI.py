@@ -135,6 +135,17 @@ class IndraGUI(tb.Window):
 					   )
 		self.style.map("Large.Danger.TButton", background=[("active", "#a30000")])
 
+		self.style.configure("Large.Success.TButton",
+					   background="#00c000",
+					   foreground="#ffffff",
+					   focuscolor="#00c000",
+					   font=self.exploit_font,
+					   borderwidth=0,
+					   padding=(30, 10, 30, 10)
+					   )
+		self.style.map("Large.Success.TButton", background=[("active", "#00a300")])
+		
+
 	def _init_top_bar(self, row, col):
 		"""
 		Creates the top control bar and binds its events.
@@ -294,7 +305,6 @@ class IndraGUI(tb.Window):
 
 		t = threading.Thread(target=_scan_and_exit)
 		t.start()
-		t.join()
 
 		self.scan_btn.configure(text="Run Scan", bootstyle="success-outline", state=NORMAL)
 		self.is_scanning = False
@@ -478,22 +488,28 @@ class IndraGUI(tb.Window):
 		env["PYTHONPATH"] = f"{src_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
 
 		self._log_slow(f"Launching exploit: {exploit} on target: {target_name}")
-		self.exploit_btn.config(text="RUNNING", state=tk.DISABLED, bootstyle="success")
+		self.exploit_btn.config(text="RUNNING", state=tk.DISABLED, style="Large.Success.TButton")
 
-		try: 
-			module_return_code = subprocess.call([sys.executable, exploit_path], env=env)
-			self._log_slow(f"Module {exploit} finished with return code: {module_return_code}")
-		except Exception as e:
-			self._log(f"Error executing module {exploit}: {e}")
-			return -1
-		finally:
-			sudo_exec(f"ifconfig {interface} down")
-			sudo_exec(f"iwconfig {interface} mode managed")
-			sudo_exec(f"ifconfig {interface} up")
+		def _run_exploit_thread():
+			"""
+			Runs the exploit in a background thread so the GUI can continue functioning.
+			"""
 
-			self.exploit_btn.config(text="EXPLOIT", state=tk.NORMAL, bootstyle="danger")
+			try: 
+				module_return_code = subprocess.call([sys.executable, exploit_path], env=env)
+				self._log_slow(f"Module {exploit} finished with return code: {module_return_code}")
+			except Exception as e:
+				self._log(f"Error executing module {exploit}: {e}")
+				return -1
+			finally:
+				sudo_exec(f"ifconfig {interface} down")
+				sudo_exec(f"iwconfig {interface} mode managed")
+				sudo_exec(f"ifconfig {interface} up")
 
-			return module_return_code
+			self.after(0, lambda: self.exploit_btn.config(text="EXPLOIT", state=tk.NORMAL, style="Large.Danger.TButton"))
+
+		self.exploit_thread = threading.Thread(target=_run_exploit_thread, daemon=True)
+		self.exploit_thread.start()
 
 	def _handle_option_execute(self):
 		"""
