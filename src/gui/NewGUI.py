@@ -1,8 +1,11 @@
 # Standard Libraries
 import os
+import io
 import sys
 import json
 import time
+import queue
+import base64
 import threading
 import subprocess
 
@@ -56,6 +59,10 @@ class IndraGUI(tb.Window):
 		self.filter_text = tk.StringVar(value="")
 		self.selected_target = tk.StringVar(value="No target selected")
 
+		# Video variables
+		self.current_video_frame = None
+		self.video_queue = queue.Queue()
+
 		# Appearance
 		self._setup_styles()
 
@@ -82,6 +89,16 @@ class IndraGUI(tb.Window):
 
 		self.auto_scan_thread = threading.Thread(target=self._auto_scan_loop, daemon=True)
 		self.auto_scan_thread.start()
+
+		# ===================
+		# Call video threads
+		# ===================
+
+		self.video_thread = threading.Thread(target=self._monitor_sniff_log, daemon=True)
+		self.video_thread.start()
+
+		self.player_thread = threading.Thread(target=self._start_video_player, daemon=True)
+		self.player_thread.start()
 
 	def _setup_styles(self):
 		"""
@@ -610,17 +627,22 @@ class IndraGUI(tb.Window):
 		# Video Player Frame
 		video_frame  = tb.Labelframe(right_panel_frame, text="Live Video Feed", padding=2, bootstyle="info")
 		video_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=10)
+
+		# Video Window
 		self.video_label = tb.Label(video_frame,
-							   text="[ Video Feed Unavailable ]", 
+							   text="[ Video Feed Unavailable ]",
+							   image=None,
 							   font=self.label_font,
 							   foreground= "#aaaaaa",
-							   anchor="center"
+							   anchor="center",
+							   bootstyle="secondary-inverse"
 							   )
-		self.video_label.pack(fill=tk.BOTH, expand=True)
+		self.video_label.pack(fill=BOTH, expand=True)
 
 		# Terminal Output Frame
-		terminal_frame = tb.Labelframe(right_panel_frame, text="Terminal Output", padding=5, bootstyle="success")
+		terminal_frame = tb.Labelframe(right_panel_frame, text="System Log", padding=5, bootstyle="success", height=200)
 		terminal_frame.grid(row=2, column=0, sticky="nsew", pady=10)
+		terminal_frame.grid_propagate(False)
 
 		# Terminal Window
 		self.text_terminal = tk.Text(terminal_frame,
@@ -644,6 +666,98 @@ class IndraGUI(tb.Window):
 	# Functions for info, video, terminal
 	# ====================================
 
+	def _monitor_sniff_log(self):
+		"""
+		Monitors a log file for video data being written to it.
+		"""
+		sniff_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "sniff_output.log")
+		
+		if not os.path.exists(sniff_path):
+			time.sleep(1)
+		
+		# Open file, prevet crashes by ignoring errors
+		with open(sniff_path, 'r', encoding='utf-8', errors='ignore') as f:
+			f.seek(0, 2) # Go to EoF
+
+			while True:
+				# Check for cleared file contents
+				current_pos = f.tell()
+
+				try:
+					if os.stat(sniff_path).st_size < current_pos:
+						f.seek(0, 0) # Reset to start
+
+				# Check for file deleted mid-read
+				except FileNotFoundError:
+					time.sleep(1)
+					continue
+
+				line = f.readline()
+
+				# Handling unable to read line
+				if not line:
+					time.sleep(0.05)
+					continue
+
+				# Handling partial line writes
+				if not line.endswith('\n'):
+					f.seek(current_pos)
+					time.sleep(0.05)
+					continue
+				
+				# Valid line, pass to processes
+				if line.strip():
+					self._process_packet(line.strip())
+	
+	def _process_packet(self, data_packet):
+		"""
+		Parses data packet to determine if it is a base64 image or text
+		Generates image frames from base64
+		"""
+
+		image_frame = None
+
+		try:
+			# Sanitizing base64 data
+			if ":" in data_packet:
+				clean_packet = data_packet.split(":")[-1].strip()
+			else:
+				clean_packet = data_packet.strip()
+
+			# Processing image
+			image_bytes = base64.b64decode(clean_packet)
+			img = Image.open(io.BytesIO(image_bytes))
+
+			# Resize image
+			img = img.resize((640, 360), Image.Resampling.NEAREST)
+			image_frame = ImageTk.PhotoImage(img)
+		except Exception:
+			# Not a valid image
+			pass
+
+		if image_frame == None:
+			self._log("Error parsing image!")
+			return
+		
+		# Send to video queue
+		self.video_queue.put(image_frame)
+
+	def _start_video_player(self):
+		"""
+		Polls the video queue and updates the GUI.
+		"""
+
+		try:
+			while True:
+				# Get frame from queue without blocking
+				frame = self.video_queue.get_nowait()
+
+				# Update GUI
+				self.video_label.configure(image=frame, text="")
+				self.current_video_frame = frame # Prevent garbage collection
+		except queue.Empty:
+			self.after(30, self._start_video_player)
+
 	def _log(self, message):
 		"""
 		Logs a message to the terminal output window.
@@ -653,15 +767,3 @@ class IndraGUI(tb.Window):
 		self.text_terminal.insert(tk.END, f"> {message}\n")
 		self.text_terminal.see(tk.END)
 		self.text_terminal.config(state=tk.DISABLED)
-
-	def video_play(self):
-		"""
-		Handles video playback in the video feed area.
-		"""
-
-		if not self.video_playing:
-			return
-
-		# Video playback logic here
-
-		return
