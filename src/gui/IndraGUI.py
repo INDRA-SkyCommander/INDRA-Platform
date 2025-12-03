@@ -379,7 +379,8 @@ class IndraGUI(tb.Window):
 		target = None
 
 		try:
-			target = self.host_listbox.get(tk.ACTIVE)
+			target = self.selected_target.get()
+			#target = self.host_listbox.get(tk.ACTIVE)
 		except Exception:
 			self._log("Error retrieving selected target.")
 			return None
@@ -447,8 +448,6 @@ class IndraGUI(tb.Window):
 			self._log("Error retrieving target info.")
 			return -1
 
-		target_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "module_input_data.json")
-
 		self.target_info_label.configure(text=	f"Target: {target_name}\n"\
 								   				f"MAC: {target_info[1]}\n"\
 												f"Quality: {target_info[2]}\n"\
@@ -458,6 +457,8 @@ class IndraGUI(tb.Window):
 												)
 		self.target_info_label.update()
 
+		target_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "module_input_data.json")
+		
 		target_data = {
 			"target_name": target_name.strip(),
 			"target_info": {
@@ -620,17 +621,33 @@ class IndraGUI(tb.Window):
 		"""
 
 		try:
-			selection = self.host_listbox.get(self.host_listbox.curselection())
-			if not selection:
+			selected = self.host_listbox.get(ACTIVE)
+			if not selected:
 				self.selected_target.set("No target selected")
 				return
-			selected = self.host_listbox.get(selection[0])
 			self.selected_target.set(selected)
 		except Exception:
 			self.selected_target.set("No target selected")
 			return
-		
-		self._log(f"Selected target: {self.selected_target.get()}")
+
+		target_name = self.selected_target.get()
+
+		target_info = self._get_target_info(target_name)
+		if target_info is None:
+			self._log("Error retrieving target info.")
+			self.target_info_label.configure(text= "Target: No target selected")
+			self.target_info_label.update()
+			return -1
+
+		self._log(f"Target selected: {target_name}")
+		self.target_info_label.configure(text=	f"Target: {target_name}\n"\
+								   				f"MAC: {target_info[1]}\n"\
+												f"Quality: {target_info[2]}\n"\
+												f"Channel: {target_info[3]}\n"\
+												f"Signal Level: {target_info[4]}\n"\
+												f"Encryption: {target_info[5]}\n"
+												)
+		self.target_info_label.update()
 
 		return
 	

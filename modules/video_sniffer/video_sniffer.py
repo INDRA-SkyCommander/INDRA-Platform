@@ -1,10 +1,7 @@
 import os
-import sys
 import json
 import base64
-import argparse
 from scapy.all import sniff, Raw
-from src.utils import sudo_exec
 
 ##################
 ### PREP MODULE ##
