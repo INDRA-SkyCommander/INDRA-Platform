@@ -36,7 +36,6 @@ class RFJammer:
         conf.verb = 0 # Silent mode
 
         self.running = False
-        self.dwell = 1
 
     def generate_noise(self):
         """
@@ -53,7 +52,7 @@ class RFJammer:
     
         return packet
 
-    def channel_hopper(self, dwell):
+    def channel_hopper(self):
         """
         Cycles through hardware channels.
         Runs in a dedicated thread.
@@ -70,7 +69,7 @@ class RFJammer:
                 sudo_exec(f"iwconfig {self.interface} channel {channel}")
 
                 # Staying on channel for specific period before switching
-                time.sleep(dwell)
+                # time.sleep(self.dwell)
     
     def packet_emitter(self):
         """
@@ -83,6 +82,7 @@ class RFJammer:
         
         try:
             sendp(pkt, iface=self.interface, count=1, verbose=False)
+            print("Sent packet!")
         except OSError:
             # Interface undergoing change
             pass

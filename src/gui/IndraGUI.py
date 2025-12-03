@@ -13,10 +13,12 @@ import subprocess
 import tkinter as tk
 from tkinter import font
 import ttkbootstrap as tb
-from ttkbootstrap.constants import *
+from ttkbootstrap.constants import * # pyright: ignore[reportWildcardImportFromLibrary]
 
 # Video
+import av
 from PIL import Image, ImageTk
+
 
 # Custom Modules
 from utils import sudo_exec, module_setup, scan
@@ -61,6 +63,7 @@ class IndraGUI(tb.Window):
 		# Video variables
 		self.current_video_frame = None
 		self.video_queue = queue.Queue()
+		self.codec = av.CodecContext.create('h264', 'r')
 
 		# Log variables
 		self.log_queue = queue.Queue()
@@ -740,7 +743,7 @@ class IndraGUI(tb.Window):
 				return
 			
 		try:	
-			with open(sniff_path, 'r') as f:
+			with open(sniff_path, 'r', encoding='utf-8', errors='ignore') as f:
 				f.seek(0, 2) # Go to EoF
 
 				while True:
@@ -762,33 +765,40 @@ class IndraGUI(tb.Window):
 
 	def _process_packet(self, data_packet):
 		"""
-		Parses data packet from sniffer
+		Handles H.264 Video Stream from the sniffer using av
 		"""
 
 		try:
 			# Sanitizing base64 data
 			if ":" in data_packet:
-				src_ip, clean_packet = data_packet.rsplit(":", 1)
-				clean_packet = clean_packet.strip()
+				clean_packet = data_packet.rsplit(":", 1)[-1].strip()
 			else:
 				clean_packet = data_packet.strip()
 
 			if not clean_packet:
 				return
 			
-			# Processing image
-			image_bytes = base64.b64decode(clean_packet)
+			# Processing video bytes
+			video_bytes = base64.b64decode(clean_packet)
 			
-			with io.BytesIO(image_bytes) as img_stream:
-				img = Image.open(img_stream)
+			try:
+				packets = self.codec.parse(video_bytes)
+				for packet in packets:
 
-				# Resize image
-				img = img.resize((640, 360), Image.Resampling.NEAREST)
-				#image_frame = ImageTk.PhotoImage(img)
+					# Decoding packets into frames
+					frames = self.codec.decode(packet)
+					for frame in frames:
+						img = frame.to_image()
 
-				# Send to video queue
-				self.video_queue.put(img)
+						# Resizing to fit GUI
+						img = img.resize((640, 360), Image.Resampling.NEAREST)
 
+						# Send to video queue
+						self.video_queue.put(img)
+
+			except Exception:
+				# Ignore malformed images
+				pass
 		except Exception:
 			# Ignore malformed images
 			pass
@@ -798,6 +808,7 @@ class IndraGUI(tb.Window):
 	def _start_video_player(self):
 		"""
 		Polls the video queue, converts images to ImageTk and updates the GUI.
+		Runs recursively on main thread.
 		"""
 
 		try:

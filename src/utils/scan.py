@@ -62,12 +62,9 @@ def scan(interface="wlan0"):
 			target_address = get_address(cell)
 			target_name = f"{strname} - {target_address}"
 
-			print(f"Adding {target_name} to dictionary")
+			print(f"Adding {target_name} to host list")
 
 			cell_info[target_name] = [get_name(cell), get_address(cell), get_quality(cell), get_channel(cell), get_signal_level(cell), get_encryption(cell)]
-
-			for item in cell_info[target_name]:
-				print(item)
 				
 			f.write(target_name + "\n")
 			
