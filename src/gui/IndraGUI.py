@@ -621,11 +621,12 @@ class IndraGUI(tb.Window):
 		"""
 
 		try:
-			selected = self.host_listbox.get(ACTIVE)
-			if not selected:
+			selection = self.host_listbox.curselection()
+			if not selection:
 				self.selected_target.set("No target selected")
 				return
-			self.selected_target.set(selected)
+			index = selection[0]
+			self.selected_target.set(self.host_listbox.get(index))
 		except Exception:
 			self.selected_target.set("No target selected")
 			return
@@ -637,9 +638,8 @@ class IndraGUI(tb.Window):
 			self._log("Error retrieving target info.")
 			self.target_info_label.configure(text= "Target: No target selected")
 			self.target_info_label.update()
-			return -1
+			return
 
-		self._log(f"Target selected: {target_name}")
 		self.target_info_label.configure(text=	f"Target: {target_name}\n"\
 								   				f"MAC: {target_info[1]}\n"\
 												f"Quality: {target_info[2]}\n"\
