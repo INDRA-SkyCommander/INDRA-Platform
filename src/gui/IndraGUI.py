@@ -45,7 +45,7 @@ class IndraGUI(tb.Window):
 		# Scan variables
 		self.scan_toggled = False
 		self.is_scanning = False
-		self.auto_scan_cooldown = 12
+		self.auto_scan_cooldown = 10
 		
 		# Top bar variables
 		self.selected_interface = tk.StringVar(value="interfaces")
@@ -299,25 +299,25 @@ class IndraGUI(tb.Window):
 		def _scan_and_exit():
 			try:
 				self.all_targets = scan(interface)
+				self.is_scanning = False
+				self.after(0, lambda: self.scan_btn.configure(text="Run Scan", bootstyle="success-outline", state=NORMAL))
+
+				if self.all_targets is None:
+					self._log("Error! Could not find any targets.")
+			
+				else:
+					self.after(0, self._get_scan_results)
+					self._log_slow("Scan successfully completed!")
+
 			except Exception as e:
 				self._log(f"Error! aborting scan: {e}")
+				self.is_scanning = False
+				self.scan_btn.configure(text="Run Scan", bootstyle="success-outline", state=NORMAL)
 				return
 
 		t = threading.Thread(target=_scan_and_exit)
 		t.start()
 
-		self.scan_btn.configure(text="Run Scan", bootstyle="success-outline", state=NORMAL)
-		self.is_scanning = False
-
-		if len(self.all_targets) < 1:
-			self._log("Error! Could not find any targets.")
-			return
-		else:
-			self._get_scan_results()
-			self._log_slow("Scan successfully completed!")
-
-		return
-	
 	def _get_scan_results(self):
 		"""
 		Updates scan results to the GUI and backend.
