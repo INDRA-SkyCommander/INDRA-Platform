@@ -184,7 +184,7 @@ class IndraGUI(tb.Window):
 									 font=self.label_font,
 									 values=self._get_network_interfaces(),
 									 textvariable=self.selected_interface,
-									 bootstyle="info",
+									 bootstyle="warning",
 									 )
 		self.interface_dropdown.bind("<<ComboboxSelected>>", self._handle_interface_change)
 
@@ -227,17 +227,16 @@ class IndraGUI(tb.Window):
 
 		self.toggle_btn.grid(row=0, column=0, padx=5, pady=5)
 		self.scan_btn.grid(row=0, column=1, padx=5, pady=5)
+		self.interface_dropdown.grid(row=0, column=2, padx=5, pady=5)
 
-		# Col 2 is spacer
+		# Col 3 is spacer
 
-		self.interface_dropdown.grid(row=0, column=3, padx=5, pady=5)
-		self.exploit_dropdown.grid(row=0, column=4, padx=5, pady=5)
-		
-		self.options_dropdown.grid(row=0, column=5, padx=2, pady=5)
-		self.options_btn.grid(row=0, column=6, padx=2, pady=5)
+		self.options_dropdown.grid(row=0, column=4, padx=5, pady=5)
+		self.options_btn.grid(row=0, column=5, padx=5, pady=5)
 
-		# Col 7 is spacer
+		# Col 6 is spacer
 
+		self.exploit_dropdown.grid(row=0, column=7, padx=5, pady=5)
 		self.exploit_btn.grid(row=0, column=8, padx=10, pady=5, sticky="nsw")
 
 	# ======================
@@ -683,7 +682,7 @@ class IndraGUI(tb.Window):
 		
 		# Video Player Frame
 		video_frame  = tb.Labelframe(right_panel_frame, text="Live Video Feed", padding=2, bootstyle="info")
-		video_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=10)
+		video_frame.grid(row=1, column=0, sticky="sew", padx=5, pady=10)
 
 		# Video Window
 		self.video_label = tb.Label(video_frame,
@@ -697,8 +696,8 @@ class IndraGUI(tb.Window):
 		self.video_label.pack(fill=BOTH, expand=True)
 
 		# Terminal Output Frame
-		terminal_frame = tb.Labelframe(right_panel_frame, text="System Log", padding=5, bootstyle="success", height=200)
-		terminal_frame.grid(row=2, column=0, sticky="nsew", pady=10)
+		terminal_frame = tb.Labelframe(right_panel_frame, text="System Log", padding=5, bootstyle="info")
+		terminal_frame.grid(row=2, column=0, sticky="sew", pady=10)
 		terminal_frame.grid_propagate(False)
 
 		# Terminal Window
@@ -715,7 +714,7 @@ class IndraGUI(tb.Window):
 		self.text_terminal.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 		# Scrollbar for Terminal Window
-		terminal_scrollbar = tb.Scrollbar(terminal_frame, orient=tk.VERTICAL, command=self.text_terminal.yview, bootstyle="success-round")
+		terminal_scrollbar = tb.Scrollbar(terminal_frame, orient=tk.VERTICAL, command=self.text_terminal.yview, bootstyle="info-round")
 		terminal_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 		self.text_terminal.config(yscrollcommand=terminal_scrollbar.set)
 
