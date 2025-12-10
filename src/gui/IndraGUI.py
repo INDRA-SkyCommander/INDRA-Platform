@@ -25,10 +25,10 @@ from utils import sudo_exec, module_setup, scan
 
 class IndraGUI(tb.Window):
 	"""
-	The MainGUI class initializes and controls the main graphical user interface
+	The IndraGUI class initializes and controls the main graphical user interface
 	for the INDRA application. It contains GUI layout definitions, user interface
 	event bindings, threading logic for background scans, and coordination with
-	backend modules such as `scan`, `exploit`, and `indra_util`.
+	backend modules.
 	"""
 
 	def __init__(self):
@@ -40,9 +40,8 @@ class IndraGUI(tb.Window):
 		self.resizable(False, False)
 
 		# Data Stuctures
-		self.all_targets = []
+		self.all_targets = {}
 		self.video_playing = False
-		self.video_frame_count = 0
 
 		# Scan variables
 		self.scan_toggled = False
@@ -79,7 +78,7 @@ class IndraGUI(tb.Window):
 		self.grid_columnconfigure(1, weight=2)             # Right Column
 
 		# Functional Components
-		self._init_top_bar(row=0, col=0)
+		self._init_top_bar(row=0, col=0, sections=9)
 		self._init_host_list(row=1, col=0)
 		self._init_info_video_terminal_panel(row=1, col=1)
 
@@ -149,7 +148,7 @@ class IndraGUI(tb.Window):
 		self.style.map("Large.Success.TButton", background=[("active", "#00a300")])
 		
 
-	def _init_top_bar(self, row, col):
+	def _init_top_bar(self, row: int, col: int, sections: int):
 		"""
 		Creates the top control bar and binds its events.
 		"""
@@ -161,7 +160,9 @@ class IndraGUI(tb.Window):
 		top_bar_frame = tb.Frame(self, style="TFrame")
 		top_bar_frame.grid(row=row, column=col, columnspan=2, sticky="nsew", padx=10, pady=(20, 10))
 
-		for i in range(9): top_bar_frame.grid_columnconfigure(i, weight=1)
+		# Configure columns for even spacing
+		# Currently 9 sections
+		for i in range(sections): top_bar_frame.grid_columnconfigure(i, weight=1)
 
 		# ======================
 		# Buttons and Dropdowns
@@ -337,7 +338,7 @@ class IndraGUI(tb.Window):
 
 		return
 
-	def _get_network_interfaces(self):
+	def _get_network_interfaces(self)-> list:
 		"""
 		Returns a list of available network interfaces on the system.
 		"""
@@ -355,7 +356,7 @@ class IndraGUI(tb.Window):
 
 		return
 
-	def _get_exploit_modules(self):
+	def _get_exploit_modules(self)-> list:
 		"""
 		Returns a list of available exploit modules.
 		"""
@@ -373,7 +374,7 @@ class IndraGUI(tb.Window):
 
 		return
 	
-	def _get_target(self):
+	def _get_target(self)-> str:
 		"""
 		Returns the currently selected target from the host list
 		"""
@@ -382,14 +383,13 @@ class IndraGUI(tb.Window):
 
 		try:
 			target = self.selected_target.get()
-			#target = self.host_listbox.get(tk.ACTIVE)
 		except Exception:
 			self._log("Error retrieving selected target.")
-			return None
+			return "No target selected"
 		
 		return target
 	
-	def _get_target_info(self, target_name):
+	def _get_target_info(self, target_name)->list:
 		"""
 		Returns the target info list for the given target name.
 		"""
@@ -397,7 +397,7 @@ class IndraGUI(tb.Window):
 		if target_name.strip() in self.all_targets:
 			return self.all_targets[target_name.strip()]
 		else:
-			return None
+			return ['', '', '', '', '', '']
 
 	def _get_module(self):
 		"""
