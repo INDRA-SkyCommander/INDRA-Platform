@@ -768,16 +768,27 @@ class IndraGUI(tb.Window):
 	def _get_nal_unit_type(self, data_packet):
 		"""
 		Extracts NAL unit type from a base64-encoded NAL unit.
+		Handles NAL units that include start codes (0x00 0x00 0x00 0x01).
 		Returns NAL type (0-31) or None if unable to decode.
 		"""
 		try:
 			# Decode base64 to get raw NAL unit bytes
 			nal_bytes = base64.b64decode(data_packet)
-			if len(nal_bytes) < 1:
+			if len(nal_bytes) < 5:  # Minimum: 4-byte start code + 1-byte NAL header
 				return None
 			
-			# Extract NAL type from first byte (bottom 5 bits)
-			nal_header = nal_bytes[0]
+			# Skip past the start code (0x00 0x00 0x00 0x01)
+			offset = 0
+			if nal_bytes[0:4] == b'\x00\x00\x00\x01':
+				offset = 4
+			elif nal_bytes[0:3] == b'\x00\x00\x01':
+				offset = 3
+			
+			if offset >= len(nal_bytes):
+				return None
+			
+			# Extract NAL type from first byte after start code (bottom 5 bits)
+			nal_header = nal_bytes[offset]
 			nal_type = nal_header & 0x1F
 			return nal_type
 		except Exception:
@@ -850,8 +861,8 @@ class IndraGUI(tb.Window):
 	def _process_packet(self, data_packet):
 		"""
 		Decodes H.264 NAL units from base64 and produces video frames.
-		Filters out SPS/PPS (parameter sets) to avoid redundant decoding.
-		Only processes coded slices (NAL types 1, 5) that produce frames.
+		The sniffer writes NAL units with start codes, and IDR frames include
+		SPS+PPS prepended. PyAV's parse() handles all of this correctly.
 		"""
 
 		try:
@@ -861,25 +872,23 @@ class IndraGUI(tb.Window):
 			if not clean_packet:
 				return
 			
-			# Get NAL unit type to determine what to do with it
-			nal_type = self._get_nal_unit_type(clean_packet)
-			
-			# Skip SPS/PPS (types 7, 8) - decoder will cache these automatically
-			if nal_type in [7, 8]:
+			# Skip session separator lines
+			if clean_packet.startswith("==="):
 				return
 			
-			# Only process coded slices that produce actual video frames
-			if nal_type not in [1, 5]:  # Type 1: P-slice, Type 5: IDR slice
-				return
-			
-			# Decode base64 to get raw NAL unit bytes
+			# Decode base64 to get raw NAL unit bytes (includes start codes)
 			try:
 				video_bytes = base64.b64decode(clean_packet)
 			except Exception as e:
 				self._log(f"Warning: Failed to decode base64 NAL unit: {e}")
 				return
 			
-			# Parse and decode H.264 NAL unit into frames
+			# Skip empty packets
+			if len(video_bytes) < 5:
+				return
+			
+			# Parse and decode H.264 NAL unit(s) into frames
+			# PyAV handles start codes and multiple NAL units (SPS+PPS+IDR) automatically
 			try:
 				packets = self.codec.parse(video_bytes)
 				for packet in packets:
@@ -899,7 +908,9 @@ class IndraGUI(tb.Window):
 							self._log(f"Warning: Failed to convert frame to image: {e}")
 
 			except Exception as e:
-				self._log(f"Warning: Failed to decode H.264 packet (NAL type {nal_type}): {e}")
+				# Only log unexpected errors, not codec state issues
+				if "Invalid data" not in str(e):
+					self._log(f"Warning: Failed to decode H.264 packet: {e}")
 				
 		except Exception as e:
 			self._log(f"Error processing video packet: {e}")
