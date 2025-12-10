@@ -133,21 +133,17 @@ class IndraGUI(tb.Window):
 		if not os.path.exists(data_dir):
 			os.makedirs(data_dir, exist_ok=True)
 
-		self.raw_output_path = os.path.join(data_dir, 'raw_output.txt')
-		if not os.path.exists(self.raw_output_path):
-			open(self.raw_output_path, 'a').close()
+		self.raw_output_path = os.path.join(data_dir, 'raw_output.txt')	
+		open(self.raw_output_path, 'w').close()
 
 		self.scan_results_path = os.path.join(data_dir, 'scan_results.txt')
-		if not os.path.exists(self.scan_results_path):
-			open(self.scan_results_path, 'a').close()
+		open(self.scan_results_path, 'w').close()
 
-		self.sniff_output_path = os.path.join(data_dir, 'sniff_output.log')
-		if not os.path.exists(self.sniff_output_path):
-			open(self.sniff_output_path, 'a').close()
+		self.sniff_output_path = os.path.join(data_dir, 'sniff_output.log')	
+		open(self.sniff_output_path, 'w').close()
 
 		self.json_output_path = os.path.join(data_dir, 'module_input_data.json')
-		if not os.path.exists(self.json_output_path):
-			open(self.json_output_path, 'a').close()
+		open(self.json_output_path, 'w').close()
 
 		return
 	
