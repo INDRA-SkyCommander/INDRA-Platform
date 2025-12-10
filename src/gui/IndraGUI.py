@@ -126,28 +126,28 @@ class IndraGUI(tb.Window):
 
 	def _setup_files(self):
 		"""
-		Creates necessary data files if they do not exist.
+		Creates necessary data files if they do not already exist.
 		"""
 
 		data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
 		if not os.path.exists(data_dir):
 			os.makedirs(data_dir, exist_ok=True)
 
-		raw_output_path = os.path.join(data_dir, 'raw_output.txt')
-		if not os.path.exists(raw_output_path):
-			open(raw_output_path, 'a').close()
+		self.raw_output_path = os.path.join(data_dir, 'raw_output.txt')
+		if not os.path.exists(self.raw_output_path):
+			open(self.raw_output_path, 'a').close()
 
-		scan_results_path = os.path.join(data_dir, 'scan_results.txt')
-		if not os.path.exists(scan_results_path):
-			open(scan_results_path, 'a').close()
+		self.scan_results_path = os.path.join(data_dir, 'scan_results.txt')
+		if not os.path.exists(self.scan_results_path):
+			open(self.scan_results_path, 'a').close()
 
-		sniff_output_path = os.path.join(data_dir, 'sniff_output.log')
-		if not os.path.exists(sniff_output_path):
-			open(sniff_output_path, 'a').close()
+		self.sniff_output_path = os.path.join(data_dir, 'sniff_output.log')
+		if not os.path.exists(self.sniff_output_path):
+			open(self.sniff_output_path, 'a').close()
 
-		json_output_path = os.path.join(data_dir, 'module_input_data.json')
-		if not os.path.exists(json_output_path):
-			open(json_output_path, 'a').close()
+		self.json_output_path = os.path.join(data_dir, 'module_input_data.json')
+		if not os.path.exists(self.json_output_path):
+			open(self.json_output_path, 'a').close()
 
 		return
 	
@@ -182,7 +182,6 @@ class IndraGUI(tb.Window):
 					   )
 		self.style.map("Large.Success.TButton", background=[("active", "#00a300")])
 		
-
 	def _init_top_bar(self, row: int, col: int, sections: int):
 		"""
 		Creates the top control bar and binds its events.
@@ -371,13 +370,12 @@ class IndraGUI(tb.Window):
 		Updates scan results to the GUI and backend.
 		"""
 
-		file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'scan_results.txt')
 		try:
-			with open(file_path, 'r') as f:
+			with open(self.scan_results_path, 'r') as f:
 				for line in f:
 					self.host_listbox.insert(END, line)
 		except FileNotFoundError:
-			self._log(f"Scan results not found at {file_path}.")
+			self._log(f"Scan results not found at {self.scan_results_path}.")
 		
 		self._handle_filter_change()
 
@@ -504,8 +502,6 @@ class IndraGUI(tb.Window):
 												)
 		self.target_info_label.update()
 
-		target_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "module_input_data.json")
-		
 		target_data = {
 			"target_name": target_name.strip(),
 			"target_info": {
@@ -524,7 +520,7 @@ class IndraGUI(tb.Window):
 			}
 		
 		try:
-			with open(target_data_path, "w") as f:
+			with open(self.json_output_path, "w") as f:
 				json.dump(target_data, f, indent=4)
 		except Exception as e:
 			self._log(f"Error writing to JSON file: {e}")
@@ -775,20 +771,9 @@ class IndraGUI(tb.Window):
 		Monitors a log file for video data being written to it.
 		Runs in a separate thread.
 		"""
-
-		sniff_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "sniff_output.log")
-		
-		# Make sure file exists, create it if it does not
-		if not os.path.exists(sniff_path):
-			try:
-				os.makedirs(os.path.dirname(sniff_path), exist_ok=True)
-				open(sniff_path, 'a').close()
-			except Exception as e:
-				self._log(f"Error creating sniff output log: {e}")
-				return
 			
 		try:	
-			with open(sniff_path, 'r', encoding='utf-8', errors='ignore') as f:
+			with open(self.sniff_output_path, 'r', encoding='utf-8', errors='ignore') as f:
 				f.seek(0, 2) # Go to EoF
 
 				while True:
