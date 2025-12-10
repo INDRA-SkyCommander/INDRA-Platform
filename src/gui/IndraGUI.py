@@ -1,6 +1,5 @@
 # Standard Libraries
 import os
-import io
 import sys
 import json
 import time
@@ -64,6 +63,7 @@ class IndraGUI(tb.Window):
 		self.current_video_frame = None
 		self.video_queue = queue.Queue()
 		self.codec = av.CodecContext.create('h264', 'r')
+		self.video_file_position_reset = False  # Flag to signal file position reset on new exploit
 
 		# Log variables
 		self.log_queue = queue.Queue()
@@ -534,6 +534,9 @@ class IndraGUI(tb.Window):
 		self._log_slow(f"Launching exploit: {exploit} on target: {target_name}")
 		self.exploit_btn.config(text="RUNNING", state=tk.DISABLED, style="Large.Success.TButton")
 
+		# Signal video monitor to reset file position for new exploit run
+		self.video_file_position_reset = True
+
 		def _run_exploit_thread():
 			"""
 			Runs the exploit in a background thread so the GUI can continue functioning.
@@ -766,72 +769,144 @@ class IndraGUI(tb.Window):
 	# Functions for video
 	# ====================
 
+	def _get_nal_unit_type(self, data_packet):
+		"""
+		Extracts NAL unit type from a base64-encoded NAL unit.
+		Returns NAL type (0-31) or None if unable to decode.
+		"""
+		try:
+			# Decode base64 to get raw NAL unit bytes
+			nal_bytes = base64.b64decode(data_packet)
+			if len(nal_bytes) < 1:
+				return None
+			
+			# Extract NAL type from first byte (bottom 5 bits)
+			nal_header = nal_bytes[0]
+			nal_type = nal_header & 0x1F
+			return nal_type
+		except Exception:
+			return None
+
 	def _monitor_sniff_log(self):
 		"""
 		Monitors a log file for video data being written to it.
+		Reads base64-encoded NAL units and passes them for decoding.
+		Handles file position resets when new exploits are launched.
 		Runs in a separate thread.
 		"""
-			
+		
 		try:	
-			with open(self.sniff_output_path, 'r', encoding='utf-8', errors='ignore') as f:
-				f.seek(0, 2) # Go to EoF
+			f = None
+			frames_processed = 0
 
-				while True:
+			while True:
+				# Check if a new exploit run has started - reset file position
+				if self.video_file_position_reset:
+					if f:
+						f.close()
+					f = open(self.sniff_output_path, 'r', encoding='utf-8', errors='ignore')
+					f.seek(0, 2)  # Go to EOF
+					frames_processed = 0
+					self.video_file_position_reset = False
+					self._log("Video: Restarted file monitoring for new exploit")
+					continue
+				
+				# Open file if not already open
+				if f is None:
+					f = open(self.sniff_output_path, 'r', encoding='utf-8', errors='ignore')
+					f.seek(0, 2)  # Go to EOF
+
+				try:
 					line = f.readline()
 
-					# Handling unable to read line
+					# No new data yet, wait and retry
 					if not line:
 						time.sleep(0.01)
 						continue
 
-					# Valid line, pass to processing
+					# Process this NAL unit
 					if line.strip():
 						self._process_packet(line.strip())
+						frames_processed += 1
+						
+						# Log progress every 100 NAL units
+						if frames_processed % 100 == 0:
+							self._log(f"Video: Processed {frames_processed} NAL units")
 
+				except IOError:
+					# File may have been moved/deleted, reopen it
+					if f:
+						f.close()
+					f = None
+					time.sleep(0.1)
+					continue
+
+		except FileNotFoundError:
+			self._log("Error: Video log file not found. Sniffer may not have started.")
 		except Exception as e:
-			self._log(f"Error monitoring log: {e}")
+			self._log(f"Error monitoring video log: {e}")
+		finally:
+			if f:
+				f.close()
 		
 		return
 
 	def _process_packet(self, data_packet):
 		"""
-		Handles H.264 Video Stream from the sniffer using av
+		Decodes H.264 NAL units from base64 and produces video frames.
+		Filters out SPS/PPS (parameter sets) to avoid redundant decoding.
+		Only processes coded slices (NAL types 1, 5) that produce frames.
 		"""
 
 		try:
-			# Sanitizing base64 data
-			if ":" in data_packet:
-				clean_packet = data_packet.rsplit(":", 1)[-1].strip()
-			else:
-				clean_packet = data_packet.strip()
-
+			# Clean up base64 data (remove any stray whitespace)
+			clean_packet = data_packet.strip()
+			
 			if not clean_packet:
 				return
 			
-			# Processing video bytes
-			video_bytes = base64.b64decode(clean_packet)
+			# Get NAL unit type to determine what to do with it
+			nal_type = self._get_nal_unit_type(clean_packet)
 			
+			# Skip SPS/PPS (types 7, 8) - decoder will cache these automatically
+			if nal_type in [7, 8]:
+				return
+			
+			# Only process coded slices that produce actual video frames
+			if nal_type not in [1, 5]:  # Type 1: P-slice, Type 5: IDR slice
+				return
+			
+			# Decode base64 to get raw NAL unit bytes
+			try:
+				video_bytes = base64.b64decode(clean_packet)
+			except Exception as e:
+				self._log(f"Warning: Failed to decode base64 NAL unit: {e}")
+				return
+			
+			# Parse and decode H.264 NAL unit into frames
 			try:
 				packets = self.codec.parse(video_bytes)
 				for packet in packets:
-
-					# Decoding packets into frames
+					# Decode each packet into one or more frames
 					frames = self.codec.decode(packet)
 					for frame in frames:
-						img = frame.to_image()
+						try:
+							# Convert frame to PIL Image
+							img = frame.to_image()
+							
+							# Resize to fit GUI (640x360 display area)
+							img = img.resize((640, 360), Image.Resampling.NEAREST)
+							
+							# Queue for display on main thread
+							self.video_queue.put(img)
+						except Exception as e:
+							self._log(f"Warning: Failed to convert frame to image: {e}")
 
-						# Resizing to fit GUI
-						img = img.resize((640, 360), Image.Resampling.NEAREST)
-
-						# Send to video queue
-						self.video_queue.put(img)
-
-			except Exception:
-				# Ignore malformed images
-				pass
-		except Exception:
-			# Ignore malformed images
-			pass
+			except Exception as e:
+				self._log(f"Warning: Failed to decode H.264 packet (NAL type {nal_type}): {e}")
+				
+		except Exception as e:
+			self._log(f"Error processing video packet: {e}")
 
 		return
 

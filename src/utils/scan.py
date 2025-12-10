@@ -1,5 +1,4 @@
 import os
-from tkinter import END
 from .iwlist_parse import *
 
 cell_info = {}

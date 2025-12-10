@@ -32,119 +32,145 @@ class VideoSniffer:
         self.interface = options_info.get("interface")
 
         self.output_data_file = os.path.join(os.path.dirname(__file__), '..', '..', "data", "sniff_output.log")
-        with open(self.output_data_file, 'w') as f:
-            f.write("")
+        # Append mode: preserves existing data for debugging, adds session separator
+        with open(self.output_data_file, 'a') as f:
+            f.write(f"\n\n=== VIDEO CAPTURE SESSION START: {time.time()} ===\n")
 
         protocol = "udp" # UDP/TCP
         direction = "port" # Sniffing packets outgoing FROM the port
         self.port = 11111 # Port to sniff
+        self.drone_ip = "192.168.10.1" # TELLO default IP
 
-        self.bpf_filter = f"{protocol} {direction} {self.port}"
-
-    def wifi_connect(self):
-        """
-        Connects to the drone's wifi network.
-        """
+        self.bpf_filter = f"{protocol} {direction} {self.port} and src {self.drone_ip}"
         
-        # Connecting to drone's WiFi via nmcli
-        wifi = sudo_exec(f"nmcli dev wifi connect {self.target_mac} ifname {self.interface}")
-        # cmd = ["nmcli", "dev", "wifi", "connect", self.target_mac, "ifname", self.interface]
-
-        # wifi = subprocess.run(cmd, capture_output=True, text=True)
-
-        if wifi.returncode == 0:
-            print(f"Successfully connected to {self.target_mac}")
-            return True
-        else:
-            print(f"Error: nmcli failed: {wifi.stderr.strip()}")
-            
-            # Connect manually by associating with ESSID
-            sudo_exec(f"iwconfig {self.interface}, essid {self.target_mac}")
-            time.sleep(2)
-
-            # Request IP via DHCP
-            result = sudo_exec(f"dhclient, -r {self.interface}")
-
-            if result.returncode == 0:
-                print("DHCP success.")
-                return True
-            else:
-                print("DHCP failed.")
-                return False
-
-
-    def wait_for_ip(self):
-        """
-        Waits until we get a valid IP address on the network
-        """
-        # Wait for IP assignment
-        start_time = time.time()
-        timeout = 10
+        # TELLO frame tracking
+        self.last_frame_num = None  # Track frame sequence numbers for loss detection
+        self.cached_sps_pps = []  # Cache for SPS/PPS NAL units (types 7, 8)
         
-        while time.time() - start_time < timeout:
-            try:
-                output = subprocess.check_output(["ifconfig", self.interface], text=True)
-                if "inet" in output:
-                    print("IP Address acquired.")
-                    return True
-            except:
-                pass
-            time.sleep(0.5)
-        print("Failed to acquire IP address (DHCP timeout)")
-        return False
-
-    def activate_tello(self):
+    def parse_tello_frame_header(self, payload):
         """
-        Awakens TELLO video feed by sending a message to the cmd port.
+        Parses TELLO's custom UDP frame header with robust handling for variable lengths.
+        TELLO frame format:
+          Bytes 0-1: Frame sequence number (big-endian, 16-bit)
+          Byte 2:    Frame type / flags (indicates if header has size field)
+          Byte 3-4:  Frame size (optional, present if certain flags set)
+        Returns: (frame_num, header_size) or (None, None) on error.
         """
-
-        # Using default IP and port for commands
-        tello_ip = '192.168.10.1'
-        tello_port = 8889
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(2)
+        if len(payload) < 3:
+            return None, None
         
         try:
-            # Enter SDK mode
-            sock.sendto(b'command', (tello_ip, tello_port))
-
-            # Enable video stream
-            sock.sendto(b'streamon', (tello_ip, tello_port))
-            print("Activation commands sent.")
-
-        except Exception:
-            print("Error: Could not send activation commands.")
-
-        while True:
-            try:
-                sock.sendto(b'command', (tello_ip, tello_port))
-                time.sleep(3)
-            except Exception:
-                break
-        
-        sock.close()
+            frame_num = int.from_bytes(payload[0:2], byteorder='big')
+            frame_type = payload[2]
+            
+            # Determine header size based on frame type byte
+            # Bit 7: size_flag (1 = has 2-byte size field, 0 = no size field)
+            has_size_field = (frame_type >> 7) & 1
+            
+            # Calculate header size
+            if has_size_field and len(payload) >= 5:
+                # Header includes frame size field (5 bytes total: seq + type + size)
+                frame_size = int.from_bytes(payload[3:5], byteorder='big')
+                header_size = 5
+                
+                # Validate frame_size against actual payload length
+                if header_size + frame_size > len(payload):
+                    print(f"Warning: Frame size {frame_size} exceeds payload length {len(payload) - header_size}")
+            else:
+                # Header is just sequence number (2 bytes)
+                header_size = 2
+            
+            return frame_num, header_size
+        except Exception as e:
+            print(f"Error parsing TELLO frame header: {e}")
+            return None, None
     
+    def get_nal_unit_type(self, payload, offset):
+        """
+        Extracts NAL unit type from the first byte after TELLO header.
+        Returns NAL type (0-31) or None if invalid.
+        """
+        if len(payload) <= offset:
+            return None
+        
+        try:
+            nal_header = payload[offset]
+            nal_type = nal_header & 0x1F  # Bottom 5 bits
+            return nal_type
+        except Exception:
+            return None
+    
+    def detect_packet_loss(self, frame_num):
+        """
+        Detects frame loss by comparing current frame number with last received.
+        """
+        if self.last_frame_num is not None:
+            expected_next = (self.last_frame_num + 1) & 0xFFFF  # 16-bit wraparound
+            if frame_num != expected_next:
+                loss_count = (frame_num - expected_next) & 0xFFFF
+                print(f"Warning: Detected {loss_count} lost packets (frame {expected_next} -> {frame_num})")
+        self.last_frame_num = frame_num
+    
+    def emit_nal_unit(self, nal_unit):
+        """
+        Writes NAL unit to log file (optionally prepended with cached SPS/PPS).
+        """
+        if nal_unit is None or len(nal_unit) == 0:
+            return
+        
+        try:
+            nal_type = nal_unit[0] & 0x1F
+            
+            # Cache SPS/PPS for later use
+            if nal_type in [7, 8]:  # SPS or PPS
+                self.cached_sps_pps = [nal_unit] if nal_type == 7 else self.cached_sps_pps + [nal_unit]
+            
+            # Prepend cached SPS/PPS before coded slices
+            output_units = []
+            if nal_type in [1, 5]:  # Non-IDR or IDR slice
+                output_units.extend(self.cached_sps_pps)
+            output_units.append(nal_unit)
+            
+            # Encode and write all units
+            for unit in output_units:
+                b64_data = base64.b64encode(unit).decode('utf-8')
+                with open(self.output_data_file, 'a') as f:
+                    f.write(f"{b64_data}\n")
+                    f.flush()
+            
+            print(f"Captured NAL type {nal_type}, {len(nal_unit)} bytes from {self.target_mac}.")
+        except Exception as e:
+            print(f"Error emitting NAL unit: {e}")
         
     def packet_handler(self, packet):
         """
-        Extracts raw payload, base64 encodes it, and writes to file.
+        Handles TELLO H.264 video packets with custom frame header.
+        Extracts TELLO frame header, detects packet loss, and emits NAL units.
         """
 
         if packet.haslayer(Raw):
             try:
-                # Extract binary
-                raw_data = packet[Raw].load
-
-                b64_data = base64.b64encode(raw_data).decode('utf-8')
-
-                log_entry = f"{b64_data}\n"
-
-                with open(self.output_data_file, 'a') as f:
-                    f.write(log_entry)
-                    f.flush()
-
-                print(f"Captured {len(raw_data)} bytes from {self.target_mac}.")
+                payload = packet[Raw].load
+                
+                # Parse TELLO frame header
+                frame_num, header_size = self.parse_tello_frame_header(payload)
+                if frame_num is None:
+                    return
+                
+                # Detect packet loss
+                self.detect_packet_loss(frame_num)
+                
+                # Get NAL unit type (after TELLO header)
+                nal_type = self.get_nal_unit_type(payload, header_size)
+                if nal_type is None:
+                    return
+                
+                # Extract NAL unit (everything after TELLO header)
+                nal_unit = payload[header_size:]
+                
+                # Emit NAL unit directly (no fragmentation reassembly needed)
+                self.emit_nal_unit(nal_unit)
+                
             except Exception as e:
                 print(f"Error processing packet: {e}")
 
@@ -154,12 +180,10 @@ class VideoSniffer:
 
 Sniffer = VideoSniffer()
 
+# Targeting specific channel of target drone
+sudo_exec(f"iwconfig {Sniffer.interface} channel {Sniffer.target_channel}")
+
 print(f"Started sniffing with filter: {Sniffer.bpf_filter}\n")
-
-if Sniffer.wifi_connect():
-    Sniffer.wait_for_ip()
-
-threading.Thread(target=Sniffer.activate_tello, daemon=True).start()
 
 try:
     sniff(iface=Sniffer.interface,
