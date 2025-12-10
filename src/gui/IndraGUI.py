@@ -21,7 +21,8 @@ from PIL import Image, ImageTk
 
 
 # Custom Modules
-from utils import sudo_exec, module_setup, scan
+from utils import sudo_exec, module_setup
+from utils.scan import scan, SCAN_ERROR_UNSUPPORTED_INTERFACE, SCAN_ERROR_GENERIC
 
 class IndraGUI(tb.Window):
 	"""
@@ -83,6 +84,13 @@ class IndraGUI(tb.Window):
 		self._init_info_video_terminal_panel(row=1, col=1)
 
 		# ======================
+		# Setup necessary files
+		# ======================
+
+		self._setup_files()
+		self._log_slow("Setting up necessary directories...")
+
+		# ======================
 		# Setup message logging
 		# ======================
 
@@ -116,6 +124,33 @@ class IndraGUI(tb.Window):
 		self._log_slow("Welcome to INDRA.")
 		self._log_slow("Systems initialized. Ready for action!")
 
+	def _setup_files(self):
+		"""
+		Creates necessary data files if they do not exist.
+		"""
+
+		data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
+		if not os.path.exists(data_dir):
+			os.makedirs(data_dir, exist_ok=True)
+
+		raw_output_path = os.path.join(data_dir, 'raw_output.txt')
+		if not os.path.exists(raw_output_path):
+			open(raw_output_path, 'a').close()
+
+		scan_results_path = os.path.join(data_dir, 'scan_results.txt')
+		if not os.path.exists(scan_results_path):
+			open(scan_results_path, 'a').close()
+
+		sniff_output_path = os.path.join(data_dir, 'sniff_output.log')
+		if not os.path.exists(sniff_output_path):
+			open(sniff_output_path, 'a').close()
+
+		json_output_path = os.path.join(data_dir, 'module_input_data.json')
+		if not os.path.exists(json_output_path):
+			open(json_output_path, 'a').close()
+
+		return
+	
 	def _setup_styles(self):
 		"""
 		Defines all fonts and styles in one place.
@@ -301,11 +336,21 @@ class IndraGUI(tb.Window):
 
 		def _scan_and_exit():
 			try:
-				self.all_targets = scan(interface)
+				scan_result = scan(interface)
 				self.is_scanning = False
 				self.after(0, lambda: self.scan_btn.configure(text="Run Scan", bootstyle="success-outline", state=NORMAL))
 
-				if self.all_targets is None:
+				# Check for special error codes
+				if scan_result == SCAN_ERROR_UNSUPPORTED_INTERFACE:
+					self._log(f"Error! Interface '{interface}' does not support wireless scanning.")
+					return
+				elif scan_result == SCAN_ERROR_GENERIC:
+					self._log("Error! A generic error occurred during scanning.")
+					return
+				
+				self.all_targets = scan_result
+
+				if self.all_targets is None or self.all_targets == {}:
 					self._log("Error! Could not find any targets.")
 			
 				else:
