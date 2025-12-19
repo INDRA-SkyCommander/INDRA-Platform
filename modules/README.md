@@ -1,59 +1,29 @@
-# /modules
-## Command injector (Tello-focused)
-**File:** cmdinjector.py
+# Modules
 
-**Description:**
-A UDP MitM / command injector for Tello-style drones. Provides:
- - Sniff-and-forward of UDP command traffic to/from a drone
- - Keyboard-driven command injection (WASD/up/down, takeoff/land)
- - Forging and replaying control packets for live experiments
+These scripts are intended for **authorized** research, lab demos, and defensive testing **only**.  
+Only run them on hardware and networks you own or have explicit permission to test.
 
-## Deauthentication helpers
-**File:** deauth.py
+## What’s in this folder
 
-**Description:**
-Helper utilities for deauth and channel-hopping flows. Provides:
- - Channel switching helpers and interface control
- - Deauth frame send wrappers (aireplay/pcap injection hooks)
+- **deauth.py** — Wireless test helper used in controlled environments. Reads target/interface options from `data/module_input_data.json`.
+- **skyjack.py** — Drone interaction workflow used in controlled environments. Also reads configuration from `data/module_input_data.json`.
 
-## Simple GNURadio jammer template
-**File:** dumbjammer.py
+## Configuration
 
-**Description:**
-A template GNURadio flowgraph script that demonstrates basic jamming/noise generation.
+Both modules expect a JSON file at:
 
-## YAML-driven jammer
-**File:** Jammer.py
+- `data/module_input_data.json`
 
-**Description:**
-Higher-level jamming orchestrator that reads `jaml.yaml` and runs jamming bursts.
+At a minimum, it should include target metadata and options (example shape):
 
-## Jammer configuration file
-**File:** jaml.yaml
+```json
+{
+  "target_name": "Example",
+  "target_info": { "mac_address": "xx:xx:xx:xx:xx:xx", "channel": 1 },
+  "options": { "interface": "wlan0", "packets": 30 }
+}
+```
 
-**Description:**
-YAML config consumed by `Jammer.py`. Typical fields:
- - `freq` — center frequency (Hz) for jamming
- - `t_jamming` — burst duration (seconds)
- - `gain` / `sample_rate` / device settings
+## Safety notes
 
-## Skyjack (module entrypoint)
-**File:** skyjack.py
-
-**Description:**
-Lightweight skyjacking module intended for integration with the GUI.
-
-## Skyjack (reference/orchestrator)
-**File:** skyjackold.py
-
-**Description:**
-More complete skyjack orchestrator useful as a reference implementation.
-
-## Video interceptor / pipeline orchestrator
-**File:** video_interceptor.py
-
-**Description:**
-Glue script that coordinates monitor-mode setup, the sniffer, and the decoder to populate the GUI image sink. Provides:
- - Interface preparation (monitor mode entrypoint)
- - Subprocess control to spawn `tepsots` and `video_decoder` pipelines
- - Writes decoded PNG frames to `data/images/` for GUI consumption
+Wireless testing can disrupt nearby devices. Use a shielded environment or approved lab space, and follow your organization’s policies.
