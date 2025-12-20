@@ -12,3 +12,4 @@ Go to **Settings → Display** and uncheck **Enable 3D Acceleration**.
 
 ## Once you start the VM, the password is `indra`
  - make sure to `git pull` to update any code that might have been pushed
+ - if any libraries refuse to be recognized after install, install them again with `sudo` and try again
