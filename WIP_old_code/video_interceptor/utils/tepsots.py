@@ -281,7 +281,7 @@ def sniff(sources=(), destinations=(), types=(), subtypes=(), length=(), strengt
             
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ALL))
     s.bind((args.interface, ETH_P_ALL))
-    s.setblocking(1)  # blocking!
+    s.setblocking(True)  # blocking!
     
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     
@@ -305,6 +305,11 @@ def sniff(sources=(), destinations=(), types=(), subtypes=(), length=(), strengt
                    
             ft, fs, src, dst, fsn, ffn = dissect_ieee80211(data)
             
+            if src is not None:
+                src = ':'.join(dec2hex(src)[i:i+2] for i in range(0, 12, 2))
+            else:
+                src = None
+                
             if not chk_sa(src): continue
             if not chk_da(dst): continue
             if not chk_ft(ft): continue
@@ -331,7 +336,8 @@ def sniff(sources=(), destinations=(), types=(), subtypes=(), length=(), strengt
                 amend(data)))
 
             sys.stdout.flush()
-
+            os.fsync(sys.stdout)
+            
         except Exception as e:
             log(e, head='(*)', more=dec2hex(packet), out=sys.stderr)
 

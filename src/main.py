@@ -1,8 +1,13 @@
-import GUI as GUI
-import scan
+import tkinter as tk
+# from gui import MainGUI
+from gui import IndraGUI
 
-# This is the main file and entry point for the program.
-# This guard ensures that the code is only executed when this file is run directly.
+# Primary entry point for the application
+
 if __name__ == "__main__":
-    root = GUI.tkinter.Tk()
-    main_gui = GUI.MainGUI(root)
+	#root = tk.Tk()
+	#main_gui = MainGUI(root)
+	#root.mainloop()
+    
+	main_gui = IndraGUI()
+	main_gui.mainloop()
