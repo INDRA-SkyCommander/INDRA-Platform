@@ -413,6 +413,10 @@ if __name__ == "__main__":
             print("\n[WARNING] Land command may have failed. Trying emergency stop...")
             skyjack.emergency_stop()
 
+    # Start a thread to setup the fake wireless AP here
+
+    # Forward traffic from the controller to the real drone to maintain control and video feed while hijacked
+
     # Cleanup
     skyjack.cleanup()
 
