@@ -88,20 +88,20 @@ class IndraGUI(tb.Window):
 		# ======================
 
 		self._setup_files()
-		self._log_slow("Setting up necessary directories...")
+		self._log("Setting up necessary directories...")
 
 		# ======================
 		# Setup message logging
 		# ======================
 
 		self._process_log_queue()
-		self._log_slow("Initializing system log...")
+		self._log("Initializing system log...")
 
 		# =====================
 		# Call autoscan thread
 		# =====================
 
-		self._log_slow("Initializing autoscan thread...")
+		self._log("Initializing autoscan thread...")
 		self.auto_scan_thread = threading.Thread(target=self._auto_scan_loop, daemon=True)
 		self.auto_scan_thread.start()
 
@@ -109,11 +109,11 @@ class IndraGUI(tb.Window):
 		# Call video threads
 		# ===================
 
-		self._log_slow("Intializing video compiling thread...")
+		self._log("Intializing video compiling thread...")
 		self.monitor_thread = threading.Thread(target=self._monitor_sniff_log, daemon=True)
 		self.monitor_thread.start()
 
-		self._log_slow("Intializing video player...")
+		self._log("Intializing video player...")
 		self.video_playing = True
 		self._start_video_player()
 
@@ -121,8 +121,8 @@ class IndraGUI(tb.Window):
 		# Start Program
 		# ==============
 
-		self._log_slow("Welcome to INDRA.")
-		self._log_slow("Systems initialized. Ready for action!")
+		self._log("Welcome to INDRA.")
+		self._log("Systems initialized. Ready for action!")
 
 	def _setup_files(self):
 		"""
@@ -327,7 +327,7 @@ class IndraGUI(tb.Window):
 		sudo_exec(f"iwconfig {interface} mode managed")
 		sudo_exec(f"ifconfig {interface} up")
 
-		self._log_slow("Beep boop. Scanning...")
+		self._log("Beep boop. Scanning...")
 
 		def _scan_and_exit():
 			try:
@@ -350,7 +350,7 @@ class IndraGUI(tb.Window):
 			
 				else:
 					self.after(0, self._get_scan_results)
-					self._log_slow("Scan successfully completed!")
+					self._log("Scan successfully completed!")
 
 			except Exception as e:
 				self._log(f"Error! aborting scan: {e}")
@@ -527,7 +527,7 @@ class IndraGUI(tb.Window):
 		env = os.environ.copy()
 		env["PYTHONPATH"] = f"{src_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
 
-		self._log_slow(f"Launching exploit: {exploit} on target: {target_name}")
+		self._log(f"Launching exploit: {exploit} on target: {target_name}")
 		self.exploit_btn.config(text="RUNNING", state=tk.DISABLED, style="Large.Success.TButton")
 
 		# Signal video monitor to reset file position for new exploit run
@@ -540,7 +540,7 @@ class IndraGUI(tb.Window):
 
 			try: 
 				module_return_code = subprocess.call([sys.executable, exploit_path], env=env)
-				self._log_slow(f"Module {exploit} finished with return code: {module_return_code}")
+				self._log(f"Module {exploit} finished with return code: {module_return_code}")
 			except Exception as e:
 				self._log(f"Error executing module {exploit}: {e}")
 				return -1
@@ -561,13 +561,13 @@ class IndraGUI(tb.Window):
 
 		match self.selected_option.get():
 			case "Restart Network Adapter":
-				self._log_slow("Restarting Network Adapter...")
+				self._log("Restarting Network Adapter...")
 				sudo_exec("service NetworkManager restart")
 			case "Stop Monitor Mode":
 				if self.selected_interface.get() == "interfaces":
 					self._log("Please select a network interface first.")
 				else:
-					self._log_slow("Stopping Monitor Mode...")
+					self._log("Stopping Monitor Mode...")
 					sudo_exec(f"airmon-ng stop {self.selected_interface.get()}")
 			case _:
 				self._log("No option selected or unrecognized option.")
@@ -955,7 +955,7 @@ class IndraGUI(tb.Window):
 	
 		return
 	
-	def _log_slow(self, message, delay=45):
+	def _log(self, message, delay=45):
 		"""
 		Logs a message to the terminal output window with a typewriter effect
 		"""
