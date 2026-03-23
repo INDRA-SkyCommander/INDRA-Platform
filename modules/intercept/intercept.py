@@ -16,10 +16,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-
+import os
+import sys
+import json
 import time
 import keyboard
 import tello
+import subprocess
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Direct import to avoid circular dependency with GUI
+def sudo_exec(cmd: str):
+    """
+    Executes a command with sudo privileges.
+    """
+    print(f"Running: sudo {cmd}")
+    return subprocess.run(f"sudo {cmd}", shell=True)
 
 ###############################################################################
 # constants
@@ -110,9 +125,61 @@ def handleKey(e):
         else:
             toggleFlag(e, tblKeyFunctions[e.name][1])
 
+def load_selected_target():
+    target_data_file = os.path.join(
+        os.path.dirname(__file__), '..', '..', "data", "module_input_data.json"
+    )
+    with open(target_data_file, 'r') as f:
+        scan_info = json.load(f)
+    target_name = scan_info.get("target_name", "")
+    target_info = scan_info.get("target_info", {})
+    options = scan_info.get("options", {})
+
+    interface = options.get("interface", "wlan0")
+    ssid = target_info.get("raw_string", "").strip()
+    
+    if not ssid or ssid == "N/A":
+        if " - " in target_name.strip():
+            ssid = target_name.split(" - ")[0].strip() 
+    
+    # For our testing, tello's wifi should always be open w/ no password
+    encryption = target_info.get("encryption", "Open").strip()
+    password = options.get("wifi_password", "").strip()
+
+    return interface, ssid, encryption, password
+
+def authenticate_to_target(interface: str, ssid: str, encryption: str, password: str = "") -> bool:
+    if not interface or not ssid:
+        print("[AUTH] Missing interface or SSID.")
+        return False
+    
+    print(f"[AUTH] Prepareing {interface} in managed mode...")
+    sudo_exec(f"ip link set {interface} down")
+    sudo_exec(f"iw {interface} set type managed")
+    sudo_exec(f"ip link set {interface} up")
+    time.sleep(1)
+
+    if encryption.lower().startswith("open"):
+        print(f"[AUTH] Connecting to open network: {ssid}")
+        result = sudo_exec(f'iw dev {interface} connect {ssid}')
+        return getattr(result,"returncode", 1) == 0
+    
+    if not password:
+        print(f"[AUTH] Target '{ssid}' is secured ({encryption}) but no password was provided.")
+        return False
+    print(f"[AUTH] Connecting to secured network {ssid}")
+    result = sudo_exec(f'nmcli dev wifi connect "{ssid}" password "{password}" ifname {interface}')
+    return getattr(result, "returncode", 1) == 0
+
 ###############################################################################
 # main
 ###############################################################################
+
+# Authenticate to the tello drone
+# iface, ssid, enc, pwd = load_selected_target()
+# if not authenticate_to_target(iface, ssid, enc, pwd):
+#     raise SystemExit("[AUTH] Failed to authenticate/connect to selected target. Aborting.")
+
 print('Tello Controller                      ')
 print('+------------------------------------+')
 print('|  ESC(quit) 1(360) 2(bounce)        |')

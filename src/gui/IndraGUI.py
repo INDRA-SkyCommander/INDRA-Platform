@@ -539,7 +539,8 @@ class IndraGUI(tb.Window):
 			"""
 
 			try: 
-				module_return_code = subprocess.call([sys.executable, exploit_path], env=env)
+				# 2026.01 Group 2 - Added the sudo param to get intercept to work
+				module_return_code = subprocess.call(['sudo', sys.executable, exploit_path], env=env)
 				self._log_slow(f"Module {exploit} finished with return code: {module_return_code}")
 			except Exception as e:
 				self._log(f"Error executing module {exploit}: {e}")
