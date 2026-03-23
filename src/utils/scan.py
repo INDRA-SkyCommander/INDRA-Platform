@@ -46,7 +46,8 @@ def scan(interface="wlan0"):
 				error_output = f.read().lower()
 				if 'operation not supported' in error_output or 'no such device' in error_output:
 					return SCAN_ERROR_UNSUPPORTED_INTERFACE
-		except Exception:
+		except Exception as e:
+			print("Exception: " + str(e))
 			pass
 		
 		return SCAN_ERROR_GENERIC
