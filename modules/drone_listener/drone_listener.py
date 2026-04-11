@@ -7,14 +7,16 @@ import sys
 # Read module input data
 # ========================
 
-data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
-json_path = os.path.join(data_dir, 'module_input_data.json')
+# data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
+# json_path = os.path.join(data_dir, 'module_input_data.json')
 
-with open(json_path, 'r') as f:
-    data = json.load(f)
+# with open(json_path, 'r') as f:
+#     data = json.load(f)
 
-interface = data.get("options", {}).get("interface", "0.0.0.0")
-target_name = data.get("target_name", "Unknown")
+# interface = data.get("options", {}).get("interface", "0.0.0.0")
+# target_name = data.get("target_name", "Unknown")
+target_name =  "iPhone"
+interface = "wlx9cefd5f754df"
 
 LISTEN_HOST = "0.0.0.0"
 LISTEN_PORT = 8889
@@ -24,6 +26,8 @@ LISTEN_PORT = 8889
 # ========================
 
 DRONE_COMMANDS = {
+    "conn_req:u":     "Connection request",
+    "stick":          "Stick / status request",
     "command":        "SDK mode init",
     "takeoff":        "Drone taking off",
     "land":           "Drone landing",
@@ -70,7 +74,7 @@ def parse_command(raw):
 print(f"[*] Drone listener starting on {LISTEN_HOST}:{LISTEN_PORT}")
 print(f"[*] Intercepting commands for target: {target_name}")
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 try:
@@ -79,53 +83,36 @@ except OSError as e:
     print(f"[!] Failed to bind to port {LISTEN_PORT}: {e}")
     sys.exit(1)
 
-server.listen(5)
 print(f"[*] Listening for drone controller on port {LISTEN_PORT}...")
 
 intercepted = []
 
 try:
     while True:
-        conn, addr = server.accept()
-        print(f"[+] Controller connected from {addr[0]}:{addr[1]}")
+        raw, addr = server.recvfrom(1024)
+        decoded = raw.decode(errors='replace').strip()
+        parsed = parse_command(decoded)
+        intercepted.append({
+            "from": addr[0],
+            "raw":  decoded,
+            "parsed": parsed
+        })
+
+        print(f"[<] {addr[0]} -> RAW: '{decoded}' | PARSED: {parsed}")
 
         try:
-            while True:
-                raw = conn.recv(1024)
-                if not raw:
-                    print(f"[-] Controller at {addr[0]} disconnected.")
-                    break
-
-                decoded = raw.decode(errors='replace').strip()
-                parsed  = parse_command(decoded)
-
-                intercepted.append({
-                    "from": addr[0],
-                    "raw":  decoded,
-                    "parsed": parsed
-                })
-
-                print(f"[<] {addr[0]} -> RAW: '{decoded}' | PARSED: {parsed}")
-
-                # Forward an OK back so the controller stays alive
-                try:
-                    conn.sendall(b"ok\r\n")
-                except Exception:
-                    pass
-
-        except Exception as e:
-            print(f"[!] Connection error: {e}")
-        finally:
-            conn.close()
+            server.sendto(b"ok", addr)
+        except Exception:
+            pass
 
 except KeyboardInterrupt:
     print("\n[*] Listener interrupted.")
 
 finally:
     # Dump all intercepted commands to data dir
-    out_path = os.path.join(data_dir, 'intercepted_commands.json')
-    with open(out_path, 'w') as f:
-        json.dump(intercepted, f, indent=4)
-    print(f"[*] Intercepted {len(intercepted)} commands saved to {out_path}")
+    # out_path = os.path.join(data_dir, 'intercepted_commands.json')
+    # with open(out_path, 'w') as f:
+    #     json.dump(intercepted, f, indent=4)
+    # print(f"[*] Intercepted {len(intercepted)} commands saved to {out_path}")
     server.close()
     sys.exit(0)
