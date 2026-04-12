@@ -3,7 +3,8 @@ import json
 import os
 import sys
 import struct
-from responses import make_conn_ack, make_date_time_response, make_status_response
+import time
+from responses import *
 from protocol import parse_packet
 from video import TelloVideoStreamer
 
@@ -54,14 +55,24 @@ try:
         phone_ip = addr[0]
 
         if video_streamer is None:
-            video_streamer = TelloVideoStreamer(video_file=os.path.join(data_dir, 'video.h264'), phone_ip=phone_ip)
+            video_file = os.path.join(os.path.dirname(__file__), 'video.h264')
+            video_streamer = TelloVideoStreamer(video_file=video_file, phone_ip=phone_ip)
             video_streamer.start()
         
-        # Plaintext conn_req
+        # Connection init responses
         if raw.startswith(b"conn_req:"):
-            print(f"[<] {addr[0]} -> TEXT: '{raw.decode()}'")
+            print(f"[<] {phone_ip} -> TEXT: '{raw.decode()}'")
             server.sendto(make_conn_ack(), (phone_ip, PHONE_CMD_PORT))
-            print(f"[>] {addr[0]} <- TEXT: 'conn_ack:g+'")
+            print(f"[>] {phone_ip} <- TEXT: 'conn_ack:u'")
+
+            time.sleep(0.01)
+            server.sendto(make_date_time_response(seq_id=0), (phone_ip, PHONE_CMD_PORT))
+            print(f"[>] {phone_ip} <- DATE_TIME")
+
+            time.sleep(0.01)
+            server.sendto(make_status_response(seq_id=0), (phone_ip, PHONE_CMD_PORT))
+            print(f"[>] {phone_ip} <- STATUS")
+
             continue
 
         # Binary packet
@@ -72,21 +83,27 @@ try:
         seq_id = parsed.get("seq_id")
 
         if parsed["type"] == "text":
-            print(f"[<] {addr[0]} -> TEXT: '{parsed['raw']}'")
+            print(f"[<] {phone_ip} -> TEXT: '{parsed['raw']}'")
 
         elif parsed["cmd_name"] == "STICK":
             s = parsed.get("stick", {})
-            print(f"[<] {addr[0]} -> STICK: roll={s['roll']} pitch={s['pitch']} throttle={s['throttle']} yaw={s['yaw']} fast_mode={s['fast_mode']}")
+            print(f"[<] {phone_ip} -> STICK: roll={s['roll']} pitch={s['pitch']} throttle={s['throttle']} yaw={s['yaw']} fast_mode={s['fast_mode']}")
             server.sendto(make_status_response(seq_id), (phone_ip, PHONE_CMD_PORT))
-            print(f"[>] {addr[0]} <- STATUS response")
+            print(f"[>] {phone_ip} <- STATUS response")
         
         elif parsed["cmd_name"] == "DATE_TIME":
-            print(f"[<] {addr[0]} -> DATE_TIME request: (seq:{seq_id})")
+            print(f"[<] {phone_ip} -> DATE_TIME request: (seq:{seq_id})")
             server.sendto(make_date_time_response(seq_id), (phone_ip, PHONE_CMD_PORT))
-            print(f"[>] {addr[0]} <- DATE_TIME response")
+            print(f"[>] {phone_ip} <- DATE_TIME response")
+
+        elif parsed["cmd_name"] == "CONN_ACK_HANDSHAKE":
+            print(f"[<] {phone_ip} -> handshake (cmd 42) payload:{parsed['payload_hex']}")
+            payload = bytes.fromhex(parsed['payload_hex'])
+            server.sendto(make_handshake_ack(seq_id, payload), (phone_ip, PHONE_CMD_PORT))
+            print(f"[>] {phone_ip} <- handshake ack")
 
         else:
-            print(f"[<] {addr[0]} -> {parsed['direction']} CMD: {parsed['cmd_name']} (ID: {parsed['cmd_id']}, Seq: {parsed['seq_id']}) Payload: {parsed['payload']}")
+            print(f"[<] {phone_ip} -> {parsed['direction']} CMD: {parsed['cmd_name']} (ID: {parsed['cmd_id']}, Seq: {parsed['seq_id']}) Payload: {parsed['payload']}")
 
         intercepted.append(parsed)
 

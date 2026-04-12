@@ -3,7 +3,7 @@ import struct
 from protocol import PKT_TYPE_FROM_DRONE, build_packet, PKT_TYPE_RESPONSE
 
 def make_conn_ack():
-    return b"conn_ack:g+"
+    return b"conn_ack:u"
 
 def make_status_response(seq_id):
     payload = struct.pack('<24B',
@@ -27,3 +27,6 @@ def make_date_time_response(seq_id):
         now.minute
     )
     return build_packet(cmd_id=70, payload=payload, pkt_type=PKT_TYPE_RESPONSE, seq_id=seq_id)
+
+def make_handshake_ack(seq_id, payload=b''):
+    return build_packet(cmd_id=42, payload=payload, pkt_type=PKT_TYPE_RESPONSE, seq_id=seq_id)
