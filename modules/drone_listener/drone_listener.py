@@ -71,6 +71,7 @@ try:
             s = parsed.get("stick", {})
             print(f"[<] {addr[0]} -> STICK: roll={s['roll']} pitch={s['pitch']} throttle={s['throttle']} yaw={s['yaw']} fast_mode={s['fast_mode']}")
             server.sendto(make_status_response(seq_id), (phone_ip, PHONE_CMD_PORT))
+            print(f"[>] {addr[0]} <- STATUS response")
         
         elif parsed["cmd_name"] == "DATE_TIME":
             print(f"[<] {addr[0]} -> DATE_TIME request: (seq:{seq_id})")
@@ -81,12 +82,6 @@ try:
             print(f"[<] {addr[0]} -> {parsed['direction']} CMD: {parsed['cmd_name']} (ID: {parsed['cmd_id']}, Seq: {parsed['seq_id']}) Payload: {parsed['payload']}")
 
         intercepted.append(parsed)
-
-        # Send ok response
-        try:
-            server.sendto(b"ok", (phone_ip, PHONE_CMD_PORT))
-        except Exception:
-            pass
 
 except KeyboardInterrupt:
     print("\n[*] Listener interrupted.")
