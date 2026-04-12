@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import struct
-from responses import make_conn_ack, make_date_time_response, make_stick_ack
+from responses import make_conn_ack, make_date_time_response, make_status_response
 from protocol import parse_packet
 
 # ========================
@@ -23,6 +23,7 @@ interface = "wlx9cefd5f754df"
 
 LISTEN_HOST = "0.0.0.0"
 LISTEN_PORT = 8889
+PHONE_CMD_PORT = 7777
 
 # ========================
 # START LISTENER
@@ -47,11 +48,12 @@ intercepted = []
 try:
     while True:
         raw, addr = server.recvfrom(1024)
+        phone_ip = addr[0]
         
         # Plaintext conn_req
         if raw.startswith(b"conn_req:"):
             print(f"[<] {addr[0]} -> TEXT: '{raw.decode()}'")
-            server.sendto(make_conn_ack(), addr)
+            server.sendto(make_conn_ack(), (phone_ip, PHONE_CMD_PORT))
             print(f"[>] {addr[0]} <- TEXT: 'conn_ack:g+'")
             continue
 
@@ -68,11 +70,11 @@ try:
         elif parsed["cmd_name"] == "STICK":
             s = parsed.get("stick", {})
             print(f"[<] {addr[0]} -> STICK: roll={s['roll']} pitch={s['pitch']} throttle={s['throttle']} yaw={s['yaw']} fast_mode={s['fast_mode']}")
-            server.sendto(make_stick_ack(seq_id), addr)
+            server.sendto(make_status_response(seq_id), (phone_ip, PHONE_CMD_PORT))
         
         elif parsed["cmd_name"] == "DATE_TIME":
             print(f"[<] {addr[0]} -> DATE_TIME request: (seq:{seq_id})")
-            server.sendto(make_date_time_response(seq_id), addr)
+            server.sendto(make_date_time_response(seq_id), (phone_ip, PHONE_CMD_PORT))
             print(f"[>] {addr[0]} <- DATE_TIME response")
 
         else:
@@ -82,7 +84,7 @@ try:
 
         # Send ok response
         try:
-            server.sendto(b"ok", addr)
+            server.sendto(b"ok", (phone_ip, PHONE_CMD_PORT))
         except Exception:
             pass
 
