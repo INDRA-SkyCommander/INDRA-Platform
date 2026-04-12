@@ -5,6 +5,7 @@ import sys
 import struct
 from responses import make_conn_ack, make_date_time_response, make_status_response
 from protocol import parse_packet
+from video import TelloVideoStreamer
 
 # ========================
 # Read module input data (eventually from JSON, hardcoded for now)
@@ -24,6 +25,8 @@ interface = "wlx9cefd5f754df"
 LISTEN_HOST = "0.0.0.0"
 LISTEN_PORT = 8889
 PHONE_CMD_PORT = 7777
+
+video_streamer = None
 
 # ========================
 # START LISTENER
@@ -49,6 +52,10 @@ try:
     while True:
         raw, addr = server.recvfrom(1024)
         phone_ip = addr[0]
+
+        if video_streamer is None:
+            video_streamer = TelloVideoStreamer(video_file=os.path.join(data_dir, 'video.h264'), phone_ip=phone_ip)
+            video_streamer.start()
         
         # Plaintext conn_req
         if raw.startswith(b"conn_req:"):
