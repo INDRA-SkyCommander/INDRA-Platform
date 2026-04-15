@@ -3,11 +3,10 @@ from typing import List, Union
 
 def sudo_exec(cmd: Union[List[str], str]) -> subprocess.CompletedProcess:
 	"""
-	Executes a command with sudo privileges. Raises errors on failures.
+	Executes a command with sudo privileges. Captures output and return code.
 
 	Args: cmd: Command to execute (list of arguments or string)
 	Returns: CompletedProcess instance with command result
-	Raises: subprocess.CalledProcessError: If command fails
 	"""
 
 	# Convert command to list if string
@@ -16,18 +15,26 @@ def sudo_exec(cmd: Union[List[str], str]) -> subprocess.CompletedProcess:
 	print(f"Running: {' '.join(['sudo'] + cmd_list)}")
 
 	try:
-		# Runs sudo command and captures output
+		# Runs sudo command and captures output and return code
 		result = subprocess.run(
 			' '.join(['sudo'] + cmd_list),
-			shell=True
+			shell=True,
+			capture_output=True,
+			text=True
 		)
+		
+		if result.stdout:
+			print(result.stdout)
+		if result.stderr:
+			print(result.stderr, end='')
+		
 		return result
 	
-	except subprocess.CalledProcessError as e:
+	except Exception as e:
 		# Error handling
 		return subprocess.CompletedProcess(
 			args=['sudo'] + cmd_list,
-			returncode=e.returncode,
-			stdout=e.stdout,
-			stderr=e.stderr
+			returncode=1,
+			stdout="",
+			stderr=str(e)
 		)

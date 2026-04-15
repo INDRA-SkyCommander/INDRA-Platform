@@ -7,21 +7,18 @@ import queue
 import base64
 import threading
 import subprocess
+import re
 
 # Tkinter
 import tkinter as tk
 from tkinter import font
 import ttkbootstrap as tb
-from ttkbootstrap.constants import * # pyright: ignore[reportWildcardImportFromLibrary]
-
-# Video
-import av
-from PIL import Image, ImageTk
+from ttkbootstrap.constants import *  # pyright: ignore[reportWildcardImportFromLibrary]
 
 
 # Custom Modules
-from utils import sudo_exec, module_setup
-from utils.scan import scan, SCAN_ERROR_UNSUPPORTED_INTERFACE, SCAN_ERROR_GENERIC
+from src.utils import sudo_exec, module_setup
+from src.utils.scan import scan, SCAN_ERROR_UNSUPPORTED_INTERFACE, SCAN_ERROR_GENERIC
 
 class IndraGUI(tb.Window):
     """
@@ -64,11 +61,7 @@ class IndraGUI(tb.Window):
         self.filter_text = tk.StringVar(value="")
         self.selected_target = tk.StringVar(value="No target selected")
 
-        # Video variables
-        self.current_video_frame = None
-        self.video_queue = queue.Queue()
-        self.codec = av.CodecContext.create('h264', 'r')
-        self.video_file_position_reset = False  # Flag to signal file position reset on new exploit
+        # Video variables removed - moved to ControllerGUI
 
         # Log variables
         self.log_queue = queue.Queue()
@@ -93,34 +86,19 @@ class IndraGUI(tb.Window):
         # ======================
 
         self._setup_files()
-        self._log_slow("Setting up necessary directories...")
 
         # ======================
         # Setup message logging
         # ======================
 
         self._process_log_queue()
-        self._log_slow("Initializing system log...")
 
         # =====================
         # Call autoscan thread
         # =====================
 
-        self._log_slow("Initializing autoscan thread...")
         self.auto_scan_thread = threading.Thread(target=self._auto_scan_loop, daemon=True)
         self.auto_scan_thread.start()
-
-        # ===================
-        # Call video threads
-        # ===================
-
-        self._log_slow("Intializing video compiling thread...")
-        self.monitor_thread = threading.Thread(target=self._monitor_sniff_log, daemon=True)
-        self.monitor_thread.start()
-
-        self._log_slow("Intializing video player...")
-        self.video_playing = True
-        self._start_video_player()
 
         # ==============
         # Start Program
@@ -331,6 +309,10 @@ class IndraGUI(tb.Window):
         sudo_exec(f"ifconfig {interface} down")
         sudo_exec(f"iwconfig {interface} mode managed")
         sudo_exec(f"ifconfig {interface} up")
+        
+        # Give the interface time to stabilize after mode change
+        # This prevents "device or resource busy" errors
+        time.sleep(2)
 
         self._log_slow("Beep boop. Scanning...")
 
@@ -345,7 +327,17 @@ class IndraGUI(tb.Window):
                     self._log(f"Error! Interface '{interface}' does not support wireless scanning.")
                     return
                 elif scan_result == SCAN_ERROR_GENERIC:
-                    self._log("Error! A generic error occurred during scanning.")
+                    # Try to read the actual error message from raw_output.txt
+                    try:
+                        raw_output_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw_output.txt")
+                        with open(raw_output_path, 'r') as f:
+                            error_msg = f.read().strip()
+                            if error_msg:
+                                self._log(f"Error! Scan failed: {error_msg}")
+                            else:
+                                self._log("Error! A generic error occurred during scanning.")
+                    except:
+                        self._log("Error! A generic error occurred during scanning.")
                     return
                 
                 self.all_targets = scan_result
@@ -433,6 +425,26 @@ class IndraGUI(tb.Window):
         
         return target
     
+    def _extract_mac_address(self, mac_string: str) -> str:
+        """
+        Extracts a valid MAC address from a string that may contain extra characters.
+        
+        Args:
+            mac_string (str): String that should contain a MAC address
+            
+        Returns:
+            str: Valid MAC address in format XX:XX:XX:XX:XX:XX, or original string if not found
+        """
+        mac_string = mac_string.strip()
+        
+        # Look for MAC address pattern (6 pairs of hex digits separated by colons)
+        mac_match = re.search(r'([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})', mac_string)
+        
+        if mac_match:
+            return mac_match.group(1)
+        else:
+            return mac_string
+    
     def _get_target_info(self, target_name)->list:
         """
         Returns the target info list for the given target name.
@@ -507,7 +519,7 @@ class IndraGUI(tb.Window):
             "target_name": target_name.strip(),
             "target_info": {
                 "raw_string": target_info[0].strip() if len(target_info) > 0 else "",
-                "mac_address": target_info[1].strip() if len(target_info) > 1 else "",
+                "mac_address": self._extract_mac_address(target_info[1]) if len(target_info) > 1 else "",
                 "quality": target_info[2].strip() if len(target_info) > 2 else "",
                 "channel": target_info[3].strip() if len(target_info) > 3 else "",
                 "signal_level": target_info[4].strip() if len(target_info) > 4 else "",
@@ -728,21 +740,8 @@ class IndraGUI(tb.Window):
                                         )
         self.target_info_label.pack(anchor="w")
         
-        # Video Player Frame
-        video_frame  = tb.Labelframe(right_panel_frame, text="Live Video Feed", padding=2, bootstyle="info")
-        video_frame.grid(row=1, column=0, sticky="sew", padx=5, pady=10)
-
-        # Video Window
-        self.video_label = tb.Label(video_frame,
-                               text="[ Video Feed Unavailable ]",
-                               image=None,
-                               font=self.label_font,
-                               foreground= "#aaaaaa",
-                               anchor="center",
-                               bootstyle="secondary-inverse"
-                               )
-        self.video_label.pack(fill=BOTH, expand=True)
-
+        # Video section moved to Controller GUI
+        
         # Terminal Output Frame
         terminal_frame = tb.Labelframe(right_panel_frame, text="System Log", padding=5, bootstyle="info")
         terminal_frame.grid(row=2, column=0, sticky="sew", pady=10)
@@ -769,183 +768,6 @@ class IndraGUI(tb.Window):
     # ====================
     # Functions for video
     # ====================
-
-    def _get_nal_unit_type(self, data_packet):
-        """
-        Extracts NAL unit type from a base64-encoded NAL unit.
-        Handles NAL units that include start codes (0x00 0x00 0x00 0x01).
-        Returns NAL type (0-31) or None if unable to decode.
-        """
-        try:
-            # Decode base64 to get raw NAL unit bytes
-            nal_bytes = base64.b64decode(data_packet)
-            if len(nal_bytes) < 5:  # Minimum: 4-byte start code + 1-byte NAL header
-                return None
-            
-            # Skip past the start code (0x00 0x00 0x00 0x01)
-            offset = 0
-            if nal_bytes[0:4] == b'\x00\x00\x00\x01':
-                offset = 4
-            elif nal_bytes[0:3] == b'\x00\x00\x01':
-                offset = 3
-            
-            if offset >= len(nal_bytes):
-                return None
-            
-            # Extract NAL type from first byte after start code (bottom 5 bits)
-            nal_header = nal_bytes[offset]
-            nal_type = nal_header & 0x1F
-            return nal_type
-        except Exception:
-            return None
-
-    def _monitor_sniff_log(self):
-        """
-        Monitors a log file for video data being written to it.
-        Reads base64-encoded NAL units and passes them for decoding.
-        Handles file position resets when new exploits are launched.
-        Runs in a separate thread.
-        """
-        
-        try:	
-            f = None
-            frames_processed = 0
-
-            while True:
-                # Check if a new exploit run has started - reset file position
-                if self.video_file_position_reset:
-                    if f:
-                        f.close()
-                    f = open(self.sniff_output_path, 'r', encoding='utf-8', errors='ignore')
-                    f.seek(0, 2)  # Go to EOF
-                    frames_processed = 0
-                    self.video_file_position_reset = False
-                    self._log("Video: Restarted file monitoring for new exploit")
-                    continue
-                
-                # Open file if not already open
-                if f is None:
-                    f = open(self.sniff_output_path, 'r', encoding='utf-8', errors='ignore')
-                    f.seek(0, 2)  # Go to EOF
-
-                try:
-                    line = f.readline()
-
-                    # No new data yet, wait and retry
-                    if not line:
-                        time.sleep(0.01)
-                        continue
-
-                    # Process this NAL unit
-                    if line.strip():
-                        self._process_packet(line.strip())
-                        frames_processed += 1
-                        
-                        # Log progress every 100 NAL units
-                        if frames_processed % 100 == 0:
-                            self._log(f"Video: Processed {frames_processed} NAL units")
-
-                except IOError:
-                    # File may have been moved/deleted, reopen it
-                    if f:
-                        f.close()
-                    f = None
-                    time.sleep(0.1)
-                    continue
-
-        except FileNotFoundError:
-            self._log("Error: Video log file not found. Sniffer may not have started.")
-        except Exception as e:
-            self._log(f"Error monitoring video log: {e}")
-        finally:
-            if f:
-                f.close()
-        
-        return
-
-    def _process_packet(self, data_packet):
-        """
-        Decodes H.264 NAL units from base64 and produces video frames.
-        The sniffer writes NAL units with start codes, and IDR frames include
-        SPS+PPS prepended. PyAV's parse() handles all of this correctly.
-        """
-
-        try:
-            # Clean up base64 data (remove any stray whitespace)
-            clean_packet = data_packet.strip()
-            
-            if not clean_packet:
-                return
-            
-            # Skip session separator lines
-            if clean_packet.startswith("==="):
-                return
-            
-            # Decode base64 to get raw NAL unit bytes (includes start codes)
-            try:
-                video_bytes = base64.b64decode(clean_packet)
-            except Exception as e:
-                self._log(f"Warning: Failed to decode base64 NAL unit: {e}")
-                return
-            
-            # Skip empty packets
-            if len(video_bytes) < 5:
-                return
-            
-            # Parse and decode H.264 NAL unit(s) into frames
-            # PyAV handles start codes and multiple NAL units (SPS+PPS+IDR) automatically
-            try:
-                packets = self.codec.parse(video_bytes)
-                for packet in packets:
-                    # Decode each packet into one or more frames
-                    frames = self.codec.decode(packet)
-                    for frame in frames:
-                        try:
-                            # Convert frame to PIL Image
-                            img = frame.to_image()
-                            
-                            # Resize to fit GUI (640x360 display area)
-                            img = img.resize((640, 360), Image.Resampling.NEAREST)
-                            
-                            # Queue for display on main thread
-                            self.video_queue.put(img)
-                        except Exception as e:
-                            self._log(f"Warning: Failed to convert frame to image: {e}")
-
-            except Exception as e:
-                # Only log unexpected errors, not codec state issues
-                if "Invalid data" not in str(e):
-                    self._log(f"Warning: Failed to decode H.264 packet: {e}")
-                
-        except Exception as e:
-            self._log(f"Error processing video packet: {e}")
-
-        return
-
-    def _start_video_player(self):
-        """
-        Polls the video queue, converts images to ImageTk and updates the GUI.
-        Runs recursively on main thread.
-        """
-
-        try:
-            while not self.video_queue.empty():
-
-                # Get frame from queue without blocking
-                frame = self.video_queue.get_nowait()
-                tk_frame = ImageTk.PhotoImage(frame)
-
-                # Update GUI
-                self.video_label.configure(image=tk_frame, text="")
-                self.current_video_frame = tk_frame # Prevent garbage collection
-
-        except queue.Empty:
-            pass
-        finally:
-            if self.video_playing:
-                self.after(15, self._start_video_player)
-        
-        return
 
     # =============================
     # Functions for system logging
