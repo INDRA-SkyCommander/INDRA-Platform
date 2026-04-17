@@ -1,9 +1,10 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import sys
 import os
 import json
 import random
+import threading
 
 # Import your custom utility for the disconnect command
 # Note: Ensure your PYTHONPATH is set correctly so it finds src.utils
@@ -20,6 +21,219 @@ except ImportError:
     print("[!] Error: ttkbootstrap not found. Run: /usr/bin/python3.11 -m pip install ttkbootstrap")
     sys.exit(1)
 
+try:
+    from djitellopy import Tello
+except ImportError:
+    print("[!] Error: djitellopy not found. Run: /usr/bin/python3.11 -m pip install djitellopy")
+    sys.exit(1)
+
+
+class TelloController:
+    """
+    Manages DJI Tello Edu drone connections and flight operations.
+    Provides methods for basic flight control.
+    """
+    
+    def __init__(self):
+        self.tello = None
+        self.is_connected = False
+        self.is_flying = False
+        self.speed = 50  # 0-100 cm/s
+        
+    def connect(self):
+        """Establish connection to the drone."""
+        try:
+            self.tello = Tello()
+            self.tello.connect()
+            battery = self.tello.get_battery()
+            self.is_connected = True
+            return True, f"Connected! Battery: {battery}%"
+        except Exception as e:
+            return False, f"Connection failed: {str(e)}"
+    
+    def disconnect(self):
+        """Safely disconnect from the drone."""
+        try:
+            if self.is_flying:
+                self.land()
+            if self.tello:
+                self.tello.end()
+            self.is_connected = False
+            self.tello = None
+            return True, "Disconnected successfully"
+        except Exception as e:
+            return False, f"Disconnection failed: {str(e)}"
+    
+    def get_battery(self):
+        """Get current battery percentage."""
+        if not self.is_connected:
+            return None
+        try:
+            return self.tello.get_battery()
+        except Exception:
+            return None
+    
+    def set_speed(self, speed):
+        """Set flight speed (0-100 cm/s)."""
+        self.speed = max(10, min(100, int(speed)))
+        if self.is_connected:
+            self.tello.set_speed(self.speed)
+    
+    # Flight Control Methods
+    def takeoff(self):
+        """Initiate takeoff."""
+        if not self.is_connected:
+            return False, "Not connected to drone"
+        try:
+            self.tello.takeoff()
+            self.is_flying = True
+            return True, "Takeoff initiated"
+        except Exception as e:
+            return False, f"Takeoff failed: {str(e)}"
+    
+    def land(self):
+        """Land the drone."""
+        if not self.is_connected:
+            return False, "Not connected to drone"
+        try:
+            self.tello.land()
+            self.is_flying = False
+            return True, "Landing initiated"
+        except Exception as e:
+            return False, f"Landing failed: {str(e)}"
+    
+    def emergency_stop(self):
+        """Emergency stop - immediately cut motors."""
+        if not self.is_connected:
+            return False, "Not connected to drone"
+        try:
+            self.tello.emergency()
+            self.is_flying = False
+            return True, "Emergency stop activated"
+        except Exception as e:
+            return False, f"Emergency stop failed: {str(e)}"
+    
+    # Movement Methods
+    def move_forward(self, distance=20):
+        """Move forward."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.move_forward(distance)
+            return True, f"Moving forward {distance}cm"
+        except Exception as e:
+            return False, str(e)
+    
+    def move_backward(self, distance=20):
+        """Move backward."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.move_back(distance)
+            return True, f"Moving backward {distance}cm"
+        except Exception as e:
+            return False, str(e)
+    
+    def move_left(self, distance=20):
+        """Move left."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.move_left(distance)
+            return True, f"Moving left {distance}cm"
+        except Exception as e:
+            return False, str(e)
+    
+    def move_right(self, distance=20):
+        """Move right."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.move_right(distance)
+            return True, f"Moving right {distance}cm"
+        except Exception as e:
+            return False, str(e)
+    
+    def move_up(self, distance=20):
+        """Move up."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.move_up(distance)
+            return True, f"Moving up {distance}cm"
+        except Exception as e:
+            return False, str(e)
+    
+    def move_down(self, distance=20):
+        """Move down."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.move_down(distance)
+            return True, f"Moving down {distance}cm"
+        except Exception as e:
+            return False, str(e)
+    
+    def rotate_clockwise(self, angle=45):
+        """Rotate clockwise."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.rotate_clockwise(angle)
+            return True, f"Rotating clockwise {angle}°"
+        except Exception as e:
+            return False, str(e)
+    
+    def rotate_counterclockwise(self, angle=45):
+        """Rotate counter-clockwise."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.rotate_counter_clockwise(angle)
+            return True, f"Rotating counter-clockwise {angle}°"
+        except Exception as e:
+            return False, str(e)
+    
+    def flip_forward(self):
+        """Perform forward flip."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.flip_forward()
+            return True, "Flipping forward"
+        except Exception as e:
+            return False, str(e)
+    
+    def flip_backward(self):
+        """Perform backward flip."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.flip_back()
+            return True, "Flipping backward"
+        except Exception as e:
+            return False, str(e)
+    
+    def flip_left(self):
+        """Perform left flip."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.flip_left()
+            return True, "Flipping left"
+        except Exception as e:
+            return False, str(e)
+    
+    def flip_right(self):
+        """Perform right flip."""
+        if not self.is_flying:
+            return False, "Drone not flying"
+        try:
+            self.tello.flip_right()
+            return True, "Flipping right"
+        except Exception as e:
+            return False, str(e)
+
 class ControllerGUI(tb.Window):
     def __init__(self):
         super().__init__(themename="darkly")
@@ -31,6 +245,10 @@ class ControllerGUI(tb.Window):
         # Path to the data file used by the reauth module
         self.data_path = os.path.join(os.path.dirname(__file__), '..', '..', "data", "module_input_data.json")
 
+        # Initialize drone controller
+        self.controller = TelloController()
+        self.movement_distance = 20  # cm
+
         # --- VIDEO FEED FOUNDATION ---
         self.video_canvas = tk.Canvas(self, bg="black", highlightthickness=0)
         self.video_canvas.place(x=0, y=0, relwidth=1, relheight=1)
@@ -40,6 +258,9 @@ class ControllerGUI(tb.Window):
         self.video_label.place(relx=0.5, rely=0.5, anchor="center")
 
         self._setup_hud()
+        self._bind_keys()
+        
+        self.protocol("WM_DELETE_WINDOW", self._on_closing)
 
     def disconnect_drone(self):
         """
@@ -68,8 +289,8 @@ class ControllerGUI(tb.Window):
 
     def random_flip(self):
         """Random flip for fun"""
-        directions = ["f", "b", "l", "r"]
-        print(f"UI_CMD: flip {random.choice(directions)}")
+        directions = ["forward", "backward", "left", "right"]
+        self._flip(random.choice(directions))
 
     def _setup_hud(self):
         # --- TOP TELEMETRY BAR ---
@@ -98,10 +319,10 @@ class ControllerGUI(tb.Window):
         left_panel.place(relx=0.03, rely=0.5, anchor="w")
 
         tb.Button(left_panel, text="↑ TAKEOFF", width=15, bootstyle="success", 
-                  command=lambda: print("UI_CMD: takeoff")).pack(pady=10)
+                  command=self._takeoff).pack(pady=10)
         
         tb.Button(left_panel, text="↓ LAND", width=15, bootstyle="danger", 
-                  command=lambda: print("UI_CMD: land")).pack(pady=10)
+                  command=self._land).pack(pady=10)
         
         tb.Button(left_panel, text="✨ FLIP", width=15, bootstyle="info-outline", 
                   command=self.random_flip).pack(pady=20)
@@ -117,6 +338,133 @@ class ControllerGUI(tb.Window):
         
         tb.Button(right_panel, text="🔴 RECORD", width=15, bootstyle="danger-outline",
                   command=lambda: print("UI_CMD: toggle_record")).pack(pady=5)
+
+    def _bind_keys(self):
+        """Bind keyboard events for drone control."""
+        # WASD for directional movement
+        self.bind("<w>", lambda e: self._move("forward"))
+        self.bind("<W>", lambda e: self._move("forward"))
+        self.bind("<a>", lambda e: self._move("left"))
+        self.bind("<A>", lambda e: self._move("left"))
+        self.bind("<s>", lambda e: self._move("backward"))
+        self.bind("<S>", lambda e: self._move("backward"))
+        self.bind("<d>", lambda e: self._move("right"))
+        self.bind("<D>", lambda e: self._move("right"))
+        
+        # Arrow keys for up/down movement
+        self.bind("<Up>", lambda e: self._move("up"))
+        self.bind("<Down>", lambda e: self._move("down"))
+        
+        # Left/Right arrow keys for rotation
+        self.bind("<Left>", lambda e: self._rotate("ccw"))
+        self.bind("<Right>", lambda e: self._rotate("cw"))
+        
+        self.bind("<space>", lambda e: self._takeoff())
+        self.bind("<BackSpace>", lambda e: self._land())
+    
+    def _connect(self):
+        """Connect to drone in a background thread."""
+        def connect_thread():
+            success, msg = self.controller.connect()
+            self.after(0, lambda: self._on_connect_complete(success, msg))
+        
+        threading.Thread(target=connect_thread, daemon=True).start()
+    
+    def _on_connect_complete(self, success, msg):
+        """Handle connection completion."""
+        print(msg)
+        if not success:
+            messagebox.showerror("Connection Error", msg)
+    
+    def _takeoff(self):
+        """Takeoff command."""
+        def takeoff_thread():
+            success, msg = self.controller.takeoff()
+            self.after(0, lambda: self._on_takeoff_complete(success, msg))
+        
+        threading.Thread(target=takeoff_thread, daemon=True).start()
+    
+    def _on_takeoff_complete(self, success, msg):
+        """Handle takeoff completion."""
+        print(msg)
+        if not success:
+            messagebox.showerror("Takeoff Error", msg)
+    
+    def _land(self):
+        """Land command."""
+        def land_thread():
+            success, msg = self.controller.land()
+            self.after(0, lambda: self._on_land_complete(success, msg))
+        
+        threading.Thread(target=land_thread, daemon=True).start()
+    
+    def _on_land_complete(self, success, msg):
+        """Handle landing completion."""
+        print(msg)
+    
+    def _move(self, direction):
+        """Handle movement commands."""
+        if not self.controller.is_connected or not self.controller.is_flying:
+            return
+        
+        def move_thread():
+            distance = self.movement_distance
+            if direction == "forward":
+                success, msg = self.controller.move_forward(distance)
+            elif direction == "backward":
+                success, msg = self.controller.move_backward(distance)
+            elif direction == "left":
+                success, msg = self.controller.move_left(distance)
+            elif direction == "right":
+                success, msg = self.controller.move_right(distance)
+            elif direction == "up":
+                success, msg = self.controller.move_up(distance)
+            elif direction == "down":
+                success, msg = self.controller.move_down(distance)
+            
+            self.after(0, lambda: print(msg))
+        
+        threading.Thread(target=move_thread, daemon=True).start()
+    
+    def _rotate(self, direction):
+        """Handle rotation commands."""
+        if not self.controller.is_connected or not self.controller.is_flying:
+            return
+        
+        def rotate_thread():
+            if direction == "cw":
+                success, msg = self.controller.rotate_clockwise(45)
+            else:
+                success, msg = self.controller.rotate_counterclockwise(45)
+            
+            self.after(0, lambda: print(msg))
+        
+        threading.Thread(target=rotate_thread, daemon=True).start()
+    
+    def _flip(self, direction):
+        """Handle flip commands."""
+        if not self.controller.is_connected or not self.controller.is_flying:
+            return
+        
+        def flip_thread():
+            if direction == "forward":
+                success, msg = self.controller.flip_forward()
+            elif direction == "backward":
+                success, msg = self.controller.flip_backward()
+            elif direction == "left":
+                success, msg = self.controller.flip_left()
+            elif direction == "right":
+                success, msg = self.controller.flip_right()
+            
+            self.after(0, lambda: print(msg))
+        
+        threading.Thread(target=flip_thread, daemon=True).start()
+    
+    def _on_closing(self):
+        """Handle window closing."""
+        if self.controller.is_connected:
+            self.controller.disconnect()
+        self.destroy()
 
 if __name__ == "__main__":
     # Ensure we run from the project root if testing manually
