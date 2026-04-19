@@ -12,6 +12,11 @@ DRONE_INTERFACE = "wlx9cefd5f66998"
 DRONE_HOST = "192.168.10.1" # Real Drone's IP address
 DRONE_PORT = 8889 #Drone's command port
 
+VIDEO_PORT = 7797
+
+PHONE_HOST = "192.168.10.3"
+# PHONE_PORT = 7797
+
 
 #Starts as None and will dynamically change as the phone connects 
 phone_addr = None
@@ -30,7 +35,7 @@ phone_sock.bind((AP_INTERFACE_IP, LISTEN_PORT))
 #Creates another UDP port on the drone side binds to (0.0.0.0)!!!!!(this may need to change to card 2's IP to make sure it sends through it)
 drone_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 drone_sock.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, DRONE_INTERFACE.encode('utf-8') + b'\0')
-drone_sock.connect(("0.0.0.0", LISTEN_PORT + 1)) #ephemeral local port for drone side 
+drone_sock.connect(("192.168.10.6", VIDEO_PORT)) # ephemeral local port for drone side 
 
 def phone_to_drone(): 
     """Forward packets from phone -> drone, track phones IP dynamically"""
@@ -48,14 +53,14 @@ def phone_to_drone():
 def drone_to_phone(): 
     """Forward packets from drone -> phone, drop if phone hasnt connected yet"""
     while True: 
-        data, addr = drone_sock.recvfrom(4096)
+        data, addr = drone_sock.recvfrom(65536)
         print(f"[D->P] {addr} | {len(data)} bytes | {data.hex()}") #Logging same as before 
         with phone_lock: 
             target = phone_addr 
         if target is None:
             print("[WARN] Drone sent data but no phone connected yet, dropping")
             continue 
-        phone_sock.sendto(data, target) #pass unchanged 
+        phone_sock.sendto(data, (PHONE_HOST, VIDEO_PORT)) #pass unchanged 
 
 
 #Starts both functions at the same time on seperate threads
