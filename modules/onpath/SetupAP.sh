@@ -32,6 +32,7 @@ wmm_enabled=0
 macaddr_acl=0
 auth_algs=1
 ignore_broadcast_ssid=0
+txpower=30
 EOF
 
 # Write dnsmasq config

