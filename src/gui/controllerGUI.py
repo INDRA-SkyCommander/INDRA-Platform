@@ -39,30 +39,57 @@ class TelloController:
         self.is_connected = False
         self.is_flying = False
         self.speed = 50  # 0-100 cm/s
+        self.connect_lock = threading.Lock()
         
     def connect(self):
         """Establish connection to the drone."""
-        try:
-            self.tello = Tello()
-            self.tello.connect()
-            battery = self.tello.get_battery()
-            self.is_connected = True
-            return True, f"Connected! Battery: {battery}%"
-        except Exception as e:
-            return False, f"Connection failed: {str(e)}"
+        with self.connect_lock:
+            if self.is_connected and self.tello is not None:
+                return True, "Already connected to drone"
+
+            try:
+                if self.tello is not None:
+                    try:
+                        self.tello.end()
+                    except Exception:
+                        pass
+                    self.tello = None
+
+                self.tello = Tello()
+                self.tello.connect()
+                battery = self.tello.get_battery()
+                self.is_connected = True
+                return True, f"Connected! Battery: {battery}%"
+            except Exception as e:
+                error_msg = str(e)
+                self.is_connected = False
+
+                if "Address already in use" in error_msg or "Errno 98" in error_msg:
+                    try:
+                        if self.tello:
+                            self.tello.end()
+                    except Exception:
+                        pass
+                    self.tello = None
+                    return False, "Connection failed: UDP port already in use ([Errno 98]). Close other Tello sessions and retry."
+
+                self.tello = None
+                return False, f"Connection failed: {error_msg}"
     
     def disconnect(self):
         """Safely disconnect from the drone."""
-        try:
-            if self.is_flying:
-                self.land()
-            if self.tello:
-                self.tello.end()
-            self.is_connected = False
-            self.tello = None
-            return True, "Disconnected successfully"
-        except Exception as e:
-            return False, f"Disconnection failed: {str(e)}"
+        with self.connect_lock:
+            try:
+                if self.is_flying:
+                    self.land()
+                if self.tello:
+                    self.tello.end()
+                self.is_connected = False
+                self.is_flying = False
+                self.tello = None
+                return True, "Disconnected successfully"
+            except Exception as e:
+                return False, f"Disconnection failed: {str(e)}"
     
     def get_battery(self):
         """Get current battery percentage."""
@@ -248,6 +275,7 @@ class ControllerGUI(tb.Window):
         # Initialize drone controller
         self.controller = TelloController()
         self.movement_distance = 20  # cm
+        self.is_connecting = False
 
         # --- VIDEO FEED FOUNDATION ---
         self.video_canvas = tk.Canvas(self, bg="black", highlightthickness=0)
@@ -309,9 +337,17 @@ class ControllerGUI(tb.Window):
                             relief="flat", padx=10, pady=5)
         disc_btn.pack(side="left", padx=5, pady=10)
 
+        self.connect_btn = tk.Button(top_bar, text="⦿ CONNECT", command=self._connect,
+                    bg="#234f23", fg="#ffffff", font=("Arial", 9, "bold"),
+                    relief="flat", padx=10, pady=5)
+        self.connect_btn.pack(side="left", padx=5, pady=10)
+
         tb.Label(top_bar, text="INDRA FLIGHT DECK", font=("Arial", 10, "bold")).pack(side="left", padx=20)
+
+        self.stat_conn = tb.Label(top_bar, text="● OFFLINE", font=("Courier", 12), bootstyle="danger")
+        self.stat_conn.pack(side="right", padx=(5, 20))
         
-        self.stat_bat = tb.Label(top_bar, text="🔋 100%", font=("Courier", 14), bootstyle="success")
+        self.stat_bat = tb.Label(top_bar, text="🔋 --%", font=("Courier", 14), bootstyle="secondary")
         self.stat_bat.pack(side="right", padx=20)
 
         # --- LEFT PANEL: FLIGHT OPERATIONS ---
@@ -364,6 +400,16 @@ class ControllerGUI(tb.Window):
     
     def _connect(self):
         """Connect to drone in a background thread."""
+        if self.is_connecting:
+            return
+
+        if self.controller.is_connected:
+            print("Already connected to drone")
+            return
+
+        self.is_connecting = True
+        self.connect_btn.configure(state=tk.DISABLED, text="… CONNECTING")
+
         def connect_thread():
             success, msg = self.controller.connect()
             self.after(0, lambda: self._on_connect_complete(success, msg))
@@ -372,12 +418,28 @@ class ControllerGUI(tb.Window):
     
     def _on_connect_complete(self, success, msg):
         """Handle connection completion."""
+        self.is_connecting = False
+        self.connect_btn.configure(state=tk.NORMAL, text="⦿ CONNECT")
         print(msg)
-        if not success:
+
+        if success:
+            battery = self.controller.get_battery()
+            self.stat_conn.configure(text="● ONLINE", bootstyle="success")
+            if battery is not None:
+                self.stat_bat.configure(text=f"🔋 {battery}%", bootstyle="success")
+            return
+
+        self.stat_conn.configure(text="● OFFLINE", bootstyle="danger")
+        self.stat_bat.configure(text="🔋 --%", bootstyle="secondary")
+        if "Not connected to drone" not in msg:
             messagebox.showerror("Connection Error", msg)
     
     def _takeoff(self):
         """Takeoff command."""
+        if not self.controller.is_connected:
+            print("Not connected to drone. Press CONNECT first.")
+            return
+
         def takeoff_thread():
             success, msg = self.controller.takeoff()
             self.after(0, lambda: self._on_takeoff_complete(success, msg))
@@ -387,7 +449,7 @@ class ControllerGUI(tb.Window):
     def _on_takeoff_complete(self, success, msg):
         """Handle takeoff completion."""
         print(msg)
-        if not success:
+        if not success and "Not connected to drone" not in msg:
             messagebox.showerror("Takeoff Error", msg)
     
     def _land(self):

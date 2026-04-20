@@ -33,6 +33,7 @@ class IndraGUI(tb.Window):
 
         #Connection Watcher
         self.drone_connected = False
+        self.controller_process = None
         self.conn_thread = threading.Thread(target=self.connection_watcher, daemon=True)
         self.conn_thread.start()
 
@@ -232,6 +233,13 @@ class IndraGUI(tb.Window):
                                         )
         self.options_dropdown.bind("<<ComboboxSelected>>", self._handle_option_change)
 
+        # Flight Deck Button (manual launch)
+        self.flight_deck_btn = tb.Button(top_bar_frame,
+                        text="Flight Deck",
+                        bootstyle="primary-outline",
+                        command=self._handle_open_controller
+                        )
+
         # Exploit Button
         self.exploit_btn = tb.Button(top_bar_frame,
                                 text="EXPLOIT",
@@ -251,7 +259,7 @@ class IndraGUI(tb.Window):
         self.options_dropdown.grid(row=0, column=4, padx=5, pady=5)
         self.options_btn.grid(row=0, column=5, padx=5, pady=5)
 
-        # Col 6 is spacer
+        self.flight_deck_btn.grid(row=0, column=6, padx=5, pady=5)
 
         self.exploit_dropdown.grid(row=0, column=7, padx=5, pady=5)
         self.exploit_btn.grid(row=0, column=8, padx=10, pady=5, sticky="nsw")
@@ -561,10 +569,10 @@ class IndraGUI(tb.Window):
             except Exception as e:
                 self._log(f"Error executing module {exploit}: {e}")
                 return -1
-            finally:
-                sudo_exec(f"ifconfig {interface} down")
-                sudo_exec(f"iwconfig {interface} mode managed")
-                sudo_exec(f"ifconfig {interface} up")
+            # finally:
+            #     sudo_exec(f"ifconfig {interface} down")
+            #     sudo_exec(f"iwconfig {interface} mode managed")
+            #     sudo_exec(f"ifconfig {interface} up")
 
             self.after(0, lambda: self.exploit_btn.config(text="EXPLOIT", state=tk.NORMAL, style="Large.Danger.TButton"))
 
@@ -600,6 +608,28 @@ class IndraGUI(tb.Window):
         self.selected_option.set(selected)
 
         return
+
+    def _handle_open_controller(self):
+        """
+        Manually launches the external flight controller GUI.
+        """
+
+        if self.controller_process and self.controller_process.poll() is None:
+            self._log("Flight Deck is already running.")
+            return
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        controller_path = os.path.join(current_dir, "controllerGUI.py")
+
+        if not os.path.exists(controller_path):
+            self._log(f"Error! {controller_path} not found.")
+            return
+
+        try:
+            self.controller_process = subprocess.Popen([sys.executable, controller_path])
+            self._log_slow("Opening Flight Deck...")
+        except Exception as e:
+            self._log(f"Error launching Flight Deck: {e}")
     
     def _init_host_list(self, row, col):
         """
@@ -868,19 +898,11 @@ class IndraGUI(tb.Window):
 
                 if is_on_tello and not self.drone_connected:
                     self.drone_connected = True
-                    self._log_slow("[!] Tello Link Established. Launching Flight Deck...")
-                    
-                    # Launch the separate controller GUI
-                    current_dir = os.path.dirname(os.path.abspath(__file__))
-                    controller_path = os.path.join(current_dir, "controllerGUI.py")
-                    
-                    if os.path.exists(controller_path):
-                        subprocess.Popen([sys.executable, controller_path])
-                    else:
-                        print(f"[!] ERROR: {controller_path} not found!")
+                    self._log_slow("[!] Tello Link Established. Use Flight Deck button to launch controls.")
 
                 elif not is_on_tello:
-                    # Reset if disconnected so it can re-trigger later
+                    if self.drone_connected:
+                        self._log("[!] Tello link lost.")
                     self.drone_connected = False
 
             except Exception:
@@ -892,6 +914,4 @@ class IndraGUI(tb.Window):
 
     def launch_controller(self):
         """Launches the external controllerGUI.py file"""
-        print("[*] Tello Detected! Launching Controller...")
-        # This opens your other file in a new process
-        subprocess.Popen(["python3", "src/gui/controllerGUI.py"])
+        self._handle_open_controller()
