@@ -886,31 +886,31 @@ class IndraGUI(tb.Window):
         PRODUCTION: Monitors for active Tello Wi-Fi connection.
         Only triggers when Ubuntu confirms it is 'activated' on a TELLO-XXXX network.
         """
-        while True:
-            try:
-                # Ask NetworkManager for the name of the currently activated Wi-Fi
-                cmd = "nmcli -t -f NAME,STATE connection show --active | grep ':activated' | cut -d':' -f1"
-                output = subprocess.check_output(cmd, shell=True, text=True).strip()
-                active_networks = output.split('\n')
+        # while True:
+        #     try:
+        #         # Ask NetworkManager for the name of the currently activated Wi-Fi
+        #         cmd = "nmcli -t -f NAME,STATE connection show --active | grep ':activated' | cut -d':' -f1"
+        #         output = subprocess.check_output(cmd, shell=True, text=True).strip()
+        #         active_networks = output.split('\n')
 
-                # Check if any active network contains 'TELLO' in the name
-                is_on_tello = any("TELLO" in net.upper() for net in active_networks if net)
+        #         # Check if any active network contains 'TELLO' in the name
+        #         is_on_tello = any("TELLO" in net.upper() for net in active_networks if net)
 
-                if is_on_tello and not self.drone_connected:
-                    self.drone_connected = True
-                    self._log_slow("[!] Tello Link Established. Use Flight Deck button to launch controls.")
+        #         if is_on_tello and not self.drone_connected:
+        #             self.drone_connected = True
+        #             self._log_slow("[!] Tello Link Established. Use Flight Deck button to launch controls.")
 
-                elif not is_on_tello:
-                    if self.drone_connected:
-                        self._log("[!] Tello link lost.")
-                    self.drone_connected = False
+        #         elif not is_on_tello:
+        #             if self.drone_connected:
+        #                 self._log("[!] Tello link lost.")
+        #             self.drone_connected = False
 
-            except Exception:
-                # nmcli fails if no network is active; we just treat as disconnected
-                self.drone_connected = False
+        #     except Exception:
+        #         # nmcli fails if no network is active; we just treat as disconnected
+        #         self.drone_connected = False
 
-            # Check every 3 seconds to keep it responsive but light on CPU
-            time.sleep(3)
+        #     # Check every 3 seconds to keep it responsive but light on CPU
+        #     time.sleep(3)
 
     def launch_controller(self):
         """Launches the external controllerGUI.py file"""

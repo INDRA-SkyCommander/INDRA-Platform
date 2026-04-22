@@ -287,8 +287,6 @@ class ControllerGUI(tb.Window):
 
         self._setup_hud()
         self._bind_keys()
-        
-        self.protocol("WM_DELETE_WINDOW", self._on_closing)
 
     def disconnect_drone(self):
         """

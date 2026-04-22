@@ -52,7 +52,7 @@ def scan(interface="wlan0"):
 			subprocess.run(cmd, shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=2)
 		except:
 			pass
-	time.sleep(1)
+	time.sleep(3)  # Give killed processes time to fully release kernel resources
 	
 	# Disconnect from any network
 	print(f"[*] Disconnecting from any active networks...")
@@ -60,7 +60,7 @@ def scan(interface="wlan0"):
 		subprocess.run(f"nmcli dev disconnect {interface}", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=3)
 	except:
 		pass
-	time.sleep(0.5)
+	time.sleep(4)
 	
 	# Make sure WiFi is not blocked by rfkill
 	print(f"[*] Ensuring WiFi is enabled...")
@@ -68,20 +68,21 @@ def scan(interface="wlan0"):
 		subprocess.run(f"sudo rfkill unblock wifi", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=3)
 	except:
 		pass
-	time.sleep(0.5)
+	time.sleep(4)
 	
 	# Flush any pending operations on the interface by bringing it down and back up
 	print(f"[*] Flushing interface state...")
 	try:
 		subprocess.run(f"sudo ip link set {interface} down", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=3)
-		time.sleep(0.5)
+		time.sleep(1)
 		subprocess.run(f"sudo ip link set {interface} up", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=3)
 	except:
 		pass
-	time.sleep(1)
+	time.sleep(2)  # Allow kernel to fully reinitialize the interface
 	
 	# Try multiple scanning methods in order of preference
 	print(f"[*] Attempting to scan {interface}...")
+	time.sleep(1)  # Initial delay to ensure interface is fully ready
 	
 	return_code = -1
 	scan_output = ""
@@ -94,19 +95,20 @@ def scan(interface="wlan0"):
 		if attempt > 0:
 			# Longer delays when device is busy - it needs time to recover
 			if attempt == 1:
-				delay = 3
+				delay = 4
 				print(f"[!] Device busy, giving interface extra recovery time...")
 			elif attempt == 2:
-				delay = 5
+				delay = 6
 				print(f"[!] Still busy, performing secondary interface reset...")
 				try:
 					subprocess.run(f"sudo ip link set {interface} down", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=2)
-					time.sleep(1)
+					time.sleep(2)
 					subprocess.run(f"sudo ip link set {interface} up", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=2)
+					time.sleep(1)  # Extra delay after interface comes back up
 				except:
 					pass
 			else:
-				delay = 6 + (attempt * 2)
+				delay = 8 + (attempt * 3)
 			
 			print(f"[*] iw attempt {attempt + 1}/{max_retries} (waiting {delay}s)...")
 			time.sleep(delay)
@@ -146,19 +148,20 @@ def scan(interface="wlan0"):
 			if attempt > 0:
 				# Longer delays for busy interface
 				if attempt == 1:
-					delay = 3
+					delay = 4
 					print(f"[!] Device busy, giving interface extra recovery time...")
 				elif attempt == 2:
-					delay = 5
+					delay = 8
 					print(f"[!] Still busy, performing secondary interface reset...")
 					try:
 						subprocess.run(f"sudo ip link set {interface} down", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=2)
-						time.sleep(1)
+						time.sleep(2)
 						subprocess.run(f"sudo ip link set {interface} up", shell=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=2)
+						time.sleep(1)  # Extra delay after interface comes back up
 					except:
 						pass
 				else:
-					delay = 6 + (attempt * 2)
+					delay = 8 + (attempt * 3)
 				
 				print(f"[*] iwlist attempt {attempt + 1}/{max_retries} (waiting {delay}s)...")
 				time.sleep(delay)
