@@ -3,6 +3,7 @@ import threading #So we can have bi-directional communication
 import os
 import json
 from src.utils import sudo_exec
+from src.protocol import parse_packet 
 
 ##################
 ### PREP MODULE ##
@@ -67,7 +68,13 @@ def phone_to_drone():
             if phone_addr != addr:
                 print(f"[INFO] Phone address updated: {addr}")
                 phone_addr = addr # ---> This is where we are updating the phone IP everytime there is a com
-        print(f"[P->D] {addr} | {len(data)} bytes | {data.hex()}") # Logging the packets (src|byte count|raw hex)
+
+        parsed = parse_packet(data) #display the command sent using the parse_packet function
+        if parsed["type"] == "binary":
+            print(f"[P->D] {addr} | {len(data)} bytes | {parsed['cmd_name']} (seq={parsed['seq_id']}) | {data.hex()}")
+        else:
+            print(f"[P->D] {addr} | {len(data)} bytes | TEXT: {parsed['raw']}")
+
         drone_sock.sendto(data, (DRONE_HOST, DRONE_PORT)) #pass it unchanged to the drone 
 
 
