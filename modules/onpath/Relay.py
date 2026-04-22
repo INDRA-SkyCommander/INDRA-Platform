@@ -2,42 +2,41 @@ import socket # UDP communication
 import threading #So we can have bi-directional communication 
 import os
 import json
-from src.utils import sudo_exec
-from src.protocol import parse_packet 
+# from src.utils import sudo_exec
+# import hijack
+from protocol import parse_packet 
 
 ##################
 ### PREP MODULE ##
 ##################
 
 # Get path to project root directory (two levels up from this file)
-target_data_file = os.path.join(os.path.dirname(__file__), '..', '..', "data", "module_input_data.json")
-scan_info = None
+# target_data_file = os.path.join(os.path.dirname(__file__), '..', '..', "data", "module_input_data.json")
+# scan_info = None
 
-# Intialize target drone data
-with open(target_data_file, 'r') as file:
-    scan_info = json.load(file)
+# # Intialize target drone data
+# with open(target_data_file, 'r') as file:
+#     scan_info = json.load(file)
 
-# Get DRONE_INTERFACE from INDRA
-options_info = scan_info.get("options", {})
-interface = options_info.get("interface")
+# # Get DRONE_INTERFACE from INDRA
+# options_info = scan_info.get("options", {})
+# interface = options_info.get("interface")
 
 # Config Card 1 
 AP_INTERFACE = "wlx9cefd5f754df"
 AP_INTERFACE_IP = "192.168.10.1" # Card 1's AP IP address
 LISTEN_PORT = 8889 # Port that phone sends commands to
 
-DRONE_INTERFACE = interface # Should be "wlx9cefd5f66998"
+DRONE_INTERFACE = "wlx9cefd5f66998" # Switch to interface from json when integrating
 DRONE_HOST = "192.168.10.1" # Real Drone's IP address
 DRONE_PORT = 8889 # Drone's command port
 
-# Deauth the phone from the real drone to force it to connect to our AP instead
 
-# Reauth to the drone, change the drone's SSID and password to "hide" it
+# Run the AP setup script
+# sudo_exec(f"./SetupAP.sh {AP_INTERFACE}")
 
-
-# Run the AP setup/start scripts
-sudo_exec(f"./SetupAP.sh {AP_INTERFACE}")
-sudo_exec(f"./StartAP.sh {AP_INTERFACE}")
+# Take control of the drone and start the evil twin AP
+# hijack(interface, target_mac, target_channel, packets, target_ssid)
 
 
 # Starts as None and will dynamically change as the phone connects 
