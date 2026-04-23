@@ -2,9 +2,17 @@ import os
 import json
 import subprocess
 import sys
-from src.utils import sudo_exec
 import time
-# from djitellopy import Tello
+try:
+    from src.utils import sudo_exec
+except ImportError:
+    try:
+        from utils import sudo_exec
+    except ImportError:
+        def sudo_exec(cmd):
+            """Fallback sudo_exec if utils module is not found"""
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            return result
 
 def deauth(interface, target_mac, target_channel, packets, target_ssid):
     try:
