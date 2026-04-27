@@ -1,3 +1,5 @@
+import re
+
 # Original Author
 # Hugo Chargois - 17 jan. 2010 - v.0.1
 # Parses the output of iwlist scan into a table
@@ -11,20 +13,31 @@ interface = "wlan0"
 
 def get_cells(fstring):
 	"""
-	Parses the output of 'iwlist scan' into a table of cells.
+	Parses the output of 'iwlist scan' or 'iw scan' into a table of cells.
 
-	This method takes a string containing the output of the 'iwlist scan' command, which provides information about
-	nearby wireless access points (cells). It extracts and organizes this information into a structured table.
+	This method takes a string containing the output of either the 'iwlist scan' or 'iw scan' 
+	command, which provides information about nearby wireless access points (cells). 
+	It extracts and organizes this information into a structured table.
 
 	Args:
-		fstring (str): A string containing the output of 'iwlist scan'.
+		fstring (str): A string containing the output of 'iwlist scan' or 'iw scan'.
 
 	Returns:
 		List[List[str]]: A list of lists where each inner list represents the information for a single wireless cell.
-		Each inner list contains lines of information related to a specific cell, such as its signal strength, SSID,
-		encryption type, etc.
+		Each inner list contains lines of information related to a specific cell.
 	"""
 
+	# Detect format: iw output starts with "BSS" or "phy#", iwlist has "Cell"
+	if "BSS" in fstring or ("SSID:" in fstring and "Cell" not in fstring):
+		# Parse iw format
+		return get_cells_iw(fstring)
+	else:
+		# Parse iwlist format
+		return get_cells_iwlist(fstring)
+
+
+def get_cells_iwlist(fstring):
+	"""Parse iwlist scan output format."""
 	cell_list = [[]]
 
 	for line in fstring.split("\n"):
@@ -32,13 +45,33 @@ def get_cells(fstring):
 
 		if cell_line != None:
 			cell_list.append([])
-
 			line = cell_line[-27:]
 
 		cell_list[-1].append(line.rstrip())
 
 	cell_list = cell_list[1:]
+	return cell_list
 
+
+def get_cells_iw(fstring):
+	"""Parse iw scan output format."""
+	cell_list = [[]]
+	
+	for line in fstring.split("\n"):
+		# BSS marks the start of a new cell in iw format (e.g., "BSS 34:d2:62:f1:77:56(on wlx9cefd5f66d09)")
+		if line.strip().startswith("BSS "):
+			cell_list.append([])
+			# Extract the MAC address from the BSS line
+			# Format: "BSS XX:XX:XX:XX:XX:XX(on interface)"
+			bss_line = line.strip()
+			# Use regex to extract the MAC address
+			mac_match = re.search(r'([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})', bss_line)
+			if mac_match:
+				cell_list[-1].append("Address: " + mac_match.group(1))
+		else:
+			cell_list[-1].append(line.rstrip())
+	
+	cell_list = cell_list[1:]
 	return cell_list
 
 
@@ -49,26 +82,36 @@ def get_cells(fstring):
 
 def get_name(cell):
 	"""
-	Get the ESSID (Extended Service Set Identifier) from a cell's information.
+	Get the ESSID/SSID from a cell's information.
 
-	This function parses the output of 'iwlist scan' for a specific cell and gets
-	the ESSID, which represents the wireless network name.
+	This function parses the output of 'iwlist scan' or 'iw scan' for a specific cell 
+	and gets the ESSID/SSID, which represents the wireless network name.
 
 	Args:
-		cell (str): The information for a wireless network cell obtained from 'iwlist scan'.
+		cell (str): The information for a wireless network cell obtained from scan output.
 
 	Returns:
-		str: The ESSID (network name) of the wireless network.
+		str: The ESSID/SSID (network name) of the wireless network.
 	"""
+	# Try iwlist format first (ESSID:)
 	m = matching_line(cell, "ESSID:")
-	if not m:
-		return "N/A"
+	if m:
+		name = m.strip()
+		if len(name) >= 2 and name[0] == '"' and name[-1] == '"':
+			name = name[1:-1]
+		# Clean up binary/unprintable characters
+		name = ''.join(c if c.isprintable() else '' for c in name)
+		return name if name else "N/A"
 	
-	name = m.strip()
-	if len(name) >= 2 and name[0] == '"' and name [-1] == '"':
-		return name[1:-1]
+	# Try iw format (SSID:)
+	m = matching_line(cell, "SSID:")
+	if m:
+		name = m.strip()
+		# Clean up binary/unprintable characters
+		name = ''.join(c if c.isprintable() else '' for c in name)
+		return name if name else "N/A"
 	
-	return name
+	return "N/A"
 
 
 def get_quality(cell):
@@ -100,43 +143,55 @@ def get_quality(cell):
 
 def get_channel(cell):
 	"""
-	Extracts the wireless channel information from a cell's output using iwlist scan.
+	Extracts the wireless channel information from a cell's output using iwlist or iw scan.
 
-	This method parses the 'iwlist scan' command output for a specific cell and extracts the wireless channel
-	on which the network operates. It searches for the 'Frequency:' line and extracts the channel number
-	associated with it.
+	This method parses the 'iwlist scan' or 'iw scan' command output for a specific cell 
+	and extracts the wireless channel on which the network operates.
 
 	Args:
-		cell (str): The output of 'iwlist scan' for a specific wireless network cell.
+		cell (str): The output of scan for a specific wireless network cell.
 
 	Returns:
-		str: The wireless channel number as a string if found, or 'N/A' if not available in the provided cell data.
-
+		str: The wireless channel number as a string if found, or 'N/A' if not available.
 	"""
-	# the channel is a bit more tricky to get since it is next to Frequency, which we don't care about.
-	# so we first must take the line and split it by the spaces, but only once
-	# then we ONLY want the channel number, so we remove everything around it, and then return
-	channelfinal = ""
-
+	# Try iwlist format (Frequency: with Channel)
 	frequency_line = matching_line(cell, "Frequency:")
-	if not frequency_line:
-		return "N/A"
-
-	# we have to first check if there is a channel at all, because some devices don't have one
-	if not "Channel" in frequency_line:
-		channelfinal = "N/A"
-	else:
-		splitchannel = frequency_line.split(" ", 1)
-		channelfinal = splitchannel[1].removeprefix("GHz (Channel").removesuffix(")")
-	return channelfinal
+	if frequency_line:
+		if not "Channel" in frequency_line:
+			return "N/A"
+		else:
+			splitchannel = frequency_line.split(" ", 1)
+			return splitchannel[1].removeprefix("GHz (Channel").removesuffix(")")
+	
+	# Try iw format - look for "DS Parameter set: channel X"
+	ds_line = matching_line(cell, "DS Parameter set:")
+	if ds_line:
+		try:
+			# Extract channel number from "channel X"
+			import re
+			match = re.search(r'channel\s+(\d+)', ds_line)
+			if match:
+				return match.group(1)
+		except Exception:
+			pass
+	
+	# Try iw format (primary channel: X)
+	channel_line = matching_line(cell, "primary channel:")
+	if channel_line:
+		try:
+			return channel_line.strip().split()[0]
+		except Exception:
+			return "N/A"
+	
+	return "N/A"
 
 
 def get_signal_level(cell):
 	"""
-	Extracts the signal level from the output of 'iwlist scan' for a given wireless cell.
+	Extracts the signal level from the output of 'iwlist scan' or 'iw scan' for a given wireless cell.
 
-	This function parses the output of 'iwlist scan' and extracts the signal level information for a specific wireless cell.
-	Signal level data is found on the same line as the 'Quality' data, and this function extracts it using string manipulation.
+	This function parses the output of 'iwlist scan' or 'iw scan' and extracts the signal level 
+	information for a specific wireless cell.
 
 	Parameters:
 		cell (str): The string containing the information for the wireless cell.
@@ -144,25 +199,28 @@ def get_signal_level(cell):
 	Returns:
 		str: The signal level of the wireless cell.
 	"""
-	# Signal level is on same line as Quality data so a bit of ugly
-	# hacking needed...
-
+	# Try iwlist format (Signal level on Quality line)
 	qline = matching_line(cell, "Quality=")
-	if not qline:
-		return "N/A"
-	
-	if "Signal level" in qline:
+	if qline and "Signal level" in qline:
 		try:
 			return qline.split("Signal level=")[1]
 		except Exception:
 			return "N/A"
-	else:
-		return "N/A"
+	
+	# Try iw format (signal: -XX dBm)
+	signal_line = matching_line(cell, "signal:")
+	if signal_line:
+		try:
+			return signal_line.strip()
+		except Exception:
+			return "N/A"
+	
+	return "N/A"
 
 
 def get_encryption(cell):
 	"""
-	Parse the encryption information from the output of iwlist scan.
+	Parse the encryption information from the output of iwlist or iw scan.
 
 	This function takes a list of strings (cell) and extracts the encryption information
 	to determine the security type of a wireless network.
@@ -171,24 +229,41 @@ def get_encryption(cell):
 		cell (list of str): A list of strings containing the information about a wireless network.
 
 	Returns:
-		str: A string representing the encryption type of the wireless network. Possible values
-		are "Open" for open networks, "WPA v.X" for WPA-protected networks (with X being the version),
-		and "WEP" for WEP-protected networks.
+		str: A string representing the encryption type of the wireless network.
 	"""
-
+	# Try iwlist format first
 	enc = ""
 	if matching_line(cell, "Encryption key:") == "off":
-		enc = "Open"
-	else:
-		for line in cell:
-			matching = match(line, "IE:")
-			if matching != None:
-				wpa = match(matching, "WPA Version ")
-				if wpa != None:
-					enc = "WPA v." + wpa
-		if enc == "":
-			enc = "WEP"
-	return enc
+		return "Open"
+	
+	for line in cell:
+		matching = match(line, "IE:")
+		if matching != None:
+			wpa = match(matching, "WPA Version ")
+			if wpa != None:
+				enc = "WPA v." + wpa
+	
+	if enc != "":
+		return enc
+	
+	# Try iw format (RSN:, WPA:, or capability)
+	# Check for WPA3
+	if matching_line(cell, "RSN:"):
+		return "WPA3"
+	
+	# Check for WPA2
+	if any("WPA2" in line for line in cell):
+		return "WPA2"
+	
+	# Check for WPA
+	if any("WPA" in line and "RSN" not in line for line in cell):
+		return "WPA"
+	
+	# Check for open network (no security)
+	if not any("WPA" in line or "RSN" in line for line in cell):
+		return "Open"
+	
+	return "WEP" if enc == "" else enc
 
 
 def get_address(cell):
@@ -197,15 +272,30 @@ def get_address(cell):
 
 	This function takes a cell object as input and extracts the MAC address
 	from the cell's information. The input cell should be in the format
-	returned by the 'iwlist scan' command.
+	returned by the 'iwlist scan' or 'iw scan' command.
 
 	Args:
 		cell (str): A string containing the information of a wireless network cell.
 
 	Returns:
-		str: The MAC address of the wireless network cell.
+		str: The MAC address of the wireless network cell in format XX:XX:XX:XX:XX:XX
 	"""
-	return matching_line(cell, "Address: ")
+	address = matching_line(cell, "Address: ")
+	
+	if not address:
+		return "N/A"
+	
+	# Extract only the MAC address part (XX:XX:XX:XX:XX:XX format)
+	# Some formats might have extra characters after the MAC
+	address = address.strip()
+	
+	# Look for MAC address pattern (6 pairs of hex digits separated by colons)
+	mac_match = re.search(r'([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})', address)
+	
+	if mac_match:
+		return mac_match.group(1)
+	else:
+		return address
 
 
 # Here's a dictionary of rules that will be applied to the description of each

@@ -1,6 +1,12 @@
 import tkinter as tk
-# from gui import MainGUI
-from gui import IndraGUI
+import sys
+import os
+
+# Add parent directory to path so we can import src
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# from src.gui import MainGUI
+from src.gui import IndraGUI
 
 # Primary entry point for the application
 
