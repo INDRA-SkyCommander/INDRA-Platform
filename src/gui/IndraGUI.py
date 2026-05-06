@@ -4,6 +4,7 @@ import sys
 import json
 import time
 import queue
+import signal
 import base64
 import threading
 import subprocess
@@ -64,10 +65,17 @@ class IndraGUI(tb.Window):
 		self.video_queue = queue.Queue()
 		self.codec = av.CodecContext.create('h264', 'r')
 		self.video_file_position_reset = False  # Flag to signal file position reset on new exploit
+		self.module_running = False
+		self.current_module_process = None
+		self.current_module_name = None
+		self.stop_module_requested = False
 
 		# Log variables
 		self.log_queue = queue.Queue()
 		self.is_logging = False
+		self.fast_log_mode = os.getenv("INDRA_FAST_LOGS", "1") != "0"
+		self.default_typewriter_delay = 0 if self.fast_log_mode else 1
+		self.typewriter_chunk_size = 6
 
 		# Appearance
 		self._setup_styles()
@@ -82,26 +90,28 @@ class IndraGUI(tb.Window):
 		self._init_top_bar(row=0, col=0, sections=9)
 		self._init_host_list(row=1, col=0)
 		self._init_info_video_terminal_panel(row=1, col=1)
+		self.bind_all("<Control-c>", self._handle_ctrl_c_stop_module)
+		self.bind_all("<Control-C>", self._handle_ctrl_c_stop_module)
 
 		# ======================
 		# Setup necessary files
 		# ======================
 
 		self._setup_files()
-		self._log_slow("Setting up necessary directories...")
+		self._log("Setting up necessary directories...")
 
 		# ======================
 		# Setup message logging
 		# ======================
 
 		self._process_log_queue()
-		self._log_slow("Initializing system log...")
+		self._log("Initializing system log...")
 
 		# =====================
 		# Call autoscan thread
 		# =====================
 
-		self._log_slow("Initializing autoscan thread...")
+		self._log("Initializing autoscan thread...")
 		self.auto_scan_thread = threading.Thread(target=self._auto_scan_loop, daemon=True)
 		self.auto_scan_thread.start()
 
@@ -109,11 +119,11 @@ class IndraGUI(tb.Window):
 		# Call video threads
 		# ===================
 
-		self._log_slow("Intializing video compiling thread...")
+		self._log("Intializing video compiling thread...")
 		self.monitor_thread = threading.Thread(target=self._monitor_sniff_log, daemon=True)
 		self.monitor_thread.start()
 
-		self._log_slow("Intializing video player...")
+		self._log("Intializing video player...")
 		self.video_playing = True
 		self._start_video_player()
 
@@ -121,8 +131,8 @@ class IndraGUI(tb.Window):
 		# Start Program
 		# ==============
 
-		self._log_slow("Welcome to INDRA.")
-		self._log_slow("Systems initialized. Ready for action!")
+		self._log("Welcome to INDRA.")
+		self._log("Systems initialized. Ready for action!")
 
 	def _setup_files(self):
 		"""
@@ -154,9 +164,9 @@ class IndraGUI(tb.Window):
 
 		self.styles = tb.Style()
 
-		self.label_font = font.Font(family="Consolas", size=10)
-		self.monospace_font = font.Font(family="Consolas", size=10)
-		self.exploit_font = font.Font(family="Consolas", size=24, weight="bold")
+		self.label_font = font.Font(family="Consolas", size=11)
+		self.monospace_font = font.Font(family="Consolas", size=11)
+		self.exploit_font = font.Font(family="Consolas", size=22, weight="bold")
 
 		self.style.configure("Large.Danger.TButton",
 					   background="#c00000",
@@ -164,7 +174,7 @@ class IndraGUI(tb.Window):
 					   focuscolor="#c00000",
 					   font=self.exploit_font,
 					   borderwidth=0,
-					   padding=(30, 10, 30, 10)
+					   padding=(24, 8, 24, 8)
 					   )
 		self.style.map("Large.Danger.TButton", background=[("active", "#a30000")])
 
@@ -174,9 +184,14 @@ class IndraGUI(tb.Window):
 					   focuscolor="#00c000",
 					   font=self.exploit_font,
 					   borderwidth=0,
-					   padding=(30, 10, 30, 10)
+					   padding=(24, 8, 24, 8)
 					   )
 		self.style.map("Large.Success.TButton", background=[("active", "#00a300")])
+
+		self.style.configure("TopBar.TFrame", background="#20262d")
+		self.style.configure("MapLike.TLabelframe", borderwidth=1, relief="solid")
+		self.style.configure("MapLike.TLabelframe.Label", foreground="#ff5f5f")
+		self.style.configure("MapLike.TFrame", background="#1f252c")
 		
 	def _init_top_bar(self, row: int, col: int, sections: int):
 		"""
@@ -187,7 +202,7 @@ class IndraGUI(tb.Window):
 		# GUI Setup
 		# ==========
 
-		top_bar_frame = tb.Frame(self, style="TFrame")
+		top_bar_frame = tb.Frame(self, style="TopBar.TFrame")
 		top_bar_frame.grid(row=row, column=col, columnspan=2, sticky="nsew", padx=10, pady=(20, 10))
 
 		# Configure columns for even spacing
@@ -201,14 +216,14 @@ class IndraGUI(tb.Window):
 		# Toggle Scan Button
 		self.toggle_btn = tb.Button(top_bar_frame,
 							   text="Toggle Scan",
-							   style='warning-outline',
+							   style='secondary-outline',
 							   command=self._handle_toggle_scan
 							   )
 
 		# Single Scan Button
 		self.scan_btn = tb.Button(top_bar_frame,
 							 text="Run Scan",
-							 bootstyle='warning-outline',
+						 bootstyle='danger-outline',
 							 command=self._handle_single_scan
 							 )
 
@@ -218,7 +233,7 @@ class IndraGUI(tb.Window):
 									 font=self.label_font,
 									 values=self._get_network_interfaces(),
 									 textvariable=self.selected_interface,
-									 bootstyle="warning",
+								 bootstyle="danger",
 									 )
 		self.interface_dropdown.bind("<<ComboboxSelected>>", self._handle_interface_change)
 
@@ -235,7 +250,7 @@ class IndraGUI(tb.Window):
 		# Misc Options button
 		self.options_btn = tb.Button(top_bar_frame,
 								text="Execute Option",
-								bootstyle="info",
+							bootstyle="secondary",
 								command=self._handle_option_execute
 								)
 		
@@ -245,7 +260,7 @@ class IndraGUI(tb.Window):
 										font=self.label_font,
 										values=self.options_list,
 										textvariable=self.selected_option,
-										bootstyle="info"
+									bootstyle="secondary"
 										)
 		self.options_dropdown.bind("<<ComboboxSelected>>", self._handle_option_change)
 
@@ -253,7 +268,7 @@ class IndraGUI(tb.Window):
 		self.exploit_btn = tb.Button(top_bar_frame,
 								text="EXPLOIT",
 								style="Large.Danger.TButton",
-								command=self._handle_run_exploit
+							command=self._handle_run_exploit
 								)
 		# ================
 		# Placing widgets
@@ -272,6 +287,32 @@ class IndraGUI(tb.Window):
 
 		self.exploit_dropdown.grid(row=0, column=7, padx=5, pady=5)
 		self.exploit_btn.grid(row=0, column=8, padx=10, pady=5, sticky="nsw")
+
+	def _stop_running_module(self):
+		if not self.module_running:
+			return
+
+		self.stop_module_requested = True
+		self._log("Stop requested for running module...")
+
+		proc = self.current_module_process
+		if proc and proc.poll() is None:
+			try:
+				proc.send_signal(signal.SIGINT)
+			except Exception as e:
+				try:
+					proc.terminate()
+				except Exception as inner_error:
+					self._log(f"Error stopping module process: {inner_error}")
+
+	def _handle_ctrl_c_stop_module(self, _event=None):
+		if not self.module_running:
+			return None
+
+		module_name = self.current_module_name or "module"
+		self._log(f"Ctrl+C received — stopping {module_name}...")
+		self._stop_running_module()
+		return "break"
 
 	# ======================
 	# Functions for top bar
@@ -460,61 +501,147 @@ class IndraGUI(tb.Window):
 		
 		return interface
 	
+	def _load_module_gui(self, module_name):
+		"""
+		Dynamically loads and calls a module's GUI if it provides one.
+
+		Looks for  modules/<name>/<name>_gui.py  and calls its
+		``prompt_config(parent)`` function, which should return a dict
+		of module-specific parameters (or None if the user cancels).
+
+		Returns:
+			dict   - config returned by the module GUI
+			None   - user cancelled or no GUI file found
+			False  - module has no custom GUI (caller should proceed without one)
+		"""
+		import importlib.util
+
+		gui_path = os.path.join(
+			os.path.dirname(__file__), "..", "..",
+			"modules", module_name, f"{module_name}_gui.py"
+		)
+		gui_path = os.path.normpath(gui_path)
+
+		if not os.path.isfile(gui_path):
+			return False  # no custom GUI for this module
+
+		try:
+			spec = importlib.util.spec_from_file_location(f"{module_name}_gui", gui_path)
+			mod = importlib.util.module_from_spec(spec)
+			spec.loader.exec_module(mod)
+			return mod.prompt_config(self)
+		except Exception as e:
+			self._log(f"Error loading {module_name} GUI: {e}")
+			return None
+
+	def _is_standalone_module(self, module_name):
+		"""
+		Checks whether a module declares itself as standalone by looking for
+		a  STANDALONE = True  flag at the top level of its .py file.
+
+		Standalone modules do not require a wireless target or network interface.
+
+		Uses AST parsing so the module is never executed (no side-effects).
+		"""
+		import ast
+
+		mod_path = os.path.join(
+			os.path.dirname(__file__), "..", "..",
+			"modules", module_name, f"{module_name}.py"
+		)
+		mod_path = os.path.normpath(mod_path)
+
+		if not os.path.isfile(mod_path):
+			return False
+
+		try:
+			with open(mod_path, "r") as f:
+				tree = ast.parse(f.read(), filename=mod_path)
+
+			for node in ast.iter_child_nodes(tree):
+				if isinstance(node, ast.Assign):
+					for target in node.targets:
+						if isinstance(target, ast.Name) and target.id == "STANDALONE":
+							if isinstance(node.value, ast.Constant):
+								return bool(node.value.value)
+			return False
+		except Exception:
+			return False
+
 	def _handle_run_exploit(self):
 		"""
 		Executes the selected exploit module against the selected target.
 		"""
 
+		if self.module_running:
+			self._log("A module is already running. Press Ctrl+C to stop it.")
+			return -1
+
 		if self.is_scanning:
 			self._log("Please stop scanning before running an exploit.")
 			return -1
 
-		target_name = self._get_target()
-		if target_name is None:
-			self._log("Please select target first.")
-			return -1
-		
 		exploit = self._get_module()
 		if exploit is None:
 			self._log("Please select exploit module first.")
 			return -1
 
-		interface = self._get_interface()
-		if interface is None:
-			self._log("Please select network interface first.")
-			return -1
-		
-		target_info = self._get_target_info(target_name)
-		if target_info is None:
-			self._log("Error retrieving target info.")
-			return -1
+		is_standalone = self._is_standalone_module(exploit)
 
-		self.target_info_label.configure(text=	f"Target: {target_name}\n"\
-								   				f"MAC: {target_info[1]}\n"\
-												f"Quality: {target_info[2]}\n"\
-												f"Channel: {target_info[3]}\n"\
-												f"Signal Level: {target_info[4]}\n"\
-												f"Encryption: {target_info[5]}\n"
-												)
-		self.target_info_label.update()
+		# --- Standalone modules (e.g. gps_spoof): skip target/interface checks ---
+		if is_standalone:
+			target_data = {}
 
-		target_data = {
-			"target_name": target_name.strip(),
-			"target_info": {
-				"raw_string": target_info[0].strip() if len(target_info) > 0 else "",
-				"mac_address": target_info[1].strip() if len(target_info) > 1 else "",
-				"quality": target_info[2].strip() if len(target_info) > 2 else "",
-				"channel": target_info[3].strip() if len(target_info) > 3 else "",
-				"signal_level": target_info[4].strip() if len(target_info) > 4 else "",
-				"encryption": target_info[5].strip() if len(target_info) > 5 else ""
-				},
-				
-			"options": {
-				"packets": self.packets,
-				"interface": interface.strip(),
+			module_cfg = self._load_module_gui(exploit)
+			if module_cfg is None:
+				self._log(f"{exploit} cancelled.")
+				return -1
+			if module_cfg is not False:
+				target_data[exploit] = module_cfg
+
+		else:
+			# --- Standard modules: require target + interface ---
+			target_name = self._get_target()
+			if target_name is None:
+				self._log("Please select target first.")
+				return -1
+
+			interface = self._get_interface()
+			if interface is None:
+				self._log("Please select network interface first.")
+				return -1
+
+			target_info = self._get_target_info(target_name)
+			if target_info is None:
+				self._log("Error retrieving target info.")
+				return -1
+
+			self.target_info_label.configure(text=	f"Target: {target_name}\n"\
+									   				f"MAC: {target_info[1]}\n"\
+													f"Quality: {target_info[2]}\n"\
+													f"Channel: {target_info[3]}\n"\
+													f"Signal Level: {target_info[4]}\n"\
+													f"Encryption: {target_info[5]}\n"
+													)
+			self.target_info_label.update()
+
+			target_data = {
+				"target_name": target_name.strip(),
+				"target_info": {
+					"raw_string": target_info[0].strip() if len(target_info) > 0 else "",
+					"mac_address": target_info[1].strip() if len(target_info) > 1 else "",
+					"quality": target_info[2].strip() if len(target_info) > 2 else "",
+					"channel": target_info[3].strip() if len(target_info) > 3 else "",
+					"signal_level": target_info[4].strip() if len(target_info) > 4 else "",
+					"encryption": target_info[5].strip() if len(target_info) > 5 else ""
+					},
+					
+				"options": {
+					"packets": self.packets,
+					"interface": interface.strip(),
+					}
 				}
-			}
-		
+
 		try:
 			with open(self.json_output_path, "w") as f:
 				json.dump(target_data, f, indent=4)
@@ -527,7 +654,11 @@ class IndraGUI(tb.Window):
 		env = os.environ.copy()
 		env["PYTHONPATH"] = f"{src_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
 
-		self._log_slow(f"Launching exploit: {exploit} on target: {target_name}")
+		log_label = f"exploit: {exploit}" if is_standalone else f"exploit: {exploit} on target: {target_name}"
+		self._log_slow(f"Launching {log_label}")
+		self.module_running = True
+		self.stop_module_requested = False
+		self.current_module_name = exploit
 		self.exploit_btn.config(text="RUNNING", state=tk.DISABLED, style="Large.Success.TButton")
 
 		# Signal video monitor to reset file position for new exploit run
@@ -536,18 +667,85 @@ class IndraGUI(tb.Window):
 		def _run_exploit_thread():
 			"""
 			Runs the exploit in a background thread so the GUI can continue functioning.
+			Streams stdout/stderr to the GUI system log in real time.
 			"""
 
-			try: 
-				module_return_code = subprocess.call([sys.executable, exploit_path], env=env)
-				self._log_slow(f"Module {exploit} finished with return code: {module_return_code}")
+			try:
+				proc = subprocess.Popen(
+					[sys.executable, "-u", exploit_path],
+					env=env,
+					stdout=subprocess.PIPE,
+					stderr=subprocess.STDOUT,
+					bufsize=0,
+				)
+				self.current_module_process = proc
+
+				if self.stop_module_requested and proc.poll() is None:
+					proc.terminate()
+
+				# Read raw bytes so we can detect \r vs \n.
+				# Lines using \r (carriage return) are in-place progress
+				# updates (e.g. "Time into run = 4.0"). We only log the
+				# latest value when a real newline arrives or the stream ends.
+				buf = b""
+				pending_cr_line = None  # holds the latest \r-only segment
+
+				while True:
+					chunk = proc.stdout.read(1)
+					if not chunk:
+						# Stream ended — flush anything remaining
+						if pending_cr_line is not None:
+							self._log(pending_cr_line)
+							pending_cr_line = None
+						remaining = buf.decode("utf-8", errors="replace").strip()
+						if remaining:
+							self._log(remaining)
+						break
+
+					if chunk == b"\n":
+						# Real newline — emit the pending \r line if any,
+						# then the buffer content.
+						if pending_cr_line is not None:
+							self._log(pending_cr_line)
+							pending_cr_line = None
+						text = buf.decode("utf-8", errors="replace").strip()
+						if text:
+							self._log(text)
+						buf = b""
+
+					elif chunk == b"\r":
+						# Carriage return — overwrite-style progress update.
+						# Just remember the latest value; don't log yet.
+						text = buf.decode("utf-8", errors="replace").strip()
+						if text:
+							pending_cr_line = text
+						buf = b""
+
+					else:
+						buf += chunk
+
+				proc.wait()
+				module_return_code = proc.returncode
+				if self.stop_module_requested:
+					self._log_slow(f"Module {exploit} stopped.")
+				else:
+					self._log_slow(f"Module {exploit} finished with return code: {module_return_code}")
 			except Exception as e:
 				self._log(f"Error executing module {exploit}: {e}")
 				return -1
 			finally:
-				sudo_exec(f"ifconfig {interface} down")
-				sudo_exec(f"iwconfig {interface} mode managed")
-				sudo_exec(f"ifconfig {interface} up")
+				self.current_module_process = None
+				self.current_module_name = None
+				self.module_running = False
+				self.stop_module_requested = False
+
+				# Only reset the network interface for modules that use one
+				if not is_standalone:
+					interface = self._get_interface()
+					if interface:
+						sudo_exec(f"ifconfig {interface} down")
+						sudo_exec(f"iwconfig {interface} mode managed")
+						sudo_exec(f"ifconfig {interface} up")
 
 			self.after(0, lambda: self.exploit_btn.config(text="EXPLOIT", state=tk.NORMAL, style="Large.Danger.TButton"))
 
@@ -593,18 +791,18 @@ class IndraGUI(tb.Window):
 		# GUI Setup
 		# ==========
 
-		host_list_frame = tb.Labelframe(self, text="Host List", bootstyle="warning")
+		host_list_frame = tb.Labelframe(self, text="Host List", style="MapLike.TLabelframe", bootstyle="danger")
 		host_list_frame.grid(row=row, column=col, sticky="nsew", padx=10, pady=5)
 
 		# Internal frame for filter box
-		filter_bar = tb.Frame(host_list_frame, bootstyle="secondary")
+		filter_bar = tb.Frame(host_list_frame, style="MapLike.TFrame")
 		filter_bar.pack(fill=tk.X, padx=5, pady=(0, 5))
 
-		tb.Label(filter_bar, text="Filter ", bootstyle="warning").pack(side=LEFT)
+		tb.Label(filter_bar, text="Filter ", bootstyle="danger").pack(side=LEFT)
 
 		# Filter box
 		self.filter_entry = tb.Entry(filter_bar,
-						   bootstyle="warning",
+						   bootstyle="danger",
 						   font=self.label_font,
 						   textvariable=self.filter_text
 						   )
@@ -612,25 +810,26 @@ class IndraGUI(tb.Window):
 		self.filter_entry.bind("<KeyRelease>", self._handle_filter_change)
 	
 		# Frame for Host Listbox
-		listbox_frame = tb.Frame(host_list_frame, bootstyle="warning")
+		listbox_frame = tb.Frame(host_list_frame, style="MapLike.TFrame")
 		listbox_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=5)
 
 		# Host Listbox
 		self.host_listbox = tk.Listbox(listbox_frame,
-								 bg="#2e3238",
-								 fg="#ffffff",
+								 bg="#1f252c",
+								 fg="#dde4ed",
 								 font=self.monospace_font,
-								 selectbackground="#20374c",
+								 selectbackground="#303b47",
+								 selectforeground="#ffffff",
 								 borderwidth=1,
 								 relief="flat",
 								 highlightthickness=1,
-								 highlightbackground="#555555"
+								 highlightbackground="#404a55"
 								 )
 		self.host_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 		self.host_listbox.bind("<<ListboxSelect>>", self._handle_host_selection)
 
 		# Scrollbar for Host Listbox
-		scrollbar = tb.Scrollbar(listbox_frame, orient=tk.VERTICAL, command=self.host_listbox.yview, bootstyle="warning-round")
+		scrollbar = tb.Scrollbar(listbox_frame, orient=tk.VERTICAL, command=self.host_listbox.yview, bootstyle="danger-round")
 		scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 		self.host_listbox.config(yscrollcommand=scrollbar.set)
 
@@ -702,7 +901,7 @@ class IndraGUI(tb.Window):
 		# GUI Setup
 		# ==========
 
-		right_panel_frame = tb.Labelframe(self, text="Information Dashboard", bootstyle="info")
+		right_panel_frame = tb.Labelframe(self, text="Information Dashboard", style="MapLike.TLabelframe", bootstyle="danger")
 		right_panel_frame.grid(row=row, column=col, sticky="nsew", padx=10, pady=5)
 
 		right_panel_frame.grid_columnconfigure(0, weight=1)
@@ -711,20 +910,20 @@ class IndraGUI(tb.Window):
 		right_panel_frame.grid_rowconfigure(2, weight=0)
 
 		# Target Info Label
-		info_subframe = tb.Frame(right_panel_frame, style="TFrame")
+		info_subframe = tb.Frame(right_panel_frame, style="MapLike.TFrame")
 		info_subframe.grid(row=0, column=0, sticky="new", padx=5, pady=5)
 		info_subframe.grid_columnconfigure(1, weight=1)
 	 	
 		self.target_info_label = tb.Label(info_subframe,
 										text="Target: No target selected",
 										font=self.label_font,
-										bootstyle="light",
+										bootstyle="secondary",
 										justify=tk.LEFT
 										)
 		self.target_info_label.pack(anchor="w")
 		
 		# Video Player Frame
-		video_frame  = tb.Labelframe(right_panel_frame, text="Live Video Feed", padding=2, bootstyle="info")
+		video_frame  = tb.Labelframe(right_panel_frame, text="Live Video Feed", padding=4, bootstyle="danger")
 		video_frame.grid(row=1, column=0, sticky="sew", padx=5, pady=10)
 
 		# Video Window
@@ -732,14 +931,14 @@ class IndraGUI(tb.Window):
 							   text="[ Video Feed Unavailable ]",
 							   image=None,
 							   font=self.label_font,
-							   foreground= "#aaaaaa",
+							   foreground= "#bac5d1",
 							   anchor="center",
-							   bootstyle="secondary-inverse"
+							   bootstyle="dark"
 							   )
 		self.video_label.pack(fill=BOTH, expand=True)
 
 		# Terminal Output Frame
-		terminal_frame = tb.Labelframe(right_panel_frame, text="System Log", padding=5, bootstyle="info")
+		terminal_frame = tb.Labelframe(right_panel_frame, text="System Log", padding=5, bootstyle="danger")
 		terminal_frame.grid(row=2, column=0, sticky="sew", pady=10)
 		terminal_frame.grid_propagate(False)
 
@@ -747,8 +946,9 @@ class IndraGUI(tb.Window):
 		self.text_terminal = tk.Text(terminal_frame,
 							   wrap=tk.WORD,
 							   font=self.monospace_font,
-							   bg="#111111",
-							   fg="#00ff00",
+							   bg="#151b22",
+							   fg="#e2e8ef",
+							   insertbackground="#ffffff",
 							   state=tk.DISABLED,
 							   relief="flat",
 							   borderwidth=0,
@@ -757,7 +957,7 @@ class IndraGUI(tb.Window):
 		self.text_terminal.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 		# Scrollbar for Terminal Window
-		terminal_scrollbar = tb.Scrollbar(terminal_frame, orient=tk.VERTICAL, command=self.text_terminal.yview, bootstyle="info-round")
+		terminal_scrollbar = tb.Scrollbar(terminal_frame, orient=tk.VERTICAL, command=self.text_terminal.yview, bootstyle="danger-round")
 		terminal_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 		self.text_terminal.config(yscrollcommand=terminal_scrollbar.set)
 
@@ -955,10 +1155,16 @@ class IndraGUI(tb.Window):
 	
 		return
 	
-	def _log_slow(self, message, delay=45):
+	def _log_slow(self, message, delay=None):
 		"""
 		Logs a message to the terminal output window with a typewriter effect
 		"""
+		if delay is None:
+			delay = self.default_typewriter_delay
+
+		if self.fast_log_mode or delay <= 0 or self.log_queue.qsize() > 8:
+			self._log(message)
+			return
 
 		self.log_queue.put(("slow", message, delay))
 
@@ -971,7 +1177,7 @@ class IndraGUI(tb.Window):
 		"""
 
 		if self.is_logging:
-			self.after(20, self._process_log_queue)
+			self.after(5, self._process_log_queue)
 			return
 		
 		try:
@@ -986,7 +1192,7 @@ class IndraGUI(tb.Window):
 				self.text_terminal.config(state=tk.DISABLED)
 
 				#Process next messsage immediately
-				self.after(10, self._process_log_queue)
+				self.after(1, self._process_log_queue)
 
 			elif mode == "slow":
 				delay = item[2]
@@ -997,7 +1203,7 @@ class IndraGUI(tb.Window):
 		except queue.Empty:
 
 			# Check frequently
-			self.after(100, self._process_log_queue)
+			self.after(30, self._process_log_queue)
 
 	def _type_message_loop(self, message, delay, index):
 		"""
@@ -1010,13 +1216,16 @@ class IndraGUI(tb.Window):
 			self.text_terminal.insert(tk.END, "> ")
 			self.text_terminal.see(tk.END)
 
+		step = self.typewriter_chunk_size if delay <= 2 else 1
+		end_index = min(len(message), index + step)
+
 		if index < len(message):
-			self.text_terminal.insert(tk.END, message[index])
+			self.text_terminal.insert(tk.END, message[index:end_index])
 			self.text_terminal.see(tk.END)
 			self.text_terminal.config(state=tk.DISABLED)
 
 			# Schedule next char
-			self.after(delay, self._type_message_loop, message, delay, index + 1)
+			self.after(delay, self._type_message_loop, message, delay, end_index)
 		else:
 			# Done typing
 			self.text_terminal.insert(tk.END, "\n")

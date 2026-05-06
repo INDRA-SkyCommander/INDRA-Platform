@@ -18,6 +18,12 @@ def module_setup() -> list:
 
 	for module in modulelist:
 		# Add visible directories only
-		if os.path.isdir(os.path.join(modules_path, module)) and not module.startswith('.'):
+		module_dir = os.path.join(modules_path, module)
+		module_entrypoint = os.path.join(module_dir, f"{module}.py")
+		if (
+			os.path.isdir(module_dir)
+			and not module.startswith('.')
+			and os.path.isfile(module_entrypoint)
+		):
 			indra_modules.append(module)
 	return indra_modules

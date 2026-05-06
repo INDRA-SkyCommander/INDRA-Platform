@@ -34,6 +34,7 @@ async-timeout==4.0.3
 asyncio-dgram==2.1.2
 asysocks==0.2.2
 attrs==23.1.0
+av==16.1.0
 autobahn==22.7.1
 autocommand==2.2.2
 Automat==22.10.0
@@ -142,6 +143,7 @@ fs==2.4.16
 fuzzyfinder==2.1.0
 g4f==0.0.3.4
 gast==0.5.2
+geocoder==1.38.1
 GDAL==3.8.3
 gitdb==4.0.11
 GitPython==3.1.37
@@ -436,6 +438,7 @@ theHarvester==4.5.0
 tinycss2==1.2.1
 tinydb==4.8.0
 tld==0.11.11
+tkintermapview==1.29
 tldextract==3.1.2
 tls-parser==1.2.2
 tornado==6.2
@@ -444,6 +447,7 @@ traitlets==5.8.1
 translationstring==1.4
 trio==0.23.2
 trio-websocket==0.11.1
+ttkbootstrap==1.20.1
 Twisted==22.4.0
 txaio==23.1.1
 typing_extensions==4.7.1
