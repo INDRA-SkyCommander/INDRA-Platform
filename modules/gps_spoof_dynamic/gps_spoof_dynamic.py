@@ -27,8 +27,8 @@ _DATA_DIR = _PROJECT_ROOT / "data"
 _TARGET_DATA_FILE = _DATA_DIR / "module_input_data.json"
 _GPS_SDR_SIM_DIR = _PROJECT_ROOT / "gps-sdr-sim"
 
-NASA_USER = "kab00038"
-NASA_PASS = "gb83VfWJu7%*^9PTrs2@"
+NASA_USER = "YOUR_NASA_USER"
+NASA_PASS = "YOUR_NASA_PASS"
 
 HACKRF_BIN = "hackrf_transfer"
 GPS_SIM_BIN = _GPS_SDR_SIM_DIR / "gps-sdr-sim"
