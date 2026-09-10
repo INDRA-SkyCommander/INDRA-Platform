@@ -40,7 +40,7 @@ class IndraGUI(tb.Window):
         # Tkinter Window
         self.title("INDRA")
         self.geometry("1400x850")
-        self.resizable(False, False)
+        self.resizable(True, True)
 
         # Data Stuctures
         self.all_targets = {}
@@ -71,16 +71,43 @@ class IndraGUI(tb.Window):
         # Appearance
         self._setup_styles()
 
-        # Main Layout
-        self.grid_rowconfigure(0, weight=0, minsize=50) # Top Bar
-        self.grid_rowconfigure(1, weight=1)             # Main Content
-        self.grid_columnconfigure(0, weight=1, minsize=350) # Left Column
-        self.grid_columnconfigure(1, weight=2)             # Right Column
+        # ======================
+        # Root window layout
+        # ======================
+        # Row 0: header bar   Row 1: tabbed content (Operations / Forensics)
+        self.configure(background=self.colors["bg"])
+        self.minsize(1200, 760)
+        self.grid_rowconfigure(0, weight=0)   # Header
+        self.grid_rowconfigure(1, weight=1)   # Tabbed content
+        self.grid_columnconfigure(0, weight=1)
 
-        # Functional Components
-        self._init_top_bar(row=0, col=0, sections=9)
-        self._init_host_list(row=1, col=0)
-        self._init_info_video_terminal_panel(row=1, col=1)
+        # Header bar (wordmark + subtitle + status)
+        self._init_header(row=0)
+
+        # ======================
+        # Tabbed shell
+        # ======================
+        # Operations holds today's full toolset. Forensics is a placeholder
+        # slot for the upcoming Digital Forensics module (no backend yet).
+        self.notebook = tb.Notebook(self)
+        self.notebook.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 12))
+
+        # --- Operations tab: current functional UI ---
+        self.operations_tab = tb.Frame(self.notebook)
+        self.notebook.add(self.operations_tab, text="  Operations  ")
+
+        self.operations_tab.grid_rowconfigure(0, weight=0)          # control bar
+        self.operations_tab.grid_rowconfigure(1, weight=1)          # main content
+        self.operations_tab.grid_columnconfigure(0, weight=1, minsize=340)  # host list
+        self.operations_tab.grid_columnconfigure(1, weight=2)       # dashboard
+
+        # Functional Components (parent is now the Operations tab)
+        self._init_top_bar(self.operations_tab, row=0)
+        self._init_host_list(self.operations_tab, row=1, col=0)
+        self._init_info_video_terminal_panel(self.operations_tab, row=1, col=1)
+
+        # --- Forensics tab: future module placeholder ---
+        self._init_forensics_tab()
 
         # ======================
         # Setup necessary files
@@ -133,72 +160,154 @@ class IndraGUI(tb.Window):
     
     def _setup_styles(self):
         """
-        Defines all fonts and styles in one place.
+        Defines the INDRA design system in one place: a shared color palette,
+        a typographic scale, and reusable ttk styles.
+
+        NOTE: This method is UI-only. Fonts exposed as self.label_font /
+        self.monospace_font and the "Large.Danger.TButton" / "Large.Success.TButton"
+        style *names* are consumed elsewhere in the app, so those names are kept
+        stable here even though their appearance is modernized.
         """
 
         self.styles = tb.Style()
 
-        self.label_font = font.Font(family="Consolas", size=10)
-        self.monospace_font = font.Font(family="Consolas", size=10)
-        self.exploit_font = font.Font(family="Consolas", size=24, weight="bold")
+        # ======================
+        # Color palette (accent-driven dark cyber dashboard)
+        # ======================
+        # One place to change the look. Roles, not scattered hex values.
+        self.colors = {
+            "bg":          "#0d1117",  # app background (deepest)
+            "surface":     "#161b22",  # card / panel background
+            "surface_alt": "#1c2128",  # inset areas (listbox, entries)
+            "border":      "#30363d",  # subtle card borders / dividers
+            "text":        "#e6edf3",  # primary text
+            "text_muted":  "#8b949e",  # secondary / label text
+            "accent":      "#2f81f7",  # INDRA primary accent (actions, focus)
+            "accent_dim":  "#1f6feb",  # accent hover / pressed
+            "success":     "#238636",  # go / running
+            "success_dim": "#2ea043",
+            "danger":      "#da3633",  # exploit / stop
+            "danger_dim":  "#b62324",
+            "warning":     "#d29922",  # scan controls
+            "info":        "#39c0c8",  # informational
+            "terminal_bg": "#0a0e14",  # log console background
+            "terminal_fg": "#3ad07a",  # log console text (green)
+        }
+        c = self.colors
 
+        # ======================
+        # Typographic scale
+        # ======================
+        # Existing names kept: label_font, monospace_font, exploit_font.
+        self.title_font     = font.Font(family="Segoe UI", size=20, weight="bold")
+        self.subtitle_font  = font.Font(family="Segoe UI", size=10)
+        self.heading_font   = font.Font(family="Segoe UI", size=11, weight="bold")
+        self.body_font      = font.Font(family="Segoe UI", size=10)
+        self.label_font     = font.Font(family="Consolas", size=10)
+        self.monospace_font = font.Font(family="Consolas", size=10)
+        self.exploit_font   = font.Font(family="Segoe UI", size=12, weight="bold")
+
+        # ======================
+        # Reusable ttk styles
+        # ======================
+
+        # Header wordmark + subtitle
+        self.style.configure("Header.TFrame", background=c["bg"])
+        self.style.configure("Wordmark.TLabel",
+                             background=c["bg"], foreground=c["text"],
+                             font=self.title_font)
+        self.style.configure("Subtitle.TLabel",
+                             background=c["bg"], foreground=c["text_muted"],
+                             font=self.subtitle_font)
+        self.style.configure("Status.TLabel",
+                             background=c["bg"], foreground=c["text_muted"],
+                             font=self.body_font)
+
+        # Section heading used on control cards
+        self.style.configure("CardHeading.TLabel",
+                             foreground=c["text_muted"], font=self.heading_font)
+
+        # Muted placeholder / empty-state text
+        self.style.configure("Muted.TLabel",
+                             foreground=c["text_muted"], font=self.body_font)
+
+        # Primary accent action button (reused by the Execute action)
+        self.style.configure("Accent.TButton",
+                             background=c["accent"], foreground="#ffffff",
+                             focuscolor=c["accent"], font=self.body_font,
+                             borderwidth=0, padding=(16, 8))
+        self.style.map("Accent.TButton", background=[("active", c["accent_dim"])])
+
+        # ======================
+        # Exploit button styles (names preserved, appearance modernized)
+        # ======================
+        # Was a giant 24pt red block; now a clean, professional accent button.
         self.style.configure("Large.Danger.TButton",
-                       background="#c00000",
-                       foreground="#ffffff",
-                       focuscolor="#c00000",
-                       font=self.exploit_font,
-                       borderwidth=0,
-                       padding=(30, 10, 30, 10)
-                       )
-        self.style.map("Large.Danger.TButton", background=[("active", "#a30000")])
+                             background=c["danger"], foreground="#ffffff",
+                             focuscolor=c["danger"], font=self.exploit_font,
+                             borderwidth=0, padding=(28, 10))
+        self.style.map("Large.Danger.TButton", background=[("active", c["danger_dim"])])
 
         self.style.configure("Large.Success.TButton",
-                       background="#00c000",
-                       foreground="#ffffff",
-                       focuscolor="#00c000",
-                       font=self.exploit_font,
-                       borderwidth=0,
-                       padding=(30, 10, 30, 10)
-                       )
-        self.style.map("Large.Success.TButton", background=[("active", "#00a300")])
+                             background=c["success"], foreground="#ffffff",
+                             focuscolor=c["success"], font=self.exploit_font,
+                             borderwidth=0, padding=(28, 10))
+        self.style.map("Large.Success.TButton", background=[("active", c["success_dim"])])
         
-    def _init_top_bar(self, row: int, col: int, sections: int):
+    def _init_header(self, row):
         """
-        Creates the top control bar and binds its events.
+        Creates the application header: INDRA wordmark, subtitle, and a
+        right-aligned status indicator. UI-only, no functional bindings.
+        """
+
+        header = tb.Frame(self, style="Header.TFrame", padding=(16, 12, 16, 8))
+        header.grid(row=row, column=0, sticky="nsew")
+        header.grid_columnconfigure(1, weight=1)
+
+        # Wordmark + subtitle (left)
+        brand = tb.Frame(header, style="Header.TFrame")
+        brand.grid(row=0, column=0, sticky="w")
+        tb.Label(brand, text="INDRA", style="Wordmark.TLabel").pack(side=tk.LEFT)
+        tb.Label(brand, text="Drone Security Platform",
+                 style="Subtitle.TLabel").pack(side=tk.LEFT, padx=(12, 0), pady=(10, 0))
+
+        # Status indicator (right)
+        self.status_label = tk.Label(header, text="●  Ready",
+                                     background=self.colors["bg"],
+                                     foreground=self.colors["success"],
+                                     font=self.body_font)
+        self.status_label.grid(row=0, column=2, sticky="e")
+
+    def _init_top_bar(self, parent, row):
+        """
+        Creates the control bar, organized into two grouped cards:
+        Scan Controls and Module Controls.
+
+        All widget attribute names, commands, and event bindings are preserved
+        exactly from the original single-row layout; only their grouping and
+        styling change.
         """
 
         # ==========
         # GUI Setup
         # ==========
 
-        top_bar_frame = tb.Frame(self, style="TFrame")
-        top_bar_frame.grid(row=row, column=col, columnspan=2, sticky="nsew", padx=10, pady=(20, 10))
+        bar = tb.Frame(parent)
+        bar.grid(row=row, column=0, columnspan=2, sticky="nsew", padx=12, pady=(12, 8))
+        bar.grid_columnconfigure(0, weight=1)
+        bar.grid_columnconfigure(1, weight=2)
 
-        # Configure columns for even spacing
-        # Currently 9 sections
-        for i in range(sections): top_bar_frame.grid_columnconfigure(i, weight=1)
+        # =====================
+        # Scan Controls card
+        # =====================
 
-        # ======================
-        # Buttons and Dropdowns
-        # ======================
-
-        # Toggle Scan Button
-        self.toggle_btn = tb.Button(top_bar_frame,
-                               text="Toggle Scan",
-                               style='warning-outline',
-                               command=self._handle_toggle_scan
-                               )
-
-        # Single Scan Button
-        self.scan_btn = tb.Button(top_bar_frame,
-                             text="Run Scan",
-                             bootstyle='warning-outline',
-                             command=self._handle_single_scan
-                             )
+        scan_card = tb.Labelframe(bar, text=" Scan Controls ", bootstyle="warning", padding=10)
+        scan_card.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
 
         # Network Interface Dropdown
-        self.interface_dropdown = tb.Combobox(top_bar_frame,
+        self.interface_dropdown = tb.Combobox(scan_card,
                                      state="readonly",
+                                     width=16,
                                      font=self.label_font,
                                      values=self._get_network_interfaces(),
                                      textvariable=self.selected_interface,
@@ -206,26 +315,35 @@ class IndraGUI(tb.Window):
                                      )
         self.interface_dropdown.bind("<<ComboboxSelected>>", self._handle_interface_change)
 
-        # Exploit Module Dropdown
-        self.exploit_dropdown = tb.Combobox(top_bar_frame,
-                                    state="readonly",
-                                    font=self.label_font,
-                                    values=self._get_exploit_modules(),
-                                    textvariable=self.selected_module,
-                                    bootstyle="danger"
-                                    )
-        self.exploit_dropdown.bind("<<ComboboxSelected>>", self._handle_module_change)
-        
-        # Misc Options button
-        self.options_btn = tb.Button(top_bar_frame,
-                                text="Execute Option",
-                                bootstyle="info",
-                                command=self._handle_option_execute
-                                )
-        
+        # Single Scan Button
+        self.scan_btn = tb.Button(scan_card,
+                             text="Run Scan",
+                             bootstyle='warning-outline',
+                             command=self._handle_single_scan
+                             )
+
+        # Toggle Scan Button
+        self.toggle_btn = tb.Button(scan_card,
+                               text="Toggle Scan",
+                               bootstyle='warning-outline',
+                               command=self._handle_toggle_scan
+                               )
+
+        self.interface_dropdown.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
+        self.scan_btn.pack(side=tk.LEFT, padx=4)
+        self.toggle_btn.pack(side=tk.LEFT, padx=4)
+
+        # =====================
+        # Module Controls card
+        # =====================
+
+        module_card = tb.Labelframe(bar, text=" Module Controls ", bootstyle="info", padding=10)
+        module_card.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+
         # Misc Options Dropdown
-        self.options_dropdown = tb.Combobox(top_bar_frame,
+        self.options_dropdown = tb.Combobox(module_card,
                                         state="readonly",
+                                        width=18,
                                         font=self.label_font,
                                         values=self.options_list,
                                         textvariable=self.selected_option,
@@ -233,36 +351,48 @@ class IndraGUI(tb.Window):
                                         )
         self.options_dropdown.bind("<<ComboboxSelected>>", self._handle_option_change)
 
+        # Misc Options button
+        self.options_btn = tb.Button(module_card,
+                                text="Execute Option",
+                                bootstyle="info-outline",
+                                command=self._handle_option_execute
+                                )
+
         # Flight Deck Button (manual launch)
-        self.flight_deck_btn = tb.Button(top_bar_frame,
+        self.flight_deck_btn = tb.Button(module_card,
                         text="Flight Deck",
                         bootstyle="primary-outline",
                         command=self._handle_open_controller
                         )
 
-        # Exploit Button
-        self.exploit_btn = tb.Button(top_bar_frame,
+        # Exploit Module Dropdown
+        self.exploit_dropdown = tb.Combobox(module_card,
+                                    state="readonly",
+                                    width=14,
+                                    font=self.label_font,
+                                    values=self._get_exploit_modules(),
+                                    textvariable=self.selected_module,
+                                    bootstyle="danger"
+                                    )
+        self.exploit_dropdown.bind("<<ComboboxSelected>>", self._handle_module_change)
+
+        # Exploit Button (primary destructive action)
+        self.exploit_btn = tb.Button(module_card,
                                 text="EXPLOIT",
                                 style="Large.Danger.TButton",
                                 command=self._handle_run_exploit
                                 )
+
         # ================
         # Placing widgets
         # ================
 
-        self.toggle_btn.grid(row=0, column=0, padx=5, pady=5)
-        self.scan_btn.grid(row=0, column=1, padx=5, pady=5)
-        self.interface_dropdown.grid(row=0, column=2, padx=5, pady=5)
-
-        # Col 3 is spacer
-
-        self.options_dropdown.grid(row=0, column=4, padx=5, pady=5)
-        self.options_btn.grid(row=0, column=5, padx=5, pady=5)
-
-        self.flight_deck_btn.grid(row=0, column=6, padx=5, pady=5)
-
-        self.exploit_dropdown.grid(row=0, column=7, padx=5, pady=5)
-        self.exploit_btn.grid(row=0, column=8, padx=10, pady=5, sticky="nsw")
+        self.options_dropdown.pack(side=tk.LEFT, padx=(0, 4))
+        self.options_btn.pack(side=tk.LEFT, padx=4)
+        self.flight_deck_btn.pack(side=tk.LEFT, padx=4)
+        tb.Separator(module_card, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=10)
+        self.exploit_dropdown.pack(side=tk.LEFT, padx=4)
+        self.exploit_btn.pack(side=tk.RIGHT, padx=(4, 0))
 
     # ======================
     # Functions for top bar
@@ -631,23 +761,25 @@ class IndraGUI(tb.Window):
         except Exception as e:
             self._log(f"Error launching Flight Deck: {e}")
     
-    def _init_host_list(self, row, col):
+    def _init_host_list(self, parent, row, col):
         """
-        Creates the host list, filter bar, and binds its events.
+        Creates the host list sidebar: a search field, the discovered-host
+        listbox, and an empty-state message. All selection/filter bindings
+        are preserved from the original.
         """
 
         # ==========
         # GUI Setup
         # ==========
 
-        host_list_frame = tb.Labelframe(self, text="Host List", bootstyle="warning")
-        host_list_frame.grid(row=row, column=col, sticky="nsew", padx=10, pady=5)
+        host_list_frame = tb.Labelframe(parent, text=" Host List ", bootstyle="warning", padding=8)
+        host_list_frame.grid(row=row, column=col, sticky="nsew", padx=(12, 6), pady=(0, 12))
 
-        # Internal frame for filter box
-        filter_bar = tb.Frame(host_list_frame, bootstyle="secondary")
-        filter_bar.pack(fill=tk.X, padx=5, pady=(0, 5))
+        # Search bar
+        filter_bar = tb.Frame(host_list_frame)
+        filter_bar.pack(fill=tk.X, padx=2, pady=(0, 8))
 
-        tb.Label(filter_bar, text="Filter ", bootstyle="warning").pack(side=LEFT)
+        tb.Label(filter_bar, text="Search", style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
 
         # Filter box
         self.filter_entry = tb.Entry(filter_bar,
@@ -657,21 +789,23 @@ class IndraGUI(tb.Window):
                            )
         self.filter_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.filter_entry.bind("<KeyRelease>", self._handle_filter_change)
-    
-        # Frame for Host Listbox
-        listbox_frame = tb.Frame(host_list_frame, bootstyle="warning")
-        listbox_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=5)
+
+        # Frame for Host Listbox (also hosts the empty-state overlay)
+        listbox_frame = tb.Frame(host_list_frame)
+        listbox_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
 
         # Host Listbox
         self.host_listbox = tk.Listbox(listbox_frame,
-                                 bg="#2e3238",
-                                 fg="#ffffff",
+                                 bg=self.colors["surface_alt"],
+                                 fg=self.colors["text"],
                                  font=self.monospace_font,
-                                 selectbackground="#20374c",
-                                 borderwidth=1,
+                                 selectbackground=self.colors["accent"],
+                                 selectforeground="#ffffff",
+                                 borderwidth=0,
                                  relief="flat",
                                  highlightthickness=1,
-                                 highlightbackground="#555555"
+                                 highlightbackground=self.colors["border"],
+                                 activestyle="none"
                                  )
         self.host_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.host_listbox.bind("<<ListboxSelect>>", self._handle_host_selection)
@@ -680,6 +814,15 @@ class IndraGUI(tb.Window):
         scrollbar = tb.Scrollbar(listbox_frame, orient=tk.VERTICAL, command=self.host_listbox.yview, bootstyle="warning-round")
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.host_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Empty-state overlay (shown when no hosts are present)
+        self.host_empty_label = tk.Label(listbox_frame,
+                                    text="No hosts discovered —\nrun a scan to begin.",
+                                    bg=self.colors["surface_alt"],
+                                    fg=self.colors["text_muted"],
+                                    font=self.body_font,
+                                    justify=tk.CENTER)
+        self._update_host_empty_state()
 
     # ========================
     # Functions for host list
@@ -701,7 +844,23 @@ class IndraGUI(tb.Window):
             for host in self.all_targets:
                 if query in host:
                     self.host_listbox.insert(END, host)
-        
+
+        # Refresh the empty-state overlay to match current list contents
+        self._update_host_empty_state()
+
+        return
+
+    def _update_host_empty_state(self):
+        """
+        UI-only: shows the "no hosts" overlay when the listbox is empty and
+        hides it once hosts are present. Does not alter any host data.
+        """
+
+        if self.host_listbox.size() == 0:
+            self.host_empty_label.place(relx=0.5, rely=0.5, anchor="center")
+        else:
+            self.host_empty_label.place_forget()
+
         return
 
     def _handle_host_selection(self, event=None):
@@ -740,53 +899,62 @@ class IndraGUI(tb.Window):
 
         return
     
-    def _init_info_video_terminal_panel(self, row, col):
+    def _init_info_video_terminal_panel(self, parent, row, col):
         """
-        Creates the right hand panel with target info, video feed and terminal _log.
+        Creates the right-hand information dashboard: a Target card (details of
+        the currently selected host) stacked above a terminal-style System
+        Activity log. The self.target_info_label and self.text_terminal widget
+        names are preserved so all existing update/logging code keeps working.
         """
 
         # ==========
         # GUI Setup
         # ==========
 
-        right_panel_frame = tb.Labelframe(self, text="Information Dashboard", bootstyle="info")
-        right_panel_frame.grid(row=row, column=col, sticky="nsew", padx=10, pady=5)
+        right_panel_frame = tb.Frame(parent)
+        right_panel_frame.grid(row=row, column=col, sticky="nsew", padx=(6, 12), pady=(0, 12))
 
         right_panel_frame.grid_columnconfigure(0, weight=1)
-        # Rows: Info (0), Video (1), Terminal (2)
-        right_panel_frame.grid_rowconfigure(1, weight=1)
-        right_panel_frame.grid_rowconfigure(2, weight=0)
+        right_panel_frame.grid_rowconfigure(0, weight=0)   # Target card
+        right_panel_frame.grid_rowconfigure(1, weight=1)   # Log console (expands)
 
-        # Target Info Label
-        info_subframe = tb.Frame(right_panel_frame, style="TFrame")
-        info_subframe.grid(row=0, column=0, sticky="new", padx=5, pady=5)
-        info_subframe.grid_columnconfigure(1, weight=1)
-         
-        self.target_info_label = tb.Label(info_subframe,
+        # =====================
+        # Target card
+        # =====================
+
+        target_card = tb.Labelframe(right_panel_frame, text=" Target ", bootstyle="info", padding=12)
+        target_card.grid(row=0, column=0, sticky="new", pady=(0, 8))
+
+        self.target_info_label = tb.Label(target_card,
                                         text="Target: No target selected",
                                         font=self.label_font,
                                         bootstyle="light",
                                         justify=tk.LEFT
                                         )
         self.target_info_label.pack(anchor="w")
-        
+
         # Video section moved to Controller GUI
-        
-        # Terminal Output Frame
-        terminal_frame = tb.Labelframe(right_panel_frame, text="System Log", padding=5, bootstyle="info")
-        terminal_frame.grid(row=2, column=0, sticky="sew", pady=10)
-        terminal_frame.grid_propagate(False)
+
+        # =====================
+        # System Activity log (terminal-style console)
+        # =====================
+
+        terminal_frame = tb.Labelframe(right_panel_frame, text=" System Activity ", padding=8, bootstyle="info")
+        terminal_frame.grid(row=1, column=0, sticky="nsew")
 
         # Terminal Window
         self.text_terminal = tk.Text(terminal_frame,
                                wrap=tk.WORD,
                                font=self.monospace_font,
-                               bg="#111111",
-                               fg="#00ff00",
+                               bg=self.colors["terminal_bg"],
+                               fg=self.colors["terminal_fg"],
+                               insertbackground=self.colors["terminal_fg"],
                                state=tk.DISABLED,
                                relief="flat",
                                borderwidth=0,
-                               highlightthickness=0
+                               highlightthickness=0,
+                               padx=10,
+                               pady=8
                                )
         self.text_terminal.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -794,6 +962,46 @@ class IndraGUI(tb.Window):
         terminal_scrollbar = tb.Scrollbar(terminal_frame, orient=tk.VERTICAL, command=self.text_terminal.yview, bootstyle="info-round")
         terminal_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.text_terminal.config(yscrollcommand=terminal_scrollbar.set)
+
+    def _init_forensics_tab(self):
+        """
+        Placeholder tab for the upcoming Digital Forensics module.
+
+        No forensic backend exists yet — this only establishes the navigation
+        slot and the future section layout (visual empty states only) so the
+        real forensics screens can be dropped in here later.
+        """
+
+        self.forensics_tab = tb.Frame(self.notebook, padding=20)
+        self.notebook.add(self.forensics_tab, text="  Forensics  ")
+
+        tb.Label(self.forensics_tab, text="Digital Forensics",
+                 style="CardHeading.TLabel").pack(anchor="w")
+        tb.Label(self.forensics_tab,
+                 text="Post-capture forensic analysis — module coming soon.",
+                 style="Muted.TLabel").pack(anchor="w", pady=(4, 16))
+
+        # Future section slots (visual placeholders only — no functionality yet)
+        sections = [
+            ("Acquisition",          "Wired (USB) & wireless data extraction status"),
+            ("Flight Logs / Telemetry", "Parsed DJI .DAT / .TXT flight records"),
+            ("Media Metadata",       "EXIF & container metadata from images / video"),
+            ("Steganography",        "Hidden-data detection findings"),
+            ("Integrity (SHA-256)",  "Hash generation & verification results"),
+            ("Reporting",            "Timeline & exportable forensic report"),
+        ]
+
+        grid = tb.Frame(self.forensics_tab)
+        grid.pack(fill=tk.BOTH, expand=True)
+        grid.grid_columnconfigure(0, weight=1, uniform="fx")
+        grid.grid_columnconfigure(1, weight=1, uniform="fx")
+
+        for i, (title, desc) in enumerate(sections):
+            r, cc = divmod(i, 2)
+            card = tb.Labelframe(grid, text=f" {title} ", bootstyle="secondary", padding=12)
+            card.grid(row=r, column=cc, sticky="nsew", padx=6, pady=6)
+            tb.Label(card, text=desc, style="Muted.TLabel",
+                     wraplength=320, justify=tk.LEFT).pack(anchor="w")
 
     # ====================
     # Functions for video
@@ -913,5 +1121,5 @@ class IndraGUI(tb.Window):
         #     time.sleep(3)
 
     def launch_controller(self):
-        """Launches the external controllerGUI.py file"""
+        """Launches the external controkollerGUI.py file"""
         self._handle_open_controller()
