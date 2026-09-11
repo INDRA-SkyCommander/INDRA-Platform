@@ -26,8 +26,13 @@ interface = options_info.get("interface")
 ## START MODULE ##
 ##################
 
+# aireplay-ng injection requires the interface to be in monitor mode
+sudo_exec(f"ip link set {interface} down")
+sudo_exec(f"iw {interface} set monitor none")
+sudo_exec(f"ip link set {interface} up")
+
 # Targeting specific channel of target drone
-sudo_exec(f"iwconfig {interface} channel {target_channel}")
+sudo_exec(f"iw {interface} set channel {target_channel}")
 
 # Deauth attack command
 

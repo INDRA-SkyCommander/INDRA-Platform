@@ -498,7 +498,7 @@ class IndraGUI(tb.Window):
 			return -1
 
 		target_name = self._get_target()
-		if target_name is None:
+		if target_name is None or target_name == "No target selected":
 			self._log("Please select target first.")
 			return -1
 		
