@@ -4,7 +4,7 @@ Small helper functions used by the INDRA project (Wi‑Fi scanning + module disc
 
 ## Requirements
 - Python 3
-- Linux with `iwlist` available (commonly from the `wireless-tools` package)
+- Linux with `iw` available (commonly from the `iw` package)
 - A wireless interface name (default: `wlan0`)
 
 ## Quick start
@@ -25,9 +25,9 @@ sudo_exec(["whoami"])
 ## What each file does
 
 ### `scan.py`
-- Runs `iwlist <interface> scan`
+- Runs `iw dev <interface> scan`
 - Writes files under `src/data/`:
-  - `raw_output.txt` (raw `iwlist` output)
+  - `raw_output.txt` (raw `iw` output)
   - `scan_results.txt` (one target per line)
 
 Return value:
@@ -39,7 +39,7 @@ Errors / edge cases:
 - Returns `"SCAN_ERROR_GENERIC"` for other scan failures
 - May return `None` if the scan output is empty (blank results)
 
-### `iwlist_parse.py`
+### `iw_parse.py`
 Parsing helpers used by `scan()`, including:
 `get_cells`, `get_name`, `get_address`, `get_quality`, `get_channel`, `get_signal_level`, `get_encryption`.
 

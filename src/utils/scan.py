@@ -1,5 +1,5 @@
 import os
-from .iwlist_parse import *
+from .iw_parse import get_name, get_address, get_quality, get_channel, get_signal_level, get_encryption, get_cells
 
 cell_info = {}
 
@@ -36,19 +36,21 @@ def scan(interface="wlan0"):
 	raw_output_path = os.path.join(data_folder, "raw_output.txt")
 	scan_results_file_path = os.path.join(data_folder, "scan_results.txt")
 
-	# run scan
-	return_code = os.system(f'iwlist {interface} scan > {raw_output_path} 2>&1')
-	
+	# run scan (iw talks to the kernel over nl80211, which the wifi
+	# adapters used here actually support; the old iwlist/WEXT path was
+	# unreliable and slow on those drivers)
+	return_code = os.system(f'iw dev {interface} scan > {raw_output_path} 2>&1')
+
 	if return_code != 0:
 		# Check if the error is due to unsupported interface
 		try:
 			with open(raw_output_path, 'r') as f:
 				error_output = f.read().lower()
-				if 'operation not supported' in error_output or 'no such device' in error_output:
+				if 'no such device' in error_output or 'not supported' in error_output or 'not permitted' in error_output:
 					return SCAN_ERROR_UNSUPPORTED_INTERFACE
 		except Exception:
 			pass
-		
+
 		return SCAN_ERROR_GENERIC
 
 	# if new results are blank, don't overwrite previous results with blank results
