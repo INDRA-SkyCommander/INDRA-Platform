@@ -297,6 +297,26 @@ class IndraGUI(tb.Window):
                 self._handle_single_scan()
             time.sleep(self.auto_scan_cooldown)
 
+    def _interface_is_managed(self, interface):
+        """
+        Checks whether the given interface is currently in managed mode,
+        via `iw dev <interface> info`. Returns False (i.e. "needs reset")
+        if the mode can't be determined.
+        """
+
+        try:
+            output = subprocess.check_output(
+                f"iw dev {interface} info", shell=True, text=True, stderr=subprocess.DEVNULL
+            )
+            for line in output.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("type "):
+                    return stripped.split()[-1] == "managed"
+        except Exception:
+            pass
+
+        return False
+
     def _handle_single_scan(self):
         """
         Handles a single scan event.
@@ -313,19 +333,24 @@ class IndraGUI(tb.Window):
         
         self.is_scanning = True
         self.scan_btn.configure(text="Scanning...", bootstyle="danger-outline", state=DISABLED)
-        
-        sudo_exec(f"ifconfig {interface} down")
-        sudo_exec(f"iwconfig {interface} mode managed")
-        sudo_exec(f"ifconfig {interface} up")
-        
-        # Give the interface time to stabilize after mode change
-        # This prevents "device or resource busy" errors
-        time.sleep(2)
 
         self._log_slow("Beep boop. Scanning...")
 
         def _scan_and_exit():
             try:
+                # Only bounce the interface into managed mode if it isn't
+                # already there (e.g. left in monitor mode by a previous
+                # exploit run). Doing this unconditionally before every
+                # scan - including every auto-scan tick - added several
+                # seconds of interface down/up churn on top of scan()'s
+                # own recovery logic, and ran synchronously on the caller's
+                # thread (freezing the GUI on a manual "Run Scan" click).
+                if not self._interface_is_managed(interface):
+                    sudo_exec(f"ifconfig {interface} down")
+                    sudo_exec(f"iwconfig {interface} mode managed")
+                    sudo_exec(f"ifconfig {interface} up")
+                    time.sleep(1)
+
                 scan_result = scan(interface)
                 self.is_scanning = False
                 self.after(0, lambda: self.scan_btn.configure(text="Run Scan", bootstyle="success-outline", state=NORMAL))
