@@ -13,10 +13,21 @@ those attack a drone; these run *after* one is in hand and read data off it.
 | Sub-package    | Purpose                                                        | Status |
 |----------------|---------------------------------------------------------------|--------|
 | `acquisition/` | Get data **off** the drone onto local disk (wired USB)        | ✅ USB |
+| `analysis/`    | Analyze an extracted session (flight logs, media EXIF, stego) | ✅ v1  |
 
-Downstream modules (flight-log parsing, media metadata, steganography, SHA-256
-verification, reporting) consume the output produced here. They are separate
-tasks; this folder currently delivers the **Acquisition** step only.
+Both are driven from the INDRA GUI's **Forensics tab**. `analysis/` reads a
+session's `manifest.json`, inspects the extracted files, and returns structured
+findings (also saved as JSON in the session folder).
+
+### `analysis/` modules
+- **`flight_logs.py`** — `.TXT` flight records parsed (line count, preview,
+  delimiter guess); `.DAT` reported as binary with a hex header. Full `.DAT`
+  decryption needs DROP-style tooling (open-source-tools / future task).
+- **`media_metadata.py`** — EXIF via Pillow: format, dimensions, camera
+  make/model, capture timestamp, GPS-present flag.
+- **`steganography.py`** — first-pass screen for hidden data: bytes appended
+  after the image end-marker, and embedded archive/document signatures. Deeper
+  analysis (LSB, Steghide/zsteg) is left to the open-source-tools workstream.
 
 ## `acquisition/usb_extractor.py` — Wired (USB) extraction
 
