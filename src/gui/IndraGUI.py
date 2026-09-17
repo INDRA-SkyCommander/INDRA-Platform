@@ -8,6 +8,7 @@ import base64
 import threading
 import subprocess
 import re
+from datetime import datetime, timezone
 
 # Tkinter
 import tkinter as tk
@@ -972,19 +973,62 @@ class IndraGUI(tb.Window):
         The remaining five cards are still visual placeholders for future work.
         """
 
-        self.forensics_tab = tb.Frame(self.notebook, padding=20)
+        self.forensics_tab = tb.Frame(self.notebook)
         self.notebook.add(self.forensics_tab, text="  Forensics  ")
 
-        tb.Label(self.forensics_tab, text="Digital Forensics",
+        # Scrollable area: a canvas + always-visible scrollbar with an inner
+        # frame, so all six (tall) cards stay reachable on any window size.
+        # Manual implementation for reliability across ttkbootstrap versions and
+        # on Linux (the VM), where wheel events arrive as Button-4 / Button-5.
+        fx_canvas = tk.Canvas(self.forensics_tab, background=self.colors["bg"],
+                              highlightthickness=0)
+        fx_vbar = tb.Scrollbar(self.forensics_tab, orient=tk.VERTICAL,
+                               command=fx_canvas.yview, bootstyle="round")
+        fx_canvas.configure(yscrollcommand=fx_vbar.set)
+        fx_vbar.pack(side=tk.RIGHT, fill=tk.Y)
+        fx_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        container = tb.Frame(fx_canvas, padding=20)
+        fx_window = fx_canvas.create_window((0, 0), window=container, anchor="nw")
+
+        # Keep the scrollregion and inner width synced with content / canvas.
+        container.bind("<Configure>",
+                       lambda e: fx_canvas.configure(scrollregion=fx_canvas.bbox("all")))
+        fx_canvas.bind("<Configure>",
+                       lambda e: fx_canvas.itemconfigure(fx_window, width=e.width))
+
+        # Mouse-wheel scrolling (Windows/macOS: MouseWheel; Linux/VM: Button-4/5).
+        def _fx_wheel(event):
+            if getattr(event, "num", None) == 4:
+                fx_canvas.yview_scroll(-1, "units")
+            elif getattr(event, "num", None) == 5:
+                fx_canvas.yview_scroll(1, "units")
+            elif getattr(event, "delta", 0):
+                fx_canvas.yview_scroll(int(-event.delta / 120), "units")
+
+        def _fx_bind_wheel(_):
+            fx_canvas.bind_all("<MouseWheel>", _fx_wheel)
+            fx_canvas.bind_all("<Button-4>", _fx_wheel)
+            fx_canvas.bind_all("<Button-5>", _fx_wheel)
+
+        def _fx_unbind_wheel(_):
+            fx_canvas.unbind_all("<MouseWheel>")
+            fx_canvas.unbind_all("<Button-4>")
+            fx_canvas.unbind_all("<Button-5>")
+
+        fx_canvas.bind("<Enter>", _fx_bind_wheel)
+        fx_canvas.bind("<Leave>", _fx_unbind_wheel)
+
+        tb.Label(container, text="Digital Forensics",
                  style="CardHeading.TLabel").pack(anchor="w")
-        tb.Label(self.forensics_tab,
+        tb.Label(container,
                  text="Post-capture forensic analysis of a captured drone.",
                  style="Muted.TLabel").pack(anchor="w", pady=(4, 16))
 
         # ---- All six cards in one uniform 2-column grid ----
         # Row 0: the two working cards (Acquisition, Integrity), kept fully
         # functional. Rows below: placeholder cards for future work.
-        grid = tb.Frame(self.forensics_tab)
+        grid = tb.Frame(container)
         grid.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
         grid.grid_columnconfigure(0, weight=1, uniform="fx")
         grid.grid_columnconfigure(1, weight=1, uniform="fx")
@@ -992,20 +1036,22 @@ class IndraGUI(tb.Window):
         # Working cards (interactive)
         self._init_acquisition_card(grid, row=0, col=0)
         self._init_integrity_card(grid, row=0, col=1)
+        self._init_reporting_card(grid, row=1, col=0)
 
-        # Placeholder cards (future work — not wired yet)
-        placeholders = [
-            ("Flight Logs / Telemetry", "Parsed DJI .DAT / .TXT flight records"),
-            ("Media Metadata",       "EXIF & container metadata from images / video"),
-            ("Steganography",        "Hidden-data detection findings"),
-            ("Reporting",            "Timeline & exportable forensic report"),
-        ]
-        for i, (title, desc) in enumerate(placeholders):
-            r, cc = divmod(i, 2)
-            card = tb.Labelframe(grid, text=f" {title} ", bootstyle="secondary", padding=12)
-            card.grid(row=1 + r, column=cc, sticky="nsew", padx=6, pady=6)
-            tb.Label(card, text=desc, style="Muted.TLabel",
-                     wraplength=320, justify=tk.LEFT).pack(anchor="w")
+        # ---- Analysis cards (interactive) ----
+        # Each runs a forensics/analysis pass over a session and shows findings.
+        self.fl_card = self._make_analysis_card(
+            grid, 1, 1, "Flight Logs / Telemetry",
+            "Parse extracted DJI flight logs (.TXT readable; .DAT binary header).",
+            "Parse Logs", self._handle_flight_logs)
+        self.mm_card = self._make_analysis_card(
+            grid, 2, 0, "Media Metadata",
+            "Extract EXIF / image metadata (camera, timestamp, GPS) from media.",
+            "Extract Metadata", self._handle_media_metadata)
+        self.steg_card = self._make_analysis_card(
+            grid, 2, 1, "Steganography",
+            "Scan images for hidden / appended data and embedded file signatures.",
+            "Scan Images", self._handle_steganography)
 
     def _init_acquisition_card(self, parent, row=0, col=0):
         """
@@ -1410,6 +1456,454 @@ class IndraGUI(tb.Window):
             self.integ_status_label.config(
                 text=f"Status: {tam} tampered, {mis} missing")
             self._log(f"WARNING: Integrity issues - {tam} tampered, {mis} missing.")
+
+    def _init_reporting_card(self, parent, row=1, col=0):
+        """
+        Interactive Reporting card: generates a forensic summary report for an
+        extraction session (file inventory + SHA-256 integrity result) and saves
+        it as report.txt next to the session's manifest.
+
+        Widget state used by the handlers:
+            self.report_source_var    - session folder / manifest path (blank = latest)
+            self.report_btn           - the Generate Report button
+            self.report_status_label  - one-line status
+            self.report_results       - read-only report preview area
+            self.report_running       - guard flag against concurrent runs
+        """
+
+        self.report_running = False
+
+        card = tb.Labelframe(parent, text=" Reporting - Forensic Summary ",
+                             bootstyle="info", padding=12)
+        card.grid(row=row, column=col, sticky="nsew", padx=6, pady=6)
+
+        tb.Label(card,
+                 text="Generate a forensic summary report for an extraction "
+                      "session (file inventory + SHA-256 integrity). Leave the "
+                      "session blank for the most recent extraction, or enter a "
+                      "session folder / manifest.json path. Saved as report.txt.",
+                 style="Muted.TLabel", wraplength=360, justify=tk.LEFT).pack(anchor="w")
+
+        # Controls: session entry + generate button
+        controls = tb.Frame(card)
+        controls.pack(fill=tk.X, pady=(10, 8))
+
+        tb.Label(controls, text="Session",
+                 style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
+
+        self.report_source_var = tk.StringVar(value="")
+        self.report_source_entry = tb.Entry(controls, bootstyle="info",
+                                            font=self.label_font,
+                                            textvariable=self.report_source_var)
+        self.report_source_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
+
+        tb.Label(controls, text="(blank = most recent)",
+                 style="Muted.TLabel").pack(side=tk.LEFT, padx=(0, 8))
+
+        self.report_btn = tb.Button(controls, text="Generate Report",
+                                    bootstyle="info",
+                                    command=self._handle_generate_report)
+        self.report_btn.pack(side=tk.LEFT)
+
+        # Status line
+        self.report_status_label = tb.Label(card, text="Status: idle",
+                                            style="Muted.TLabel")
+        self.report_status_label.pack(anchor="w", pady=(0, 6))
+
+        # Report preview area (read-only)
+        results_frame = tb.Frame(card)
+        results_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.report_results = tk.Text(results_frame, height=9, wrap=tk.WORD,
+                                      font=self.monospace_font,
+                                      bg=self.colors["surface_alt"],
+                                      fg=self.colors["text"],
+                                      relief="flat", borderwidth=0,
+                                      highlightthickness=1,
+                                      highlightbackground=self.colors["border"],
+                                      state=tk.DISABLED, padx=8, pady=6)
+        self.report_results.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        report_scroll = tb.Scrollbar(results_frame, orient=tk.VERTICAL,
+                                     command=self.report_results.yview,
+                                     bootstyle="info-round")
+        report_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.report_results.config(yscrollcommand=report_scroll.set)
+
+        self._set_report_results("No report generated yet. Run an extraction "
+                                "first, then generate a report here.")
+
+    # ============================
+    # Functions for reporting card
+    # ============================
+
+    def _set_report_results(self, text):
+        """Replace the read-only report preview area contents."""
+        self.report_results.config(state=tk.NORMAL)
+        self.report_results.delete("1.0", tk.END)
+        self.report_results.insert(tk.END, text)
+        self.report_results.config(state=tk.DISABLED)
+
+    def _verify_session(self, manifest):
+        """
+        Re-hash a manifest's files and return
+        (total, verified, tampered, missing, issues) for the report.
+        """
+        from forensics.acquisition import USBExtractor
+
+        total = ver = tam = mis = 0
+        issues = []
+        for entry in manifest.get("files", []):
+            path = entry.get("copied_path")
+            expected = entry.get("sha256")
+            total += 1
+            if not path or not os.path.exists(path):
+                mis += 1
+                issues.append(("MISSING", path or "?"))
+                continue
+            try:
+                actual = USBExtractor.sha256_file(path)
+            except Exception as e:
+                mis += 1
+                issues.append(("UNREADABLE", f"{path}: {e}"))
+                continue
+            if actual == expected:
+                ver += 1
+            else:
+                tam += 1
+                issues.append(("TAMPERED", path))
+        return total, ver, tam, mis, issues
+
+    def _build_report_text(self, manifest, manifest_path, integ):
+        """Render the plain-text forensic report from a manifest + integrity result."""
+        total, ver, tam, mis, issues = integ
+        s = manifest.get("summary", {})
+        counts = s.get("counts", {})
+
+        lines = []
+        add = lines.append
+        bar = "=" * 60
+
+        add(bar)
+        add(" INDRA DIGITAL FORENSICS - EXTRACTION REPORT")
+        add(bar)
+        add(f"Session ID     : {manifest.get('session_id', '?')}")
+        add(f"Report time    : {datetime.now(timezone.utc).isoformat()}")
+        add(f"Extraction     : {manifest.get('extraction_started', '?')} -> "
+            f"{manifest.get('extraction_completed', '?')}")
+        add(f"Host           : {manifest.get('host', '')}")
+        add(f"DJI detected   : {manifest.get('dji_device_detected')}")
+        add(f"Manifest       : {manifest_path}")
+        add("")
+
+        add("--- SOURCES ---")
+        sources = manifest.get("sources", [])
+        for src in sources:
+            add(f"  {src.get('label', '?')} @ {src.get('mountpoint', '?')} "
+                f"({src.get('fstype') or '?'}, {src.get('size') or '?'})")
+        if not sources:
+            add("  (none recorded)")
+        add("")
+
+        add("--- FILE SUMMARY ---")
+        add(f"  Total files  : {s.get('total_files', 0)} "
+            f"({s.get('total_bytes', 0)} bytes)")
+        add(f"  Flight logs  : {counts.get('flight_logs', 0)}")
+        add(f"  Media        : {counts.get('media', 0)}")
+        add(f"  Other        : {counts.get('other', 0)}")
+        add("")
+
+        add("--- INTEGRITY (SHA-256 re-verification) ---")
+        add(f"  Verified     : {ver}")
+        add(f"  Tampered     : {tam}")
+        add(f"  Missing      : {mis}")
+        if total == 0:
+            add("  Result       : (no files)")
+        elif tam == 0 and mis == 0:
+            add("  Result       : PASS - all files intact")
+        else:
+            add("  Result       : FAIL - integrity issues detected")
+        if issues:
+            add("  Issues:")
+            for kind, path in issues[:50]:
+                add(f"    [{kind}] {path}")
+        add("")
+
+        # Per-category file inventory
+        for cat, title in (("flight_logs", "FLIGHT LOGS"),
+                           ("media", "MEDIA"),
+                           ("other", "OTHER")):
+            entries = [e for e in manifest.get("files", []) if e.get("category") == cat]
+            add(f"--- {title} ({len(entries)}) ---")
+            for e in entries:
+                sha = (e.get("sha256") or "")[:16]
+                add(f"  {e.get('relative_path', '?')}  [{e.get('file_type', '?')}]  "
+                    f"{e.get('size_bytes', 0)}b  sha256:{sha}...")
+            if not entries:
+                add("  (none)")
+            add("")
+
+        errs = manifest.get("errors", [])
+        add(f"--- EXTRACTION ERRORS ({len(errs)}) ---")
+        for er in errs[:50]:
+            add(f"  {er.get('path', '?')}: {er.get('error', '')}")
+        if not errs:
+            add("  (none)")
+        add("")
+        add(bar)
+        add(" END OF REPORT")
+        add(bar)
+        return "\n".join(lines)
+
+    def _handle_generate_report(self):
+        """
+        Generate a forensic report in a background thread. The worker only
+        computes; all widget updates are marshalled back via self.after().
+        """
+
+        if self.report_running:
+            self._log("Report already generating.")
+            return
+
+        target = self.report_source_var.get().strip()
+
+        self.report_running = True
+        self.report_btn.config(state=tk.DISABLED)
+        self.report_status_label.config(text="Status: generating...")
+        self._set_report_results("Generating report...")
+        self._log_slow("Generating forensic report...")
+
+        def _worker():
+            result = {"ok": False, "error": None, "report_path": None, "text": None}
+            try:
+                manifest_path = self._resolve_manifest_path(target)
+                with open(manifest_path) as f:
+                    manifest = json.load(f)
+                integ = self._verify_session(manifest)
+                text = self._build_report_text(manifest, manifest_path, integ)
+
+                report_path = os.path.join(os.path.dirname(manifest_path), "report.txt")
+                with open(report_path, "w") as f:
+                    f.write(text)
+
+                result["ok"] = True
+                result["report_path"] = report_path
+                result["text"] = text
+            except Exception as e:
+                result["error"] = str(e)
+
+            self.after(0, lambda: self._finish_report(result))
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _finish_report(self, result):
+        """Runs on the GUI thread: show the report preview + log the outcome."""
+
+        self.report_running = False
+        self.report_btn.config(state=tk.NORMAL)
+
+        if not result["ok"]:
+            err = result["error"] or "unknown error"
+            self.report_status_label.config(text="Status: failed")
+            self._set_report_results(f"Report generation failed:\n{err}")
+            self._log(f"ERROR: Report generation failed: {err}")
+            return
+
+        self._set_report_results(result["text"])
+        self.report_status_label.config(text="Status: report saved")
+        self._log_slow(f"Forensic report saved: {result['report_path']}")
+
+    # =========================================
+    # Generic analysis cards (Flight Logs /
+    # Media Metadata / Steganography)
+    # =========================================
+    # These three cards share the same shape (session entry + run button +
+    # status + results) and the same run/finish flow, so they're built from a
+    # single helper and driven by a small per-card state dict.
+
+    def _make_analysis_card(self, parent, row, col, title, desc, button_text, command):
+        """
+        Build one interactive analysis card and return its state dict:
+            {"src_var", "btn", "status", "results", "running"}.
+        """
+        card = tb.Labelframe(parent, text=f" {title} ", bootstyle="info", padding=12)
+        card.grid(row=row, column=col, sticky="nsew", padx=6, pady=6)
+
+        tb.Label(card, text=desc, style="Muted.TLabel",
+                 wraplength=360, justify=tk.LEFT).pack(anchor="w")
+
+        controls = tb.Frame(card)
+        controls.pack(fill=tk.X, pady=(10, 8))
+        tb.Label(controls, text="Session",
+                 style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
+
+        src_var = tk.StringVar(value="")
+        entry = tb.Entry(controls, bootstyle="info", font=self.label_font,
+                         textvariable=src_var)
+        entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
+        tb.Label(controls, text="(blank = most recent)",
+                 style="Muted.TLabel").pack(side=tk.LEFT, padx=(0, 8))
+
+        btn = tb.Button(controls, text=button_text, bootstyle="info", command=command)
+        btn.pack(side=tk.LEFT)
+
+        status = tb.Label(card, text="Status: idle", style="Muted.TLabel")
+        status.pack(anchor="w", pady=(0, 6))
+
+        results_frame = tb.Frame(card)
+        results_frame.pack(fill=tk.BOTH, expand=True)
+        results = tk.Text(results_frame, height=8, wrap=tk.WORD,
+                          font=self.monospace_font,
+                          bg=self.colors["surface_alt"], fg=self.colors["text"],
+                          relief="flat", borderwidth=0, highlightthickness=1,
+                          highlightbackground=self.colors["border"],
+                          state=tk.DISABLED, padx=8, pady=6)
+        results.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scroll = tb.Scrollbar(results_frame, orient=tk.VERTICAL,
+                              command=results.yview, bootstyle="info-round")
+        scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        results.config(yscrollcommand=scroll.set)
+
+        state = {"src_var": src_var, "btn": btn, "status": status,
+                 "results": results, "running": False}
+        self._set_text(results, "No analysis run yet. Run an extraction first, "
+                                "then run this analysis.")
+        return state
+
+    def _set_text(self, widget, text):
+        """Replace a read-only Text widget's contents."""
+        widget.config(state=tk.NORMAL)
+        widget.delete("1.0", tk.END)
+        widget.insert(tk.END, text)
+        widget.config(state=tk.DISABLED)
+
+    def _run_analysis(self, state, label, analyze_fn, out_name, formatter):
+        """
+        Shared runner for the analysis cards. Runs analyze_fn(manifest_path) in a
+        background thread, writes its result JSON into the session folder, and
+        updates the card via self.after().
+        """
+        if state["running"]:
+            self._log(f"{label} already running.")
+            return
+
+        target = state["src_var"].get().strip()
+        state["running"] = True
+        state["btn"].config(state=tk.DISABLED)
+        state["status"].config(text="Status: analyzing...")
+        self._set_text(state["results"], "Analyzing...")
+        self._log_slow(f"{label}: starting...")
+
+        def _worker():
+            result = {"ok": False, "error": None, "data": None, "out_path": None}
+            try:
+                manifest_path = self._resolve_manifest_path(target)
+                data = analyze_fn(manifest_path)
+                out_path = os.path.join(os.path.dirname(manifest_path), out_name)
+                with open(out_path, "w") as f:
+                    json.dump(data, f, indent=2)
+                result["ok"] = True
+                result["data"] = data
+                result["out_path"] = out_path
+            except Exception as e:
+                result["error"] = str(e)
+            self.after(0, lambda: self._finish_analysis(state, label, result, formatter))
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _finish_analysis(self, state, label, result, formatter):
+        """Runs on the GUI thread: render analysis findings + log the outcome."""
+        state["running"] = False
+        state["btn"].config(state=tk.NORMAL)
+
+        if not result["ok"]:
+            err = result["error"] or "unknown error"
+            state["status"].config(text="Status: failed")
+            self._set_text(state["results"], f"{label} failed:\n{err}")
+            self._log(f"ERROR: {label} failed: {err}")
+            return
+
+        text, status = formatter(result["data"])
+        self._set_text(state["results"], text + f"\n\nSaved: {result['out_path']}")
+        state["status"].config(text=f"Status: {status}")
+        self._log_slow(f"{label}: {status}.")
+
+    # --- Flight Logs ---
+
+    def _handle_flight_logs(self):
+        def fn(manifest_path):
+            from forensics.analysis import analyze_flight_logs
+            return analyze_flight_logs(manifest_path)
+        self._run_analysis(self.fl_card, "Flight-log parse", fn,
+                           "flight_logs.json", self._fmt_flight_logs)
+
+    def _fmt_flight_logs(self, data):
+        n = data.get("log_count", 0)
+        lines = [f"Flight logs: {n}", ""]
+        for it in data.get("items", []):
+            lines.append(f"[{it.get('file_type')}] {it.get('relative_path')} "
+                         f"({it.get('size_bytes')}b)")
+            st = it.get("status")
+            if st == "parsed":
+                lines.append(f"   lines: {it.get('line_count')}  "
+                             f"{it.get('format_guess', '')}")
+                for pl in it.get("preview", [])[:5]:
+                    lines.append(f"   | {pl}")
+            elif st == "binary":
+                lines.append(f"   binary .DAT  header: {it.get('header_hex', '')[:32]}...")
+                lines.append(f"   {it.get('note', '')}")
+            else:
+                lines.append(f"   status: {st}")
+            lines.append("")
+        return "\n".join(lines), f"{n} log(s) parsed"
+
+    # --- Media Metadata ---
+
+    def _handle_media_metadata(self):
+        def fn(manifest_path):
+            from forensics.analysis import analyze_media
+            return analyze_media(manifest_path)
+        self._run_analysis(self.mm_card, "Media metadata", fn,
+                           "media_metadata.json", self._fmt_media)
+
+    def _fmt_media(self, data):
+        n = data.get("media_count", 0)
+        lines = [f"Media files: {n}", ""]
+        for it in data.get("items", []):
+            lines.append(f"[{it.get('file_type')}] {it.get('relative_path')} "
+                         f"({it.get('size_bytes')}b)")
+            if it.get("exif_available"):
+                cam = f"{it.get('camera_make', '')} {it.get('camera_model', '')}".strip()
+                lines.append(f"   {it.get('format', '?')} {it.get('dimensions', '')}"
+                             + (f"  cam: {cam}" if cam else ""))
+                if it.get("datetime"):
+                    lines.append(f"   taken: {it.get('datetime')}")
+                if it.get("gps_present"):
+                    lines.append("   GPS: present")
+            else:
+                lines.append(f"   {it.get('note', 'no EXIF')}")
+            lines.append("")
+        return "\n".join(lines), f"{n} media file(s) analyzed"
+
+    # --- Steganography ---
+
+    def _handle_steganography(self):
+        def fn(manifest_path):
+            from forensics.analysis import analyze_stego
+            return analyze_stego(manifest_path)
+        self._run_analysis(self.steg_card, "Steganography scan", fn,
+                           "steganography.json", self._fmt_stego)
+
+    def _fmt_stego(self, data):
+        scanned = data.get("images_scanned", 0)
+        susp = data.get("suspicious", 0)
+        lines = [f"Images scanned: {scanned}   Suspicious: {susp}", ""]
+        for fnd in data.get("findings", []):
+            lines.append(f"{fnd.get('relative_path')}")
+            for fl in fnd.get("flags", []):
+                lines.append(f"   - {fl}")
+            lines.append("")
+        return "\n".join(lines), f"{susp} suspicious / {scanned} scanned"
 
     # ====================
     # Functions for video
