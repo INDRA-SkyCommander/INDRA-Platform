@@ -96,7 +96,7 @@ discord.py==2.3.2
 diskcache==5.4.0
 distlib==0.3.8
 distro==1.9.0
-Django==4.2.8
+Django==5.2.16
 dnslib==0.9.24
 dnspython==2.4.2
 docopt==0.6.2
