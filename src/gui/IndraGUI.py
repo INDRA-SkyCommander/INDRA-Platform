@@ -1078,6 +1078,17 @@ class IndraGUI(tb.Window):
             "Scan images for hidden / appended data and embedded file signatures.",
             "Scan Images", self._handle_steganography)
 
+        self.tel_card = self._make_analysis_card(
+            grid, 3, 0, "Telemetry — Flight Path Map",
+            "Generate a static PNG map of the drone's flight path from extracted CSV logs.",
+            "Generate Map", self._handle_telemetry)
+
+        self.sd_card = self._make_analysis_card(
+            grid, 3, 1, "SD Card Scan",
+            "Detect and extract all DJI files from an inserted SD card or removable drive. "
+            "Leave the drive path blank to auto-detect.",
+            "Scan SD Card", self._handle_sd_scan)
+
     def _init_acquisition_card(self, parent, row=0, col=0):
         """
         Interactive Acquisition card: runs the wired USB extraction module in a
@@ -1857,7 +1868,7 @@ class IndraGUI(tb.Window):
 
     def _handle_flight_logs(self):
         def fn(manifest_path):
-            from forensics.analysis import analyze_flight_logs
+            from modules.digital_forensics.analysis import analyze_flight_logs
             return analyze_flight_logs(manifest_path)
         self._run_analysis(self.fl_card, "Flight-log parse", fn,
                            "flight_logs.json", self._fmt_flight_logs)
@@ -1865,28 +1876,47 @@ class IndraGUI(tb.Window):
     def _fmt_flight_logs(self, data):
         n = data.get("log_count", 0)
         lines = [f"Flight logs: {n}", ""]
+
+        output_file = data.get("output_file")
+        if output_file:
+            lines.append(f"Full parsed output saved to:")
+            lines.append(f"  {output_file}")
+            lines.append("")
+
         for it in data.get("items", []):
             lines.append(f"[{it.get('file_type')}] {it.get('relative_path')} "
                          f"({it.get('size_bytes')}b)")
             st = it.get("status")
-            if st == "parsed":
+
+            if "parsed_output" in it:
+                all_lines = it["parsed_output"].splitlines()
+                for pl in all_lines[:8]:
+                    lines.append(f"   {pl}")
+                if len(all_lines) > 8:
+                    lines.append(f"   ... (see saved file for full output)")
+
+            elif st == "parsed":
                 lines.append(f"   lines: {it.get('line_count')}  "
                              f"{it.get('format_guess', '')}")
                 for pl in it.get("preview", [])[:5]:
                     lines.append(f"   | {pl}")
+
             elif st == "binary":
                 lines.append(f"   binary .DAT  header: {it.get('header_hex', '')[:32]}...")
                 lines.append(f"   {it.get('note', '')}")
+
             else:
                 lines.append(f"   status: {st}")
+
             lines.append("")
+
         return "\n".join(lines), f"{n} log(s) parsed"
 
     # --- Media Metadata ---
 
     def _handle_media_metadata(self):
         def fn(manifest_path):
-            from forensics.analysis import analyze_media
+            from modules.digital_forensics.analysis import analyze_media
             return analyze_media(manifest_path)
         self._run_analysis(self.mm_card, "Media metadata", fn,
                            "media_metadata.json", self._fmt_media)
@@ -1914,7 +1944,7 @@ class IndraGUI(tb.Window):
 
     def _handle_steganography(self):
         def fn(manifest_path):
-            from forensics.analysis import analyze_stego
+            from modules.digital_forensics.analysis import analyze_stego
             return analyze_stego(manifest_path)
         self._run_analysis(self.steg_card, "Steganography scan", fn,
                            "steganography.json", self._fmt_stego)
@@ -1929,6 +1959,121 @@ class IndraGUI(tb.Window):
                 lines.append(f"   - {fl}")
             lines.append("")
         return "\n".join(lines), f"{susp} suspicious / {scanned} scanned"
+
+    # --- Telemetry ---
+
+    def _handle_telemetry(self):
+        def fn(manifest_path):
+            from modules.digital_forensics.analysis import analyze_telemetry
+            return analyze_telemetry(manifest_path)
+        self._run_analysis(self.tel_card, "Flight path map", fn,
+                           "telemetry.json", self._fmt_telemetry)
+
+    def _fmt_telemetry(self, data):
+        n = data.get("maps_generated", 0)
+        lines = [f"Maps generated: {n}", ""]
+        for it in data.get("items", []):
+            lines.append(f"[{it.get('file_type')}] {it.get('relative_path')} "
+                         f"({it.get('size_bytes')}b)")
+            if it.get("map_path"):
+                lines.append(f"   Map saved: {it.get('map_path')}")
+            else:
+                lines.append(f"   {it.get('note', 'no map generated')}")
+            lines.append("")
+        return "\n".join(lines), f"{n} map(s) generated"
+
+    # --- SD Card Scan ---
+
+    def _handle_sd_scan(self):
+        if self.sd_card["running"]:
+            self._log("SD card scan already in progress.")
+            return
+
+        drive_path = self.sd_card["src_var"].get().strip()
+
+        self.sd_card["running"] = True
+        self.sd_card["btn"].config(state=tk.DISABLED)
+        self.sd_card["status"].config(text="Status: scanning...")
+        self._set_text(self.sd_card["results"], "Scanning SD card...")
+
+        if drive_path:
+            self._log_slow(f"Starting SD card scan from: {drive_path}")
+        else:
+            self._log_slow("Starting SD card scan (auto-detect)...")
+
+        def _worker():
+            result = {"ok": False, "summary": None, "error": None}
+            try:
+                _df = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   "..", "..", "modules", "digital_forensics")
+                for _p in (os.path.join(_df, "telemetry"),
+                           os.path.join(_df, "parsing")):
+                    if _p not in sys.path:
+                        sys.path.append(_p)
+
+                from scanner import get_usb_drives, scan_drive
+
+                output_dir = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "..", "..", "data", "extracted"
+                )
+
+                drive = drive_path if drive_path else None
+                if drive is None:
+                    drives = get_usb_drives()
+                    if not drives:
+                        raise RuntimeError(
+                            "No removable drives found. "
+                            "Insert the SD card (or enter a path above) and try again."
+                        )
+                    drive = drives[0]
+
+                summary = scan_drive(drive, output_dir, log=self._log)
+                result["ok"]      = True
+                result["summary"] = summary
+
+            except Exception as e:
+                result["error"] = str(e)
+
+            self.after(0, lambda: self._finish_sd_scan(result))
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _finish_sd_scan(self, result):
+        self.sd_card["running"] = False
+        self.sd_card["btn"].config(state=tk.NORMAL)
+
+        if not result["ok"]:
+            err = result["error"] or "unknown error"
+            self.sd_card["status"].config(text="Status: failed")
+            self._set_text(self.sd_card["results"], f"Scan failed:\n{err}")
+            self._log(f"ERROR: SD card scan failed: {err}")
+            return
+
+        summary  = result["summary"] or {}
+        total    = sum(len(v) for v in summary.get("files_found", {}).values())
+        out_dir  = summary.get("output_dir", "?")
+
+        lines = [
+            f"Drive      : {summary.get('source_drive', '?')}",
+            f"Output     : {out_dir}",
+            f"Files found: {total}",
+            "",
+        ]
+        for ext, names in summary.get("files_found", {}).items():
+            if names:
+                lines.append(f"  .{ext}: {len(names)} file(s)")
+
+        extracted = summary.get("extracted", {})
+        if extracted:
+            lines += ["", "Processed:"]
+            for key, val in extracted.items():
+                count = len(val) if isinstance(val, list) else "done"
+                lines.append(f"  {key}: {count}")
+
+        self._set_text(self.sd_card["results"], "\n".join(lines))
+        self.sd_card["status"].config(text=f"Status: complete — {total} files")
+        self._log_slow(f"SD card scan complete: {total} files. Output: {out_dir}")
 
     # ====================
     # Functions for video
