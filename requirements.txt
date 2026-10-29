@@ -144,7 +144,7 @@ g4f==0.0.3.4
 gast==0.5.2
 GDAL==3.8.3
 gitdb==4.0.11
-GitPython==3.1.37
+GitPython==3.1.59
 gpg==1.18.0
 greenbone-feed-sync==23.10.0
 greenlet==3.0.1
@@ -273,7 +273,7 @@ pgcli==4.0.1
 pgspecial==2.0.1
 phonenumbers==8.12.57
 pickleshare==0.7.5
-Pillow==12.3.0
+Pillow==13.0.0
 plaster==1.0
 plaster-pastedeploy==0.5
 platformdirs==2.6.2
@@ -358,7 +358,7 @@ python-dotenv==1.0.0
 python-engineio==4.3.4
 python-gnupg==0.4.9
 python-gvm==23.11.0
-python-jose==3.3.0
+python-jose==3.5.0
 python-magic==0.4.27
 python-multipart==0.0.5
 python-owasp-zap-v2.4==0.0.20
@@ -464,7 +464,7 @@ vboxapi==1.0
 venusian==3.1.0
 virtualenv==20.25.0+ds
 wafw00f==2.2.0
-waitress==2.1.2
+waitress==3.0.1
 wapiti3==3.0.4
 wcwidth==0.2.6
 webargs==8.0.1
