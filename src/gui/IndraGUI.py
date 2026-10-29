@@ -541,10 +541,37 @@ class IndraGUI(tb.Window):
     def _get_network_interfaces(self)-> list:
         """
         Returns a list of available network interfaces on the system.
+
+        Reads /sys/class/net (always present on Linux, needs no external tools)
+        so the dropdown still populates when net-tools/ifconfig isn't installed.
+        Falls back to `ip link`, then the legacy ifconfig approach.
         """
 
-        output = subprocess.check_output('ifconfig | cut -d " " -f1', shell=True, text=True).strip()
-        return [interface.replace(':', '') for interface in output.splitlines() if interface]
+        # Primary: /sys/class/net lists every interface, no external command.
+        try:
+            interfaces = sorted(os.listdir("/sys/class/net"))
+            if interfaces:
+                return interfaces
+        except Exception:
+            pass
+
+        # Fallback 1: iproute2 (`ip`), which the rest of the app already uses.
+        try:
+            output = subprocess.check_output(
+                "ip -o link show | awk -F': ' '{print $2}'", shell=True, text=True
+            ).strip()
+            interfaces = [line.split('@')[0] for line in output.splitlines() if line]
+            if interfaces:
+                return interfaces
+        except Exception:
+            pass
+
+        # Fallback 2: legacy net-tools (ifconfig), if it happens to be present.
+        try:
+            output = subprocess.check_output('ifconfig | cut -d " " -f1', shell=True, text=True).strip()
+            return [interface.replace(':', '') for interface in output.splitlines() if interface]
+        except Exception:
+            return []
     
     def _handle_interface_change(self, event=None):
         """
