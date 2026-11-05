@@ -13,6 +13,22 @@ import os
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".dng", ".bmp", ".gif", ".heic"}
 
 
+def _gps_to_decimal(dms, ref):
+    """Convert an EXIF ((deg),(min),(sec)) rational tuple + ref to decimal degrees."""
+    try:
+        deg = float(dms[0]); minutes = float(dms[1]); seconds = float(dms[2])
+        dec = deg + minutes / 60.0 + seconds / 3600.0
+        if str(ref).upper() in ("S", "W"):
+            dec = -dec
+        return round(dec, 6)
+    except Exception:
+        return None
+
+
+def _maps_link(lat, lon):
+    return f"https://www.google.com/maps?q={lat},{lon}"
+
+
 def _exif_for_image(path):
     """Return an EXIF/metadata dict for one image via Pillow. Never raises."""
     try:
@@ -44,11 +60,24 @@ def _exif_for_image(path):
                     if v:
                         data[key] = v
 
-                # GPSInfo IFD tag id is 0x8825 (34853).
+                # GPSInfo IFD tag id is 0x8825 (34853): decode to decimal lat/lon.
                 try:
                     gps = exif.get_ifd(0x8825)
                     if gps:
                         data["gps_present"] = True
+                        # GPS tag ids: 1=LatRef 2=Lat 3=LonRef 4=Lon 6=Altitude
+                        lat = _gps_to_decimal(gps.get(2), gps.get(1))
+                        lon = _gps_to_decimal(gps.get(4), gps.get(3))
+                        if lat is not None and lon is not None:
+                            data["gps_lat"] = lat
+                            data["gps_lon"] = lon
+                            data["gps_maps_url"] = _maps_link(lat, lon)
+                        alt = gps.get(6)
+                        if alt is not None:
+                            try:
+                                data["gps_altitude_m"] = round(float(alt), 1)
+                            except Exception:
+                                pass
                 except Exception:
                     pass
     except Exception as e:
