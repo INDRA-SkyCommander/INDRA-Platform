@@ -31,3 +31,4 @@ def files_in_category(manifest, category):
 from .flight_logs import analyze_flight_logs        # noqa: E402
 from .media_metadata import analyze_media            # noqa: E402
 from .steganography import analyze_stego             # noqa: E402
+from .telemetry import analyze_telemetry             # noqa: E402
