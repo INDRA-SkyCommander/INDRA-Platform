@@ -1920,6 +1920,7 @@ class IndraGUI(tb.Window):
 
     def _fmt_media(self, data):
         n = data.get("media_count", 0)
+        gps_hits = 0
         lines = [f"Media files: {n}", ""]
         for it in data.get("items", []):
             lines.append(f"[{it.get('file_type')}] {it.get('relative_path')} "
@@ -1930,12 +1931,23 @@ class IndraGUI(tb.Window):
                              + (f"  cam: {cam}" if cam else ""))
                 if it.get("datetime"):
                     lines.append(f"   taken: {it.get('datetime')}")
-                if it.get("gps_present"):
-                    lines.append("   GPS: present")
+                # Decoded GPS: real coordinates + a clickable Google Maps link
+                if it.get("gps_lat") is not None and it.get("gps_lon") is not None:
+                    gps_hits += 1
+                    alt = it.get("gps_altitude_m")
+                    lines.append(f"   GPS: {it.get('gps_lat')}, {it.get('gps_lon')}"
+                                 + (f"  alt {alt}m" if alt is not None else ""))
+                    if it.get("gps_maps_url"):
+                        lines.append(f"   map: {it.get('gps_maps_url')}")
+                elif it.get("gps_present"):
+                    lines.append("   GPS: present (coordinates not decodable)")
             else:
                 lines.append(f"   {it.get('note', 'no EXIF')}")
             lines.append("")
-        return "\n".join(lines), f"{n} media file(s) analyzed"
+        status = f"{n} media analyzed"
+        if gps_hits:
+            status += f", {gps_hits} geotagged"
+        return "\n".join(lines), status
 
     # --- Steganography ---
 
