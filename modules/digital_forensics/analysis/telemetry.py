@@ -65,6 +65,13 @@ def analyze_telemetry(manifest_path: str) -> dict:
         path = e.get("copied_path")
         ext  = (e.get("file_type") or "").lower()
 
+        # For .dat files, check if dat_parser generated a companion CSV.
+        if ext == ".dat" and path:
+            dat_csv = os.path.splitext(path)[0] + "_dat.csv"
+            if os.path.isfile(dat_csv):
+                path = dat_csv
+                ext  = ".csv"
+
         if ext != ".csv":
             continue
 

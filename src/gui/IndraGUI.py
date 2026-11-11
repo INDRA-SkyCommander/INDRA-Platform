@@ -1094,7 +1094,7 @@ class IndraGUI(tb.Window):
         # Each runs a forensics/analysis pass over a session and shows findings.
         self.fl_card = self._make_analysis_card(
             grid, 1, 1, "Flight Logs / Telemetry",
-            "Parse extracted DJI flight logs (.TXT readable; .DAT binary header).",
+            "Parse extracted DJI flight logs (.TXT, .CSV, .KML, .GPX, .DAT).",
             "Parse Logs", self._handle_flight_logs)
         self.mm_card = self._make_analysis_card(
             grid, 2, 0, "Media Metadata",
@@ -1927,10 +1927,6 @@ class IndraGUI(tb.Window):
                              f"{it.get('format_guess', '')}")
                 for pl in it.get("preview", [])[:5]:
                     lines.append(f"   | {pl}")
-
-            elif st == "binary":
-                lines.append(f"   binary .DAT  header: {it.get('header_hex', '')[:32]}...")
-                lines.append(f"   {it.get('note', '')}")
 
             else:
                 lines.append(f"   status: {st}")
