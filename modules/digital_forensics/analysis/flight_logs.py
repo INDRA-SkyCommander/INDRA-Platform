@@ -6,18 +6,13 @@ Parses flight-log files from an extraction session:
     .kml - runs DJI_KML_Parser (parsing), captures formatted output
     .gpx - runs DJI_GPX_Parser (parsing), captures formatted output
     .txt - line count, preview, format guess (stdlib only)
-    .dat - converted to CSV via DatCon.jar (requires java), falls back to hex header
-
-All captured parser output is saved to flight_logs_parsed.txt in the session folder.
-
-DatCon setup: place DatCon.jar in <project>/tools/DatCon/DatCon.jar
-  or ~/DatCon/DatCon.jar. Download from: https://datcon.limesite.com/
+    .dat - parsed directly by dat_parser (Python, no Java required);
+           outputs a CSV alongside the .dat for telemetry map generation
 """
 
 import contextlib
 import io
 import os
-import subprocess
 import sys
 
 
@@ -35,66 +30,6 @@ def _ensure_parsing_on_path():
         sys.path.insert(0, parsing_dir)
 
 
-def _find_datcon_jar():
-    """Return absolute path to DatCon.jar if found in known locations, else None."""
-    project_root = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "..")
-    )
-    candidates = [
-        os.path.join(project_root, "tools", "DatCon", "DatCon.jar"),
-        os.path.join(os.path.expanduser("~"), "DatCon", "DatCon.jar"),
-        os.path.join(os.path.expanduser("~"), ".local", "share", "DatCon", "DatCon.jar"),
-    ]
-    for path in candidates:
-        if os.path.isfile(path):
-            return path
-    return None
-
-
-def _java_available() -> bool:
-    try:
-        subprocess.run(["java", "-version"], capture_output=True, timeout=5)
-        return True
-    except (FileNotFoundError, OSError, subprocess.SubprocessError):
-        return False
-
-
-def _run_datcon(dat_path: str) -> tuple:
-    """
-    Convert a DJI .dat file to CSV using DatCon.jar.
-
-    DatCon writes <basename>.csv next to the input file.
-
-    Returns (csv_path, error_message). One will always be None.
-    """
-    jar = _find_datcon_jar()
-    if not jar:
-        return None, (
-            "DatCon.jar not found. Place it at tools/DatCon/DatCon.jar "
-            "or ~/DatCon/DatCon.jar. Download: https://datcon.limesite.com/"
-        )
-
-    if not _java_available():
-        return None, "java not found in PATH — install a JRE to use DatCon."
-
-    expected_csv = os.path.splitext(dat_path)[0] + ".csv"
-
-    try:
-        result = subprocess.run(
-            ["java", "-jar", jar, dat_path],
-            capture_output=True, text=True, timeout=120,
-        )
-    except subprocess.TimeoutExpired:
-        return None, "DatCon timed out after 120s."
-    except (OSError, subprocess.SubprocessError) as e:
-        return None, f"DatCon failed to launch: {e}"
-
-    if os.path.isfile(expected_csv):
-        return expected_csv, None
-
-    stderr = (result.stderr or "").strip()
-    return None, f"DatCon exited {result.returncode} but no CSV produced. {stderr}"
-
 
 def _capture_parser(parser_fn) -> str:
     """Run parser_fn() and return everything it printed as a string."""
@@ -102,6 +37,38 @@ def _capture_parser(parser_fn) -> str:
     with contextlib.redirect_stdout(buf):
         parser_fn()
     return buf.getvalue()
+
+
+def _fmt_dat_result(result: dict, csv_path: str) -> str:
+    """Format dat_parser output as human-readable text for display and saved output."""
+    import csv as _csv
+    lines = [
+        f"Records parsed : {result['records_parsed']}",
+        f"Checksum errors: {result['checksum_errors']}",
+        f"Header skip    : {result['header_skip']} bytes",
+        f"CSV saved to   : {csv_path}",
+        "",
+    ]
+    try:
+        with open(csv_path, newline='', encoding='utf-8') as f:
+            rows = list(_csv.DictReader(f))
+        by_type: dict = {}
+        for row in rows:
+            rt = row.get('rec_type', 'UNKNOWN')
+            by_type.setdefault(rt, []).append(row)
+
+        for rec_type, type_rows in by_type.items():
+            lines.append(f"── {rec_type} ({len(type_rows)} records) ──")
+            sample = type_rows[0]
+            for k, v in sample.items():
+                if k != 'rec_type':
+                    lines.append(f"   {k}: {v}")
+            if len(type_rows) > 1:
+                lines.append(f"   ... ({len(type_rows) - 1} more {rec_type} records)")
+            lines.append("")
+    except Exception as ex:
+        lines.append(f"(could not summarise CSV: {ex})")
+    return "\n".join(lines)
 
 
 def analyze_flight_logs(manifest_path: str) -> dict:
@@ -189,33 +156,28 @@ def analyze_flight_logs(manifest_path: str) -> dict:
                 entry["status"] = f"error: {ex}"
 
         elif ext == ".dat":
-            # Try DatCon conversion first; fall back to raw hex header.
-            csv_path, datcon_err = _run_datcon(path)
-            if csv_path:
-                try:
-                    from parsers import DJI_CSV_Parser
-                    captured = _capture_parser(
-                        lambda p=csv_path: DJI_CSV_Parser(p).parse_contents()
-                    )
-                    entry["status"]        = "parsed_via_datcon"
-                    entry["csv_path"]      = csv_path
-                    entry["parsed_output"] = captured
+            # Parse the binary .dat directly with our Python parser.
+            csv_path = os.path.splitext(path)[0] + "_dat.csv"
+            try:
+                from dat_parser import parse_dat
+                result = parse_dat(path, csv_path)
+                if result.get("csv_path"):
+                    captured = _fmt_dat_result(result, csv_path)
+                    entry["status"]          = "parsed"
+                    entry["csv_path"]        = csv_path
+                    entry["records_parsed"]  = result["records_parsed"]
+                    entry["checksum_errors"] = result["checksum_errors"]
+                    entry["parsed_output"]   = captured
+                    # Expose the CSV path as a manifest-like entry so
+                    # analyze_telemetry can generate a flight-path map from it.
+                    entry["dat_csv_for_telemetry"] = csv_path
                     all_output_parts.append(
-                        f"=== {e.get('relative_path')} (DatCon → CSV) ===\n{captured}"
+                        f"=== {e.get('relative_path')} (DAT parsed) ===\n{captured}"
                     )
-                except Exception as ex:
-                    entry["status"]   = f"datcon_csv_parse_error: {ex}"
-                    entry["csv_path"] = csv_path
-            else:
-                # DatCon unavailable — read binary header as a fallback.
-                try:
-                    with open(path, "rb") as f:
-                        head = f.read(32)
-                    entry["status"]     = "binary_header_only"
-                    entry["header_hex"] = head.hex()
-                    entry["datcon_unavailable"] = datcon_err
-                except Exception as ex:
-                    entry["status"] = f"error: {ex}"
+                else:
+                    entry["status"] = f"dat_parse_failed: {result.get('error', 'no rows produced')}"
+            except Exception as ex:
+                entry["status"] = f"error: {ex}"
 
         else:
             entry["status"] = "unrecognized flight-log type"

@@ -24,7 +24,8 @@ findings (also saved as JSON in the session folder).
   delimiter guess); `.DAT` reported as binary with a hex header. Full `.DAT`
   decryption needs DROP-style tooling (open-source-tools / future task).
 - **`media_metadata.py`** — EXIF via Pillow: format, dimensions, camera
-  make/model, capture timestamp, GPS-present flag.
+  make/model, capture timestamp, and decoded GPS latitude/longitude with a
+  Google Maps link.
 - **`steganography.py`** — first-pass screen for hidden data: bytes appended
   after the image end-marker, and embedded archive/document signatures. Deeper
   analysis (LSB, Steghide/zsteg) is left to the open-source-tools workstream.

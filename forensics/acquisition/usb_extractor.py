@@ -335,6 +335,7 @@ class USBExtractor:
             manifest["errors"].append({"path": self.output_root, "error": str(e)})
             manifest["summary"]["error_count"] = len(manifest["errors"])
             manifest["extraction_completed"] = datetime.now(timezone.utc).isoformat()
+            self._write_manifest(manifest)
             return manifest
 
         # --- Copy each source (interruptible, per-file fault tolerant) ---
