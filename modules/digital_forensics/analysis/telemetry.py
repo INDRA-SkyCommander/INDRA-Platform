@@ -25,10 +25,58 @@ def _has_lat_lon(path: str) -> bool:
     """Return True if the CSV has both 'latitude' and 'longitude' header columns."""
     try:
         with open(path, newline="", encoding="utf-8", errors="replace") as f:
-            headers = [h.strip() for h in next(_csv.reader(f), [])]
+            headers = [h.strip().lower() for h in next(_csv.reader(f), [])]
         return "latitude" in headers and "longitude" in headers
     except Exception:
         return False
+
+
+def _matplotlib_flight_map(csv_path: str, out_path: str) -> bool:
+    """
+    Offline fallback renderer: plot the lat/lon flight path with matplotlib
+    (no internet / map tiles needed). Returns True if a PNG was written.
+    """
+    try:
+        import matplotlib
+        matplotlib.use("Agg")           # no display needed
+        import matplotlib.pyplot as plt
+    except Exception:
+        return False
+
+    lats, lons = [], []
+    try:
+        with open(csv_path, newline="", encoding="utf-8", errors="replace") as f:
+            reader = _csv.DictReader(f)
+            cols = {c.lower(): c for c in (reader.fieldnames or [])}
+            latk, lonk = cols.get("latitude"), cols.get("longitude")
+            if not latk or not lonk:
+                return False
+            for row in reader:
+                try:
+                    la, lo = float(row[latk]), float(row[lonk])
+                except (TypeError, ValueError, KeyError):
+                    continue
+                if la or lo:               # skip 0,0 filler rows
+                    lats.append(la); lons.append(lo)
+    except Exception:
+        return False
+
+    if len(lats) < 2:
+        return False
+
+    try:
+        fig, ax = plt.subplots(figsize=(6, 6))
+        ax.plot(lons, lats, "-", color="#2563a8", linewidth=1.5)
+        ax.plot(lons[0], lats[0], "o", color="green", label="start")
+        ax.plot(lons[-1], lats[-1], "o", color="red", label="end")
+        ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude")
+        ax.set_title("Flight path"); ax.legend(); ax.grid(True, alpha=0.3)
+        fig.savefig(out_path, dpi=100, bbox_inches="tight")
+        plt.close(fig)
+    except Exception:
+        return False
+
+    return os.path.exists(out_path) and os.path.getsize(out_path) > 0
 
 
 def analyze_telemetry(manifest_path: str) -> dict:
@@ -53,7 +101,6 @@ def analyze_telemetry(manifest_path: str) -> dict:
     from . import load_manifest, files_in_category
 
     manifest = load_manifest(manifest_path)
-    logs = files_in_category(manifest, "flight_logs")
     session_dir = os.path.dirname(manifest_path)
 
     _ensure_telemetry_on_path()
@@ -61,51 +108,56 @@ def analyze_telemetry(manifest_path: str) -> dict:
     items = []
     maps_generated = 0
 
-    for e in logs:
-        path = e.get("copied_path")
-        ext  = (e.get("file_type") or "").lower()
-
-        # For .dat files, check if dat_parser generated a companion CSV.
-        if ext == ".dat" and path:
-            dat_csv = os.path.splitext(path)[0] + "_dat.csv"
+    # Collect every CSV flight log to map, from both sources:
+    #   (a) the companion <name>_dat.csv that dat_parser writes next to a .dat
+    #   (b) any other .csv anywhere in the session folder
+    csv_paths = []
+    for e in files_in_category(manifest, "flight_logs"):
+        p = e.get("copied_path")
+        if p and p.lower().endswith(".dat"):
+            dat_csv = os.path.splitext(p)[0] + "_dat.csv"
             if os.path.isfile(dat_csv):
-                path = dat_csv
-                ext  = ".csv"
+                csv_paths.append(dat_csv)
+    for root, _dirs, files in os.walk(session_dir):
+        for fn in files:
+            if fn.lower().endswith(".csv"):
+                csv_paths.append(os.path.join(root, fn))
 
-        if ext != ".csv":
-            continue
-
+    for path in sorted(set(csv_paths)):
         entry = {
-            "relative_path": e.get("relative_path"),
-            "file_type":     ext,
-            "size_bytes":    e.get("size_bytes"),
+            "relative_path": os.path.relpath(path, session_dir),
+            "file_type":     ".csv",
+            "size_bytes":    os.path.getsize(path) if os.path.exists(path) else None,
         }
-
-        if not path or not os.path.exists(path):
-            entry["note"] = "file missing"
-            items.append(entry)
-            continue
 
         if not _has_lat_lon(path):
             entry["note"] = "no latitude/longitude columns — map not generated"
             items.append(entry)
             continue
 
-        rel = e.get("relative_path") or os.path.basename(path)
-        stem = os.path.splitext(rel)[0].replace(os.sep, "_").replace("/", "_")
+        stem = os.path.splitext(os.path.basename(path))[0]
         map_out = os.path.join(session_dir, f"{stem}_flight_map.png")
 
+        # 1) Primary renderer: staticmap (OSM tiles - needs internet).
         try:
             from telemetry import DJIFlightPathMap
             with open(os.devnull, "w") as _devnull, \
                  contextlib.redirect_stdout(_devnull):
                 DJIFlightPathMap(path, map_out).execute_flight_path_analysis()
+        except Exception:
+            pass
+
+        # 2) Offline fallback: matplotlib path plot (no internet) if no PNG yet.
+        produced = os.path.exists(map_out) and os.path.getsize(map_out) > 0
+        if not produced:
+            produced = _matplotlib_flight_map(path, map_out)
+
+        if produced:
             entry["map_path"] = map_out
             maps_generated += 1
-        except ImportError:
-            entry["note"] = "staticmap not installed — run: pip install staticmap"
-        except Exception as ex:
-            entry["note"] = f"map generation failed: {ex}"
+        else:
+            entry["note"] = ("map not produced - install a renderer: "
+                             "pip install matplotlib (offline) or pip install staticmap")
 
         items.append(entry)
 
