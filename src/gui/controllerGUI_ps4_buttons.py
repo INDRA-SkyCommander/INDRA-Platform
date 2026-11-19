@@ -6,6 +6,11 @@ import json
 import random
 import threading
 
+try:
+    import pygame
+except ImportError:
+    pygame = None
+
 # Import your custom utility for the disconnect command
 # Note: Ensure your PYTHONPATH is set correctly so it finds src.utils
 try:
@@ -277,6 +282,45 @@ class ControllerGUI(tb.Window):
         self.movement_distance = 20  # cm
         self.is_connecting = False
 
+        # --- PS4 CONTROLLER INPUT ---
+        self.ps4 = None
+        self.ps4_deadzone = 0.35
+        self.ps4_poll_ms = 40   # ~25 Hz; visualization only for now
+
+        # Confirmed Linux/Pygame mapping from this controller:
+        # Axis 0 = left stick X, Axis 1 = left stick Y
+        # Axis 2 = L2, Axis 3 = right stick X
+        # Axis 4 = right stick Y, Axis 5 = R2
+        # Hat 0 = D-pad
+        self.ps4_axes = {
+            "left_x": 0,
+            "left_y": 1,
+            "l2": 2,
+            "right_x": 3,
+            "right_y": 4,
+            "r2": 5,
+        }
+
+        # Confirmed DualShock 4 button mapping from this VM/controller.
+        self.ps4_buttons = {
+            "cross": 0,
+            "circle": 1,
+            "triangle": 2,
+            "square": 3,
+            "l1": 4,
+            "r1": 5,
+            "share": 8,
+            "options": 9,
+            "ps": 10,
+            "left_stick": 11,
+            "right_stick": 12,
+        }
+
+        # Used for rising-edge detection so a held button fires only once.
+        self.ps4_button_prev = {
+            name: False for name in self.ps4_buttons
+        }
+
         # --- VIDEO FEED FOUNDATION ---
         self.video_canvas = tk.Canvas(self, bg="black", highlightthickness=0)
         self.video_canvas.place(x=0, y=0, relwidth=1, relheight=1)
@@ -287,6 +331,8 @@ class ControllerGUI(tb.Window):
 
         self._setup_hud()
         self._bind_keys()
+        self._init_ps4_controller()
+        self.after(self.ps4_poll_ms, self._poll_ps4_controller)
 
     def disconnect_drone(self):
         """
@@ -372,6 +418,327 @@ class ControllerGUI(tb.Window):
         
         tb.Button(right_panel, text="🔴 RECORD", width=15, bootstyle="danger-outline",
                   command=lambda: print("UI_CMD: toggle_record")).pack(pady=5)
+
+
+        # --- BOTTOM-RIGHT: TRANSPARENT PS4 INPUT HUD ---
+        # Drawn directly onto video_canvas so a future camera image remains
+        # visible behind the controls. Inactive buttons have no fill.
+        self.ps4_indicators = {}
+
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+
+        # HUD sizing / spacing.
+        box_w = 82
+        box_h = 34
+        gap = 8
+        diamond_w = 3 * box_w + 2 * gap
+        right_margin = 28
+        bottom_margin = 34
+        diamond_gap = 36
+
+        # Position the two diamonds together in the lower-right corner.
+        total_w = diamond_w * 2 + diamond_gap
+        hud_x = screen_w - right_margin - total_w
+        hud_y = screen_h - bottom_margin - (3 * box_h + 2 * gap)
+
+        self.ps4_hud_style = {
+            "inactive_outline": "#6f858c",
+            "inactive_text": "#92a3a8",
+            "active_fill": "#1d7a4c",
+            "active_outline": "#39e58c",
+            "active_text": "#ffffff",
+            "status": "#31e6b2",
+            "value_text": "#73868b",
+        }
+
+        # Status line above both diamonds.
+        self.ps4_status = self.video_canvas.create_text(
+            hud_x,
+            hud_y - 30,
+            text="PS4: NOT DETECTED",
+            anchor="w",
+            fill=self.ps4_hud_style["status"],
+            font=("Courier", 10, "bold")
+        )
+
+        def make_indicator(name, label, x, y):
+            rect = self.video_canvas.create_rectangle(
+                x, y, x + box_w, y + box_h,
+                outline=self.ps4_hud_style["inactive_outline"],
+                width=1,
+                fill=""
+            )
+            txt = self.video_canvas.create_text(
+                x + box_w / 2,
+                y + box_h / 2,
+                text=label,
+                fill=self.ps4_hud_style["inactive_text"],
+                font=("Arial", 9, "bold")
+            )
+            self.ps4_indicators[name] = (rect, txt)
+
+        # LEFT DIAMOND: planar movement
+        move_x = hud_x
+
+        make_indicator(
+            "forward", "↑ FWD",
+            move_x + box_w + gap,
+            hud_y
+        )
+        make_indicator(
+            "left", "← LEFT",
+            move_x,
+            hud_y + box_h + gap
+        )
+        make_indicator(
+            "right", "RIGHT →",
+            move_x + 2 * (box_w + gap),
+            hud_y + box_h + gap
+        )
+        make_indicator(
+            "backward", "↓ BACK",
+            move_x + box_w + gap,
+            hud_y + 2 * (box_h + gap)
+        )
+
+        # RIGHT DIAMOND: yaw + altitude
+        orient_x = move_x + diamond_w + diamond_gap
+
+        make_indicator(
+            "up", "⇧ UP",
+            orient_x + box_w + gap,
+            hud_y
+        )
+        make_indicator(
+            "yaw_ccw", "↶ YAW",
+            orient_x,
+            hud_y + box_h + gap
+        )
+        make_indicator(
+            "yaw_cw", "YAW ↷",
+            orient_x + 2 * (box_w + gap),
+            hud_y + box_h + gap
+        )
+        make_indicator(
+            "down", "⇩ DOWN",
+            orient_x + box_w + gap,
+            hud_y + 2 * (box_h + gap)
+        )
+
+        self.ps4_values = self.video_canvas.create_text(
+            screen_w - right_margin,
+            hud_y + 3 * (box_h + gap) + 4,
+            text="LS(0.00, 0.00)   RS(0.00, 0.00)   D-PAD(0, 0)",
+            anchor="e",
+            fill=self.ps4_hud_style["value_text"],
+            font=("Courier", 9)
+        )
+
+    def _init_ps4_controller(self):
+        """Initialize the first joystick visible to pygame."""
+        if pygame is None:
+            self.video_canvas.itemconfigure(
+                self.ps4_status,
+                text="PS4: PYGAME NOT INSTALLED",
+                fill="#ff6666"
+            )
+            print("[!] pygame not installed. Run: python3 -m pip install pygame")
+            return
+
+        try:
+            pygame.display.init()
+            pygame.joystick.init()
+
+            count = pygame.joystick.get_count()
+            if count < 1:
+                self.video_canvas.itemconfigure(
+                    self.ps4_status,
+                    text="PS4: NOT DETECTED",
+                    fill="#ff6666"
+                )
+                print("[!] No controller detected by pygame.")
+                return
+
+            self.ps4 = pygame.joystick.Joystick(0)
+            self.ps4.init()
+
+            name = self.ps4.get_name()
+            self.video_canvas.itemconfigure(
+                self.ps4_status,
+                text=f"PS4: {name}",
+                fill=self.ps4_hud_style["status"]
+            )
+            print(f"[+] Controller detected: {name}")
+            print(
+                f"    Axes={self.ps4.get_numaxes()} "
+                f"Buttons={self.ps4.get_numbuttons()} "
+                f"Hats={self.ps4.get_numhats()}"
+            )
+
+        except Exception as e:
+            self.ps4 = None
+            self.video_canvas.itemconfigure(
+                self.ps4_status,
+                text="PS4: INPUT ERROR",
+                fill="#ff6666"
+            )
+            print(f"[!] PS4 initialization failed: {e}")
+
+    def _set_ps4_indicator(self, name, active):
+        """Change an on-screen PS4 direction indicator."""
+        items = self.ps4_indicators.get(name)
+        if items is None:
+            return
+
+        rect, txt = items
+
+        if active:
+            self.video_canvas.itemconfigure(
+                rect,
+                fill=self.ps4_hud_style["active_fill"],
+                outline=self.ps4_hud_style["active_outline"],
+                width=2
+            )
+            self.video_canvas.itemconfigure(
+                txt,
+                fill=self.ps4_hud_style["active_text"]
+            )
+        else:
+            self.video_canvas.itemconfigure(
+                rect,
+                fill="",
+                outline=self.ps4_hud_style["inactive_outline"],
+                width=1
+            )
+            self.video_canvas.itemconfigure(
+                txt,
+                fill=self.ps4_hud_style["inactive_text"]
+            )
+
+    def _handle_ps4_button_press(self, name):
+        """
+        Handle one-shot DualShock 4 button presses.
+
+        Movement remains separate from these actions. This method is only
+        called on the transition from released -> pressed.
+        """
+        print(f"[PS4] {name.upper()} pressed")
+
+        if name == "options":
+            self._connect()
+
+        elif name == "cross":
+            self._takeoff()
+
+        elif name == "circle":
+            self._land()
+
+        elif name == "triangle":
+            self.random_flip()
+
+        elif name == "square":
+            # Reserved for future screenshot implementation.
+            print("UI_CMD: screenshot")
+
+        # Intentionally unassigned for now:
+        # L1, R1, Share, PS, L3, R3.
+        # We can map these later once their desired behavior is decided.
+
+    def _poll_ps4_controller(self):
+        """
+        Read the mapped DualShock 4 controls and update the GUI.
+
+        Stick movement is still visualization-only at this stage.
+        Mapped face/options buttons may trigger their one-shot GUI actions.
+        """
+        if pygame is None:
+            return
+
+        try:
+            pygame.event.pump()
+
+            # Hot-plug support: try to acquire a joystick if one appears later.
+            if self.ps4 is None:
+                if pygame.joystick.get_count() > 0:
+                    self._init_ps4_controller()
+                self.after(self.ps4_poll_ms, self._poll_ps4_controller)
+                return
+
+            lx = self.ps4.get_axis(self.ps4_axes["left_x"])
+            ly = self.ps4.get_axis(self.ps4_axes["left_y"])
+            rx = self.ps4.get_axis(self.ps4_axes["right_x"])
+            ry = self.ps4.get_axis(self.ps4_axes["right_y"])
+
+            if self.ps4.get_numhats() > 0:
+                hat_x, hat_y = self.ps4.get_hat(0)
+            else:
+                hat_x, hat_y = (0, 0)
+
+            # Read all mapped buttons and fire actions only on rising edges.
+            for name, button_index in self.ps4_buttons.items():
+                pressed = bool(self.ps4.get_button(button_index))
+                was_pressed = self.ps4_button_prev.get(name, False)
+
+                if pressed and not was_pressed:
+                    self._handle_ps4_button_press(name)
+
+                self.ps4_button_prev[name] = pressed
+
+            dz = self.ps4_deadzone
+
+            # Left stick = planar movement visualization.
+            # Axis 1: negative is up/forward, positive is down/backward.
+            forward = ly < -dz
+            backward = ly > dz
+            left = lx < -dz
+            right = lx > dz
+
+            # Right stick = yaw and vertical movement visualization.
+            # Axis 3: negative left, positive right.
+            # Axis 4: negative up, positive down.
+            yaw_ccw = rx < -dz
+            yaw_cw = rx > dz
+            up = ry < -dz
+            down = ry > dz
+
+            # Also allow the D-pad to illuminate the planar indicators.
+            forward = forward or (hat_y == 1)
+            backward = backward or (hat_y == -1)
+            left = left or (hat_x == -1)
+            right = right or (hat_x == 1)
+
+            self._set_ps4_indicator("forward", forward)
+            self._set_ps4_indicator("backward", backward)
+            self._set_ps4_indicator("left", left)
+            self._set_ps4_indicator("right", right)
+            self._set_ps4_indicator("yaw_ccw", yaw_ccw)
+            self._set_ps4_indicator("yaw_cw", yaw_cw)
+            self._set_ps4_indicator("up", up)
+            self._set_ps4_indicator("down", down)
+
+            self.video_canvas.itemconfigure(
+                self.ps4_values,
+                text=(
+                    f"LS({lx:+.2f}, {ly:+.2f})   "
+                    f"RS({rx:+.2f}, {ry:+.2f})   "
+                    f"D-PAD({hat_x:+d}, {hat_y:+d})"
+                )
+            )
+
+        except pygame.error as e:
+            print(f"[!] Controller disconnected: {e}")
+            self.ps4 = None
+            self.video_canvas.itemconfigure(
+                self.ps4_status,
+                text="PS4: DISCONNECTED",
+                fill="#ff6666"
+            )
+
+        except Exception as e:
+            print(f"[!] PS4 polling error: {e}")
+
+        self.after(self.ps4_poll_ms, self._poll_ps4_controller)
 
     def _bind_keys(self):
         """Bind keyboard events for drone control."""

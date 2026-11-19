@@ -95,7 +95,7 @@ try:
     
     # Launch the controller GUI
     print("[*] Launching controller GUI...")
-    controller_path = os.path.join(os.path.dirname(__file__), '..', '..', "src", "gui", "controllerGUI.py")
+    controller_path = os.path.join(os.path.dirname(__file__), '..', '..', "src", "gui", "controllerGUI_ps4_buttons.py")
     
     try:
         # Launch with output capture to see any errors

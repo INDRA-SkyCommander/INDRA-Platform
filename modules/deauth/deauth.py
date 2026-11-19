@@ -133,14 +133,24 @@ try:
         print("3. MAC address is incorrect")
         print("\nYou can verify by running: iw {} scan".format(interface))
         sys.exit(1)
-    else:
-        sudo_exec(f"ifconfig {interface} down")
-        sudo_exec(f"iwconfig {interface} mode managed")
-        sudo_exec(f"ifconfig {interface} up")
-        print("[+] Deauth attack completed successfully!")
-        sys.exit(0)
+
+    print("[+] Deauth attack completed successfully!")
+    sys.exit(0)
 
 except Exception as e:
     print(f"ERROR: Deauth module failed: {e}")
     sys.exit(1)
 
+finally:
+    print("[*] Restoring network interface to managed mode...")
+
+    try:
+        sudo_exec(f"ifconfig {interface} down")
+        sudo_exec(f"iwconfig {interface} mode managed")
+        sudo_exec(f"ifconfig {interface} up")
+        sudo_exec(f"nmcli device set {interface} managed yes")
+        
+        print("[+] Network interface restored to managed mode.")
+
+    except Exception as cleanup_error:
+        print(f"WARNING: Failed to restore network interface: {cleanup_error}")

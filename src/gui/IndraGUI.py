@@ -619,7 +619,7 @@ class IndraGUI(tb.Window):
             return
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        controller_path = os.path.join(current_dir, "controllerGUI.py")
+        controller_path = os.path.join(current_dir, "controllerGUI_ps4_buttons.py")
 
         if not os.path.exists(controller_path):
             self._log(f"Error! {controller_path} not found.")
