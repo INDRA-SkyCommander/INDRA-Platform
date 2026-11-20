@@ -1391,16 +1391,19 @@ class IndraGUI(tb.Window):
         with a clear message if none is found.
         """
 
-        if target:
-            if os.path.isfile(target):
-                return target
-            candidate = os.path.join(target, "manifest.json")
-            if os.path.isfile(candidate):
-                return candidate
-            raise FileNotFoundError(f"No manifest.json found at: {target}")
-
         extracted_dir = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "..", "data", "extracted"))
+
+        if target:
+            target = os.path.expanduser(target)
+            # Accept a full path, or just a session ID under data/extracted.
+            for base in (target, os.path.join(extracted_dir, target)):
+                if os.path.isfile(base):
+                    return base
+                candidate = os.path.join(base, "manifest.json")
+                if os.path.isfile(candidate):
+                    return candidate
+            raise FileNotFoundError(f"No manifest.json found at: {target}")
         if not os.path.isdir(extracted_dir):
             raise FileNotFoundError(
                 "No extractions found yet (data/extracted is empty). "
@@ -1947,16 +1950,18 @@ class IndraGUI(tb.Window):
 
     def _resolve_session_dir(self, target):
         """Session folder from a path (file or dir), or the newest under data/extracted."""
-        if target:
-            path = os.path.abspath(os.path.expanduser(target))
-            if os.path.isfile(path):
-                return os.path.dirname(path)
-            if os.path.isdir(path):
-                return path
-            raise FileNotFoundError(f"Session not found: {target}")
-
         extracted_dir = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "..", "data", "extracted"))
+
+        if target:
+            target = os.path.expanduser(target)
+            # Accept a full path, or just a session ID under data/extracted.
+            for path in (os.path.abspath(target), os.path.join(extracted_dir, target)):
+                if os.path.isfile(path):
+                    return os.path.dirname(path)
+                if os.path.isdir(path):
+                    return path
+            raise FileNotFoundError(f"Session not found: {target}")
         sessions = []
         if os.path.isdir(extracted_dir):
             sessions = [os.path.join(extracted_dir, n) for n in os.listdir(extracted_dir)
@@ -1965,7 +1970,18 @@ class IndraGUI(tb.Window):
             raise FileNotFoundError(
                 "No extractions found yet (data/extracted is empty). "
                 "Run an extraction or SD card scan first.")
-        return max(sessions, key=os.path.getmtime)
+
+        # "Most recent" = most recently *created*. manifest.json (USB extraction)
+        # and report.json (SD scan) are written once when the session is made;
+        # the folder's own mtime changes whenever a CSV/map/report is added.
+        def _created(path):
+            for marker in ("manifest.json", "report.json"):
+                mp = os.path.join(path, marker)
+                if os.path.isfile(mp):
+                    return os.path.getmtime(mp)
+            return os.path.getmtime(path)
+
+        return max(sessions, key=_created)
 
     def _collect_session_csvs(self, session_dir):
         """
@@ -2051,98 +2067,396 @@ class IndraGUI(tb.Window):
             return
 
         import csv as _csv
-        from tkinter import ttk
+        import tkinter.font as tkfont
+        from tkinter import ttk, filedialog
 
+        parsing_dir = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "..", "..", "modules", "digital_forensics", "parsing"))
+        if parsing_dir not in sys.path:
+            sys.path.insert(0, parsing_dir)
+        from dat_parser import summarize_dat_rows
+        import dat_display as dd
+
+        c = self.colors
         win = tb.Toplevel(self)
-        win.title(f"Flight Log CSV — {os.path.basename(session_dir)}")
-        win.geometry("1100x600")
+        win.title(f"Flight Log — {os.path.basename(session_dir)}")
+        win.geometry("1200x840")
 
-        bar = tb.Frame(win, padding=8)
+        # ---- File picker labels: "FLY010.DAT · 757 records" ----
+        def _row_count(path):
+            try:
+                with open(path, "rb") as f:
+                    return max(0, sum(1 for _ in f) - 1)
+            except OSError:
+                return 0
+
+        def _file_label(path):
+            name, n = os.path.basename(path), _row_count(path)
+            if name.lower().endswith("_dat.csv"):
+                return f"{name[:-len('_dat.csv')]}.DAT  ·  {n} records"
+            return f"{name}  ·  {n} rows"
+
+        labels = [_file_label(p) for p in csvs]
+        labels = [f"{lab}  ·  {os.path.basename(os.path.dirname(p))}"
+                  if labels.count(lab) > 1 else lab for lab, p in zip(labels, csvs)]
+        labels = [f"{lab}  #{i + 1}" if labels.count(lab) > 1 else lab
+                  for i, lab in enumerate(labels)]
+
+        # ---- Top bar ----
+        bar = tb.Frame(win, padding=(10, 10, 10, 4))
         bar.pack(fill=tk.X)
-        tb.Label(bar, text="File", style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
-        labels = [os.path.relpath(p, session_dir) for p in csvs]
+        tb.Label(bar, text="Flight log", style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 8))
         file_var = tk.StringVar(value=labels[0])
         file_box = tb.Combobox(bar, textvariable=file_var, values=labels,
-                               state="readonly", width=48)
-        file_box.pack(side=tk.LEFT, padx=(0, 12))
-        tb.Label(bar, text="Record type", style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
-        type_var = tk.StringVar(value="All")
-        type_box = tb.Combobox(bar, textvariable=type_var, state="readonly", width=14)
-        type_box.pack(side=tk.LEFT, padx=(0, 12))
-        count_lbl = tb.Label(bar, text="", style="Muted.TLabel")
-        count_lbl.pack(side=tk.LEFT)
+                               state="readonly", width=42)
+        file_box.pack(side=tk.LEFT)
+
+        def _current_path():
+            return csvs[labels.index(file_var.get())]
 
         def _open_folder():
-            path = csvs[labels.index(file_var.get())]
             opener = "open" if sys.platform == "darwin" else "xdg-open"
             try:
-                subprocess.Popen([opener, os.path.dirname(path)])
+                subprocess.Popen([opener, os.path.dirname(_current_path())])
             except Exception as ex:
                 self._log(f"ERROR: could not open folder: {ex}")
 
         tb.Button(bar, text="Open Folder", bootstyle="info-outline",
                   command=_open_folder).pack(side=tk.RIGHT)
+        export_btn = tb.Button(bar, text="Export Tab as CSV", bootstyle="info-outline")
+        export_btn.pack(side=tk.RIGHT, padx=(0, 6))
 
-        path_lbl = tb.Label(win, text="", style="Muted.TLabel", padding=(8, 0))
+        path_lbl = tb.Label(win, text="", style="Muted.TLabel", padding=(10, 0))
         path_lbl.pack(fill=tk.X)
 
-        table_frame = tb.Frame(win, padding=8)
-        table_frame.pack(fill=tk.BOTH, expand=True)
-        tree = ttk.Treeview(table_frame, show="headings")
-        vbar = tb.Scrollbar(table_frame, orient=tk.VERTICAL, command=tree.yview)
-        hbar = tb.Scrollbar(table_frame, orient=tk.HORIZONTAL, command=tree.xview)
-        tree.configure(yscrollcommand=vbar.set, xscrollcommand=hbar.set)
-        tree.grid(row=0, column=0, sticky="nsew")
-        vbar.grid(row=0, column=1, sticky="ns")
-        hbar.grid(row=1, column=0, sticky="ew")
-        table_frame.grid_rowconfigure(0, weight=1)
-        table_frame.grid_columnconfigure(0, weight=1)
+        # ---- Flight summary panel ----
+        summary = tb.Labelframe(win, text=" Flight Summary ", bootstyle="info", padding=10)
+        summary.pack(fill=tk.X, padx=10, pady=(8, 4))
 
-        state = {"header": [], "rows": []}
+        # ---- Tabs (one per record type, plus Map) + colour legend ----
+        legend = tb.Label(win, text=dd.ALERT_LEGEND, style="Muted.TLabel",
+                          padding=(10, 0, 10, 8), wraplength=1100, justify=tk.LEFT)
+        legend.pack(side=tk.BOTTOM, fill=tk.X)
+        tabs = tb.Notebook(win, bootstyle="info")
+        tabs.pack(fill=tk.BOTH, expand=True, padx=10, pady=(4, 6))
 
-        def _render():
-            tree.delete(*tree.get_children())
-            header, rows = state["header"], state["rows"]
-            want = type_var.get()
-            if want != "All" and "rec_type" in header:
-                i = header.index("rec_type")
-                rows = [r for r in rows if len(r) > i and r[i] == want]
-            for r in rows[:self._CSV_VIEW_MAX_ROWS]:
-                tree.insert("", tk.END, values=r)
-            shown = min(len(rows), self._CSV_VIEW_MAX_ROWS)
-            extra = (f" (showing first {shown}; open the file for the rest)"
-                     if len(rows) > shown else "")
-            count_lbl.config(text=f"{len(rows)} rows{extra}")
+        tab_names = {"GPS": "GPS", "FSTAT": "Flight Status", "BATTERY": "Battery",
+                     "RC": "RC Sticks", "HOME": "Home Point"}
+        tab_order = list(tab_names)
+        tab_tables = {}    # notebook tab id -> {"rtype", "cols", "ordered"}
+        map_tabs = {}      # notebook tab id -> map state
+        current = {"path": None}
 
+        style = ttk.Style()
+
+        def _font(style_name):
+            spec = style.lookup(style_name, "font")
+            try:
+                return tkfont.Font(font=spec) if spec else tkfont.nametofont("TkDefaultFont")
+            except tk.TclError:
+                return tkfont.nametofont("TkDefaultFont")
+
+        body_font, head_font = _font("Treeview"), _font("Treeview.Heading")
+
+        # ---- Summary ----
+        def _fmt_pt(p):
+            return f"{p[0]:.6f}, {p[1]:.6f}" if p else "—"
+
+        def _v(x, fmt):
+            return "—" if x is None else fmt.format(x)
+
+        def _fill_summary(rows, is_dat):
+            for w in summary.winfo_children():
+                w.destroy()
+            if not is_dat:
+                tb.Label(summary, style="Muted.TLabel",
+                         text=f"{len(rows)} rows. Flight summary is available for decoded "
+                              f".DAT logs (*_dat.csv).").grid(row=0, column=0, sticky="w")
+                return
+            s = summarize_dat_rows(rows)
+            batt = "—" if s["batt_start_pct"] is None else \
+                f"{s['batt_start_pct']:.0f}% → {s['batt_end_pct']:.0f}%"
+            sats = "—" if s["sats_min"] is None else (
+                str(s["sats_min"]) if s["sats_min"] == s["sats_max"]
+                else f"{s['sats_min']}–{s['sats_max']}")
+            rc = "—" if s["rc_lost_records"] is None else (
+                "Connected throughout" if s["rc_lost_records"] == 0
+                else f"Lost in {s['rc_lost_records']} records")
+            fails = "—" if s["failure_records"] is None else (
+                "None" if s["failure_records"] == 0 else f"{s['failure_records']} records")
+            items = [
+                ("Flight time",      "—" if s["flight_time_s"] is None
+                                     else dd.format_duration(s["flight_time_s"])[:-2]),
+                ("Max altitude",     _v(s["max_alt_m"], "{:.1f} m")),
+                ("Max speed",        _v(s["max_speed_ms"], "{:.1f} m/s")),
+                ("Distance flown",   _v(s["distance_m"], "{:.0f} m")),
+                ("Home point",       _fmt_pt(s["home"])),
+                ("Max from home",    _v(s["max_from_home_m"], "{:.0f} m")),
+                ("Takeoff",          _fmt_pt(s["start"])),
+                ("Last position",    _fmt_pt(s["end"])),
+                ("Battery",          batt),
+                ("Min pack voltage", _v(s["batt_min_v"], "{:.2f} V")),
+                ("Max batt temp",    _v(s["batt_max_temp_c"], "{:.0f} °C")),
+                ("GPS satellites",   sats),
+                ("RC link",          rc),
+                ("Failure flags",    fails),
+            ]
+            per_col = 4
+            for i, (k, val) in enumerate(items):
+                r, col = i % per_col, (i // per_col) * 2
+                tb.Label(summary, text=k, style="Muted.TLabel").grid(
+                    row=r, column=col, sticky="w", padx=(0 if col == 0 else 24, 8), pady=1)
+                fg = c["danger"] if (k == "RC link" and s["rc_lost_records"]) or \
+                    (k == "Failure flags" and s["failure_records"]) else None
+                lbl = tb.Label(summary, text=val, font=self.monospace_font)
+                if fg:
+                    lbl.configure(foreground=fg)
+                lbl.grid(row=r, column=col + 1, sticky="w", pady=1)
+            modes = " → ".join(dd.FLIGHT_MODES.get(m, f"Code {m}") for m in s["flight_modes"])
+            counts = "  ".join(f"{tab_names.get(k, k)} {n}" for k, n in sorted(
+                s["counts"].items(),
+                key=lambda kv: tab_order.index(kv[0]) if kv[0] in tab_order else 99))
+            tb.Label(summary, text=f"Flight modes: {modes or '—'}", style="Muted.TLabel").grid(
+                row=per_col, column=0, columnspan=8, sticky="w", pady=(6, 0))
+            tb.Label(summary, text=f"Records: {counts}", style="Muted.TLabel").grid(
+                row=per_col + 1, column=0, columnspan=8, sticky="w")
+
+        # ---- Table tab: pinned Time column, sortable headers, zebra + alert colours ----
+        def _add_table(title, rtype, cols, rows, friendly):
+            frame = tb.Frame(tabs, padding=6)
+            pinned = ["time_s"] if friendly and "time_s" in cols else []
+            rest = [col for col in cols if col not in pinned]
+            shown = rows[:self._CSV_VIEW_MAX_ROWS]
+            iid_rows = {f"r{i}": r for i, r in enumerate(shown)}
+            label_of = {col: (dd.column_label(col) if friendly else col) for col in cols}
+
+            def cell(col, r):
+                return dd.format_value(col, r.get(col)) if friendly else r.get(col, "")
+
+            trees = []
+            if pinned:
+                left = ttk.Treeview(frame, show="headings", columns=pinned)
+                left.grid(row=0, column=0, sticky="ns")
+                trees.append(left)
+            right = ttk.Treeview(frame, show="headings", columns=rest)
+            right.grid(row=0, column=1, sticky="nsew")
+            trees.append(right)
+            vbar = tb.Scrollbar(frame, orient=tk.VERTICAL)
+            vbar.grid(row=0, column=2, sticky="ns")
+            hbar = tb.Scrollbar(frame, orient=tk.HORIZONTAL, command=right.xview)
+            hbar.grid(row=1, column=1, sticky="ew")
+            right.configure(xscrollcommand=hbar.set)
+            frame.grid_rowconfigure(0, weight=1)
+            frame.grid_columnconfigure(1, weight=1)
+
+            # Keep the pinned and scrolling tables in step (scroll + selection).
+            vbar.configure(command=lambda *a: [t.yview(*a) for t in trees])
+
+            def _ysync(src):
+                def cmd(first, last):
+                    vbar.set(first, last)
+                    for t in trees:
+                        if t is not src and abs(t.yview()[0] - float(first)) > 1e-9:
+                            t.yview_moveto(first)
+                return cmd
+
+            def _selsync(src):
+                def cb(_e):
+                    sel = src.selection()
+                    for t in trees:
+                        if t is not src and t.selection() != sel:
+                            t.selection_set(sel)
+                return cb
+
+            for t in trees:
+                t.configure(yscrollcommand=_ysync(t))
+                t.bind("<<TreeviewSelect>>", _selsync(t))
+                t.tag_configure("even", background=c["surface"])
+                t.tag_configure("odd", background=c["surface_alt"])
+                t.tag_configure("alert", foreground="#ff7b72")
+                t.tag_configure("warn", foreground="#e3b341")
+
+            sort_state = {"col": None, "desc": False}
+
+            def _zebra(order):
+                for idx, iid in enumerate(order):
+                    for t in trees:
+                        keep = tuple(x for x in t.item(iid, "tags") if x not in ("odd", "even"))
+                        t.item(iid, tags=keep + ("odd" if idx % 2 else "even",))
+
+            def _sort(col):
+                desc = sort_state["col"] == col and not sort_state["desc"]
+                sort_state.update(col=col, desc=desc)
+
+                def key(iid):
+                    raw = iid_rows[iid].get(col)
+                    num = dd.to_number(raw)
+                    return (0, num, "") if num is not None else (1, 0.0, str(raw or ""))
+
+                order = sorted(iid_rows, key=key, reverse=desc)
+                for t in trees:
+                    for idx, iid in enumerate(order):
+                        t.move(iid, "", idx)
+                    for cc in t["columns"]:
+                        arrow = (" ▼" if desc else " ▲") if cc == col else ""
+                        t.heading(cc, text=label_of[cc] + arrow)
+                _zebra(order)
+
+            for t in trees:
+                for col in t["columns"]:
+                    sample = [cell(col, r) for r in shown[:400]]
+                    width = max([head_font.measure(label_of[col] + " ▲")] +
+                                [body_font.measure(str(v)) for v in sample]) + 28
+                    t.heading(col, text=label_of[col], anchor="center",
+                              command=lambda col=col: _sort(col))
+                    t.column(col, width=max(70, min(340, width)), anchor="center",
+                             stretch=False)
+
+            for idx, (iid, r) in enumerate(iid_rows.items()):
+                tags = ("odd" if idx % 2 else "even",)
+                level = dd.alert_level(rtype, r) if friendly else None
+                if level:
+                    tags += (level,)
+                for t in trees:
+                    t.insert("", tk.END, iid=iid, values=[cell(col, r) for col in t["columns"]],
+                             tags=tags)
+
+            note = f" (first {self._CSV_VIEW_MAX_ROWS})" if len(rows) > len(shown) else ""
+            tabs.add(frame, text=f"  {title} ({len(rows)}){note}  ")
+
+            def ordered():
+                # Export what's on screen (sorted order); if capped, export every row.
+                if len(rows) > len(shown):
+                    return rows
+                return [iid_rows[i] for i in right.get_children()]
+
+            tab_tables[str(frame)] = {"rtype": rtype, "cols": cols, "ordered": ordered}
+
+        # ---- Map tab (rendered the first time it's opened) ----
+        def _add_map_tab(path, gps_rows):
+            if not any(dd.to_number(r.get("latitude")) for r in gps_rows):
+                return
+            frame = tb.Frame(tabs, padding=10)
+            msg = tb.Label(frame, text="Drawing flight path...", style="Muted.TLabel")
+            msg.pack(anchor="w")
+            img = tk.Label(frame, background=c["bg"])
+            img.pack(fill=tk.BOTH, expand=True, pady=(8, 0))
+            tabs.add(frame, text="  Map  ")
+            map_tabs[str(frame)] = {"path": path, "msg": msg, "img": img, "started": False}
+
+        def _show_map(state, out, ok):
+            if not state["img"].winfo_exists():
+                return
+            if not ok:
+                state["msg"].config(text="Could not draw the flight path. Install matplotlib "
+                                         "(offline) or staticmap (needs internet).")
+                return
+            try:
+                from PIL import Image, ImageTk
+                im = Image.open(out)
+                im.thumbnail((1100, 470))
+                photo = ImageTk.PhotoImage(im)
+            except Exception as ex:
+                state["msg"].config(text=f"Could not display map: {ex}")
+                return
+            state["img"].configure(image=photo)
+            state["img"].image = photo
+            state["msg"].config(text=f"Saved: {out}")
+
+        def _on_tab_changed(_e=None):
+            state = map_tabs.get(tabs.select())
+            if not state or state["started"]:
+                return
+            state["started"] = True
+            stem = os.path.splitext(os.path.basename(state["path"]))[0]
+            out = os.path.join(session_dir, f"{stem}_flight_map.png")
+            if os.path.isfile(out) and os.path.getsize(out) > 0:
+                _show_map(state, out, True)
+                return
+
+            def _worker():
+                try:
+                    from modules.digital_forensics.analysis.telemetry import render_flight_map
+                    ok = render_flight_map(state["path"], out)
+                except Exception:
+                    ok = False
+                self.after(0, lambda: _show_map(state, out, ok))
+
+            threading.Thread(target=_worker, daemon=True).start()
+
+        tabs.bind("<<NotebookTabChanged>>", _on_tab_changed)
+
+        # ---- Export current tab ----
+        def _export():
+            info = tab_tables.get(tabs.select())
+            if not info:
+                self._log("Export: switch to a table tab first (Map can't be exported).")
+                return
+            stem = os.path.splitext(os.path.basename(current["path"]))[0]
+            suffix = (info["rtype"] or "rows").lower()
+            dest = filedialog.asksaveasfilename(
+                parent=win, title="Export table as CSV", initialdir=session_dir,
+                initialfile=f"{stem}_{suffix}.csv", defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv")])
+            if not dest:
+                return
+            out_rows = info["ordered"]()
+            try:
+                with open(dest, "w", newline="", encoding="utf-8") as f:
+                    w = _csv.DictWriter(f, fieldnames=info["cols"], extrasaction="ignore")
+                    w.writeheader()
+                    w.writerows(out_rows)
+            except OSError as ex:
+                self._log(f"ERROR: export failed: {ex}")
+                return
+            self._log_slow(f"Exported {len(out_rows)} rows to {dest}")
+
+        export_btn.configure(command=_export)
+
+        # ---- Load a file ----
         def _load(_event=None):
-            path = csvs[labels.index(file_var.get())]
+            path = _current_path()
+            current["path"] = path
             path_lbl.config(text=path)
             try:
                 with open(path, newline="", encoding="utf-8", errors="replace") as f:
-                    reader = _csv.reader(f)
-                    header = next(reader, [])
+                    reader = _csv.DictReader(f)
+                    header = list(reader.fieldnames or [])
                     rows = list(reader)
             except Exception as ex:
                 self._log(f"ERROR: could not read {path}: {ex}")
                 header, rows = [], []
-            state["header"], state["rows"] = header, rows
 
-            tree["columns"] = header
-            for col in header:
-                tree.heading(col, text=col)
-                tree.column(col, width=max(90, min(220, len(col) * 9)),
-                            anchor="w", stretch=False)
+            for t in tabs.tabs():
+                tabs.forget(t)
+                win.nametowidget(t).destroy()
+            tab_tables.clear()
+            map_tabs.clear()
 
-            types = ["All"]
-            if "rec_type" in header:
-                i = header.index("rec_type")
-                types += sorted({r[i] for r in rows if len(r) > i})
-            type_box.config(values=types)
-            type_var.set("All")
-            _render()
+            is_dat = "rec_type" in header
+            _fill_summary(rows, is_dat)
+
+            if not is_dat:
+                _add_table("All rows", None, header, rows, friendly=False)
+                _add_map_tab(path, rows)
+                return
+
+            by_type = {}
+            for r in rows:
+                by_type.setdefault(r.get("rec_type") or "UNKNOWN", []).append(r)
+            ordered_types = [t for t in tab_order if t in by_type] + \
+                sorted(t for t in by_type if t not in tab_order)
+            for rtype in ordered_types:
+                type_rows = by_type[rtype]
+                # Only the columns this record type fills; raw clock tick goes last.
+                cols = [col for col in header if col not in ("rec_type", "tick")
+                        and any(r.get(col) not in (None, "") for r in type_rows)]
+                if "tick" in header:
+                    cols.append("tick")
+                _add_table(tab_names.get(rtype, rtype), rtype, cols, type_rows, friendly=True)
+            _add_map_tab(path, by_type.get("GPS", []))
 
         file_box.bind("<<ComboboxSelected>>", _load)
-        type_box.bind("<<ComboboxSelected>>", lambda _e: _render())
         _load()
         self._log_slow(f"CSV viewer: {len(csvs)} CSV(s) in {session_dir}")
 

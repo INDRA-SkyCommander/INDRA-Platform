@@ -79,6 +79,25 @@ def _matplotlib_flight_map(csv_path: str, out_path: str) -> bool:
     return os.path.exists(out_path) and os.path.getsize(out_path) > 0
 
 
+def render_flight_map(csv_path: str, out_path: str) -> bool:
+    """
+    Render one CSV's flight path to out_path (PNG). Tries staticmap (OSM tiles,
+    needs internet) first, then the offline matplotlib plot. Returns True if a
+    PNG was written.
+    """
+    _ensure_telemetry_on_path()
+    try:
+        from telemetry import DJIFlightPathMap
+        with open(os.devnull, "w") as _devnull, \
+             contextlib.redirect_stdout(_devnull):
+            DJIFlightPathMap(csv_path, out_path).execute_flight_path_analysis()
+    except Exception:
+        pass
+    if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
+        return True
+    return _matplotlib_flight_map(csv_path, out_path)
+
+
 def analyze_telemetry(manifest_path: str) -> dict:
     """
     Generate flight-path PNG maps for all CSV files in a session that have
@@ -138,21 +157,7 @@ def analyze_telemetry(manifest_path: str) -> dict:
         stem = os.path.splitext(os.path.basename(path))[0]
         map_out = os.path.join(session_dir, f"{stem}_flight_map.png")
 
-        # 1) Primary renderer: staticmap (OSM tiles - needs internet).
-        try:
-            from telemetry import DJIFlightPathMap
-            with open(os.devnull, "w") as _devnull, \
-                 contextlib.redirect_stdout(_devnull):
-                DJIFlightPathMap(path, map_out).execute_flight_path_analysis()
-        except Exception:
-            pass
-
-        # 2) Offline fallback: matplotlib path plot (no internet) if no PNG yet.
-        produced = os.path.exists(map_out) and os.path.getsize(map_out) > 0
-        if not produced:
-            produced = _matplotlib_flight_map(path, map_out)
-
-        if produced:
+        if render_flight_map(path, map_out):
             entry["map_path"] = map_out
             maps_generated += 1
         else:

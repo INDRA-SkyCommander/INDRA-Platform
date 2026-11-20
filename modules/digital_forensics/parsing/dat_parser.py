@@ -20,6 +20,9 @@ import struct
 FILE_HEADER_SIZE = 128
 _BUILD_MAGIC     = b"BUILD"
 
+# Phantom 3 flight-controller clock: DatCon converts tickNo to seconds at 600/s.
+TICKS_PER_SECOND = 600.0
+
 # Record type/subtype pairs
 _GPS   = (0xCF, 0x01)   # GPS + IMU: lat/lon/alt/quaternion attitude
 _FSTAT = (0x2A, 0x0C)   # Flight status: lat/lon/height/attitude/state
@@ -254,6 +257,7 @@ def parse_dat(dat_path: str, csv_path: str) -> dict:
 
     pos     = FILE_HEADER_SIZE
     rows    = []
+    first_tick = None
     total   = 0
     parsed  = 0
     skipped = 0
@@ -291,6 +295,13 @@ def parse_dat(dat_path: str, csv_path: str) -> dict:
         if parser:
             row = parser(payload)
             if row:
+                if first_tick is None:
+                    first_tick = tick_no
+                # time_s: seconds since the first decoded record; tick: raw clock value
+                row = {"rec_type": row.pop("rec_type"),
+                       "time_s":   round((tick_no - first_tick) / TICKS_PER_SECOND, 3),
+                       "tick":     tick_no,
+                       **row}
                 rows.append(row)
                 parsed += 1
 
@@ -318,4 +329,101 @@ def parse_dat(dat_path: str, csv_path: str) -> dict:
         "header_skip":     FILE_HEADER_SIZE,
         "row_count":       len(rows),
         "csv_path":        csv_out,
+    }
+
+
+# ── Flight summary (used by the Forensics-tab CSV viewer) ─────────────────────
+
+def _num(v):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
+
+
+def _haversine_m(lat1, lon1, lat2, lon2):
+    r = 6_371_000.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = p2 - p1, math.radians(lon2 - lon1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(a))
+
+
+def summarize_dat_rows(rows: list) -> dict:
+    """
+    Summarise decoded .dat rows (dicts as read back from the CSV by DictReader).
+
+    Returns a dict of raw values; any metric without data is None:
+        counts, flight_time_s, max_alt_m, max_speed_ms, home, start, end,
+        distance_m, max_from_home_m, batt_start_pct, batt_end_pct,
+        batt_min_v, batt_max_temp_c, sats_min, sats_max,
+        rc_lost_records, failure_records, flight_modes
+    """
+    by_type: dict = {}
+    for r in rows:
+        by_type.setdefault(r.get("rec_type") or "UNKNOWN", []).append(r)
+    gps   = by_type.get("GPS", [])
+    fstat = by_type.get("FSTAT", [])
+    batt  = by_type.get("BATTERY", [])
+    home  = by_type.get("HOME", [])
+
+    def col(rs, key):
+        return [x for x in (_num(r.get(key)) for r in rs) if x is not None]
+
+    def _max(vals):
+        return max(vals) if vals else None
+
+    ft = col(fstat, "flight_time_ms")
+    alts = col(gps, "altitude_m") or col(fstat, "height_m")
+    speeds = []
+    for r in gps:
+        vn, ve = _num(r.get("vel_n_ms")), _num(r.get("vel_e_ms"))
+        if vn is not None and ve is not None:
+            speeds.append(math.hypot(vn, ve))
+
+    track = []
+    for r in gps:
+        lat, lon = _num(r.get("latitude")), _num(r.get("longitude"))
+        if lat is not None and lon is not None and (not track or track[-1] != (lat, lon)):
+            track.append((lat, lon))
+    distance = sum(_haversine_m(*a, *b) for a, b in zip(track, track[1:])) if track else None
+
+    home_pt = None
+    for r in home:
+        lat, lon = _num(r.get("home_latitude")), _num(r.get("home_longitude"))
+        if lat is not None and lon is not None:
+            home_pt = (lat, lon)
+            break
+    ref = home_pt or (track[0] if track else None)
+    from_home = _max([_haversine_m(*ref, *p) for p in track]) if ref and track else None
+
+    pct = col(batt, "batt_percent")
+    sats = col(gps, "satnum")
+    rc_flags = col(fstat, "connected_to_rc")
+    modes = []
+    for m in col(fstat, "flyc_state"):
+        if int(m) not in modes:
+            modes.append(int(m))
+    failures = col(fstat, "failure")
+
+    return {
+        "counts":          {k: len(v) for k, v in by_type.items()},
+        "flight_time_s":   (_max(ft) / 1000.0) if ft else None,
+        "max_alt_m":       _max(alts),
+        "max_speed_ms":    _max(speeds),
+        "home":            home_pt,
+        "start":           track[0] if track else None,
+        "end":             track[-1] if track else None,
+        "distance_m":      distance,
+        "max_from_home_m": from_home,
+        "batt_start_pct":  pct[0] if pct else None,
+        "batt_end_pct":    pct[-1] if pct else None,
+        "batt_min_v":      min(col(batt, "batt_volts")) if col(batt, "batt_volts") else None,
+        "batt_max_temp_c": _max(col(batt, "batt_temp_c")),
+        "sats_min":        int(min(sats)) if sats else None,
+        "sats_max":        int(max(sats)) if sats else None,
+        "rc_lost_records": sum(1 for x in rc_flags if x == 0) if rc_flags else None,
+        "failure_records": sum(1 for x in failures if x != 0) if failures else None,
+        "flight_modes":    modes,           # flyc_state codes, in order first seen
     }
