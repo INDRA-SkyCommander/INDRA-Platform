@@ -211,12 +211,10 @@ def scan_drive(
         log(f"[*] {len(copied['.srt'])} SRT file(s) contain per-frame telemetry (altitude, GPS, speed).")
         extracted['srt'] = [Path(p).name for p in copied['.srt']]
 
-    # DAT — proprietary binary format, copy only
+    # DAT — proprietary binary format, decoded to <name>_dat.csv
     if copied['.dat']:
-        log(f"[*] {len(copied['.dat'])} internal DAT log(s) found.")
-        log("    [!] DAT files use DJI's proprietary binary format.")
-        log("        Use DatCon (Java) or dji-log-parser for full decoding.")
-        extracted['dat'] = [Path(p).name for p in copied['.dat']]
+        log(f"[*] Decoding {len(copied['.dat'])} binary DAT log(s)...")
+        extracted['dat'] = _process_dat_files(copied['.dat'], results_dir, log)
 
     # TXT flight logs, copy only
     if copied['.txt']:
@@ -337,6 +335,32 @@ def _process_images(paths: List[str], out_dir: Path, log: Callable) -> List[Dict
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _process_dat_files(paths: List[str], out_dir: Path, log: Callable) -> List[Dict]:
+    """Decode each binary .dat into <stem>_dat.csv inside out_dir."""
+    _add_parsing_path()
+    from dat_parser import parse_dat
+
+    results = []
+    for path in paths:
+        name = Path(path).name
+        csv_path = out_dir / f"{Path(path).stem}_dat.csv"
+        entry: Dict = {"file": name}
+        try:
+            res = parse_dat(path, str(csv_path))
+            if res.get("csv_path"):
+                entry.update(csv=str(csv_path), rows=res["row_count"],
+                             records_total=res["records_total"])
+                log(f"    [+] {name} -> {csv_path.name} ({res['row_count']} rows)")
+            else:
+                entry["error"] = res.get("error") or "no decodable records"
+                log(f"    [!] {name}: {entry['error']}")
+        except Exception as ex:
+            entry["error"] = str(ex)
+            log(f"    [!] {name}: decode failed: {ex}")
+        results.append(entry)
+    return results
+
 
 def _add_parsing_path():
     """Ensure parsing is on sys.path for parser imports."""

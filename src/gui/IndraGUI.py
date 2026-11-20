@@ -1095,7 +1095,8 @@ class IndraGUI(tb.Window):
         self.fl_card = self._make_analysis_card(
             grid, 1, 1, "Flight Logs / Telemetry",
             "Parse extracted DJI flight logs (.TXT, .CSV, .KML, .GPX, .DAT).",
-            "Parse Logs", self._handle_flight_logs)
+            "Parse Logs", self._handle_flight_logs,
+            extra_buttons=[("View CSV", lambda: self._open_csv_viewer(self.fl_card))])
         self.mm_card = self._make_analysis_card(
             grid, 2, 0, "Media Metadata",
             "Extract EXIF / image metadata (camera, timestamp, GPS) from media.",
@@ -1114,7 +1115,8 @@ class IndraGUI(tb.Window):
             grid, 3, 1, "SD Card Scan",
             "Detect and extract all DJI files from an inserted SD card or removable drive. "
             "Leave the drive path blank to auto-detect.",
-            "Scan SD Card", self._handle_sd_scan)
+            "Scan SD Card", self._handle_sd_scan,
+            extra_buttons=[("View CSV", lambda: self._open_csv_viewer(None))])
 
     def _init_acquisition_card(self, parent, row=0, col=0):
         """
@@ -1784,7 +1786,8 @@ class IndraGUI(tb.Window):
     # status + results) and the same run/finish flow, so they're built from a
     # single helper and driven by a small per-card state dict.
 
-    def _make_analysis_card(self, parent, row, col, title, desc, button_text, command):
+    def _make_analysis_card(self, parent, row, col, title, desc, button_text, command,
+                            extra_buttons=()):
         """
         Build one interactive analysis card and return its state dict:
             {"src_var", "btn", "status", "results", "running"}.
@@ -1809,6 +1812,9 @@ class IndraGUI(tb.Window):
 
         btn = tb.Button(controls, text=button_text, bootstyle="info", command=command)
         btn.pack(side=tk.LEFT)
+        for extra_text, extra_cmd in extra_buttons:
+            tb.Button(controls, text=extra_text, bootstyle="info-outline",
+                      command=extra_cmd).pack(side=tk.LEFT, padx=(4, 0))
 
         status = tb.Label(card, text="Status: idle", style="Muted.TLabel")
         status.pack(anchor="w", pady=(0, 6))
@@ -1934,6 +1940,211 @@ class IndraGUI(tb.Window):
             lines.append("")
 
         return "\n".join(lines), f"{n} log(s) parsed"
+
+    # --- Decoded .DAT CSV viewer ---
+
+    _CSV_VIEW_MAX_ROWS = 5000
+
+    def _resolve_session_dir(self, target):
+        """Session folder from a path (file or dir), or the newest under data/extracted."""
+        if target:
+            path = os.path.abspath(os.path.expanduser(target))
+            if os.path.isfile(path):
+                return os.path.dirname(path)
+            if os.path.isdir(path):
+                return path
+            raise FileNotFoundError(f"Session not found: {target}")
+
+        extracted_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "data", "extracted"))
+        sessions = []
+        if os.path.isdir(extracted_dir):
+            sessions = [os.path.join(extracted_dir, n) for n in os.listdir(extracted_dir)
+                        if os.path.isdir(os.path.join(extracted_dir, n))]
+        if not sessions:
+            raise FileNotFoundError(
+                "No extractions found yet (data/extracted is empty). "
+                "Run an extraction or SD card scan first.")
+        return max(sessions, key=os.path.getmtime)
+
+    def _collect_session_csvs(self, session_dir):
+        """
+        Decode any .dat in the session that has no <stem>_dat.csv yet, then return
+        (csv_paths, notes). Decoded DAT CSVs are listed first.
+        """
+        dats, csvs = [], []
+        for root, _dirs, files in os.walk(session_dir):
+            for name in files:
+                low = name.lower()
+                if low.endswith(".dat"):
+                    dats.append(os.path.join(root, name))
+                elif low.endswith(".csv"):
+                    csvs.append(os.path.join(root, name))
+
+        notes = []
+        decoded_stems = {os.path.basename(c)[:-len("_dat.csv")]
+                         for c in csvs if c.lower().endswith("_dat.csv")}
+        missing = [d for d in dats
+                   if os.path.splitext(os.path.basename(d))[0] not in decoded_stems]
+        if missing:
+            parsing_dir = os.path.abspath(os.path.join(
+                os.path.dirname(__file__), "..", "..", "modules",
+                "digital_forensics", "parsing"))
+            if parsing_dir not in sys.path:
+                sys.path.insert(0, parsing_dir)
+            from dat_parser import parse_dat
+
+            for dat in missing:
+                stem = os.path.splitext(os.path.basename(dat))[0]
+                # Next to the .dat first (where telemetry looks); if that folder
+                # isn't writable, fall back to the session root.
+                res = None
+                for out in (os.path.splitext(dat)[0] + "_dat.csv",
+                            os.path.join(session_dir, stem + "_dat.csv")):
+                    try:
+                        res = parse_dat(dat, out)
+                        break
+                    except PermissionError:
+                        continue
+                    except Exception as ex:
+                        notes.append(f"{os.path.basename(dat)}: decode failed: {ex}")
+                        break
+                if res is None:
+                    if not any(n.startswith(os.path.basename(dat)) for n in notes):
+                        notes.append(f"{os.path.basename(dat)}: no writable folder for CSV")
+                    continue
+                if res.get("csv_path"):
+                    csvs.append(out)
+                else:
+                    notes.append(f"{os.path.basename(dat)}: "
+                                 f"{res.get('error') or 'no decodable records'}")
+
+        csvs = sorted(set(csvs), key=lambda p: (not p.lower().endswith("_dat.csv"),
+                                                os.path.basename(p).lower()))
+        return csvs, notes
+
+    def _open_csv_viewer(self, card):
+        target = card["src_var"].get().strip() if card else ""
+        self._log_slow("CSV viewer: locating decoded flight-log CSVs...")
+
+        def _worker():
+            result = {"ok": False, "error": None}
+            try:
+                session_dir = self._resolve_session_dir(target)
+                csvs, notes = self._collect_session_csvs(session_dir)
+                result.update(ok=True, session_dir=session_dir, csvs=csvs, notes=notes)
+            except Exception as e:
+                result["error"] = str(e)
+            self.after(0, lambda: self._show_csv_viewer(result))
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _show_csv_viewer(self, result):
+        if not result["ok"]:
+            self._log(f"ERROR: CSV viewer: {result['error']}")
+            return
+        session_dir, csvs, notes = result["session_dir"], result["csvs"], result["notes"]
+        for n in notes:
+            self._log(f"CSV viewer: {n}")
+        if not csvs:
+            self._log(f"CSV viewer: no CSVs (or decodable .DAT files) in {session_dir}")
+            return
+
+        import csv as _csv
+        from tkinter import ttk
+
+        win = tb.Toplevel(self)
+        win.title(f"Flight Log CSV — {os.path.basename(session_dir)}")
+        win.geometry("1100x600")
+
+        bar = tb.Frame(win, padding=8)
+        bar.pack(fill=tk.X)
+        tb.Label(bar, text="File", style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
+        labels = [os.path.relpath(p, session_dir) for p in csvs]
+        file_var = tk.StringVar(value=labels[0])
+        file_box = tb.Combobox(bar, textvariable=file_var, values=labels,
+                               state="readonly", width=48)
+        file_box.pack(side=tk.LEFT, padx=(0, 12))
+        tb.Label(bar, text="Record type", style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
+        type_var = tk.StringVar(value="All")
+        type_box = tb.Combobox(bar, textvariable=type_var, state="readonly", width=14)
+        type_box.pack(side=tk.LEFT, padx=(0, 12))
+        count_lbl = tb.Label(bar, text="", style="Muted.TLabel")
+        count_lbl.pack(side=tk.LEFT)
+
+        def _open_folder():
+            path = csvs[labels.index(file_var.get())]
+            opener = "open" if sys.platform == "darwin" else "xdg-open"
+            try:
+                subprocess.Popen([opener, os.path.dirname(path)])
+            except Exception as ex:
+                self._log(f"ERROR: could not open folder: {ex}")
+
+        tb.Button(bar, text="Open Folder", bootstyle="info-outline",
+                  command=_open_folder).pack(side=tk.RIGHT)
+
+        path_lbl = tb.Label(win, text="", style="Muted.TLabel", padding=(8, 0))
+        path_lbl.pack(fill=tk.X)
+
+        table_frame = tb.Frame(win, padding=8)
+        table_frame.pack(fill=tk.BOTH, expand=True)
+        tree = ttk.Treeview(table_frame, show="headings")
+        vbar = tb.Scrollbar(table_frame, orient=tk.VERTICAL, command=tree.yview)
+        hbar = tb.Scrollbar(table_frame, orient=tk.HORIZONTAL, command=tree.xview)
+        tree.configure(yscrollcommand=vbar.set, xscrollcommand=hbar.set)
+        tree.grid(row=0, column=0, sticky="nsew")
+        vbar.grid(row=0, column=1, sticky="ns")
+        hbar.grid(row=1, column=0, sticky="ew")
+        table_frame.grid_rowconfigure(0, weight=1)
+        table_frame.grid_columnconfigure(0, weight=1)
+
+        state = {"header": [], "rows": []}
+
+        def _render():
+            tree.delete(*tree.get_children())
+            header, rows = state["header"], state["rows"]
+            want = type_var.get()
+            if want != "All" and "rec_type" in header:
+                i = header.index("rec_type")
+                rows = [r for r in rows if len(r) > i and r[i] == want]
+            for r in rows[:self._CSV_VIEW_MAX_ROWS]:
+                tree.insert("", tk.END, values=r)
+            shown = min(len(rows), self._CSV_VIEW_MAX_ROWS)
+            extra = (f" (showing first {shown}; open the file for the rest)"
+                     if len(rows) > shown else "")
+            count_lbl.config(text=f"{len(rows)} rows{extra}")
+
+        def _load(_event=None):
+            path = csvs[labels.index(file_var.get())]
+            path_lbl.config(text=path)
+            try:
+                with open(path, newline="", encoding="utf-8", errors="replace") as f:
+                    reader = _csv.reader(f)
+                    header = next(reader, [])
+                    rows = list(reader)
+            except Exception as ex:
+                self._log(f"ERROR: could not read {path}: {ex}")
+                header, rows = [], []
+            state["header"], state["rows"] = header, rows
+
+            tree["columns"] = header
+            for col in header:
+                tree.heading(col, text=col)
+                tree.column(col, width=max(90, min(220, len(col) * 9)),
+                            anchor="w", stretch=False)
+
+            types = ["All"]
+            if "rec_type" in header:
+                i = header.index("rec_type")
+                types += sorted({r[i] for r in rows if len(r) > i})
+            type_box.config(values=types)
+            type_var.set("All")
+            _render()
+
+        file_box.bind("<<ComboboxSelected>>", _load)
+        type_box.bind("<<ComboboxSelected>>", lambda _e: _render())
+        _load()
+        self._log_slow(f"CSV viewer: {len(csvs)} CSV(s) in {session_dir}")
 
     # --- Media Metadata ---
 
