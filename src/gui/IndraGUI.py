@@ -200,13 +200,24 @@ class IndraGUI(tb.Window):
         # Typographic scale
         # ======================
         # Existing names kept: label_font, monospace_font, exploit_font.
-        self.title_font     = font.Font(family="Segoe UI", size=20, weight="bold")
-        self.subtitle_font  = font.Font(family="Segoe UI", size=10)
-        self.heading_font   = font.Font(family="Segoe UI", size=11, weight="bold")
-        self.body_font      = font.Font(family="Segoe UI", size=10)
-        self.label_font     = font.Font(family="Consolas", size=10)
-        self.monospace_font = font.Font(family="Consolas", size=10)
-        self.exploit_font   = font.Font(family="Segoe UI", size=12, weight="bold")
+        # "Segoe UI" / "Consolas" only exist on Windows; on the Ubuntu VM Tk
+        # silently substitutes a bitmap font. Use the first family installed.
+        installed = {f.lower() for f in font.families()}
+
+        def _pick(*families):
+            return next((f for f in families if f.lower() in installed), families[-1])
+
+        sans = _pick("Segoe UI", "Ubuntu", "DejaVu Sans", "Helvetica Neue", "Helvetica")
+        mono = _pick("Consolas", "Ubuntu Mono", "DejaVu Sans Mono", "Menlo", "Courier")
+        self.title_font     = font.Font(family=sans, size=20, weight="bold")
+        self.subtitle_font  = font.Font(family=sans, size=10)
+        self.heading_font   = font.Font(family=sans, size=11, weight="bold")
+        self.body_font      = font.Font(family=sans, size=10)
+        self.label_font     = font.Font(family=mono, size=10)
+        self.monospace_font = font.Font(family=mono, size=10)
+        self.exploit_font   = font.Font(family=sans, size=12, weight="bold")
+        self.table_font     = font.Font(family=sans, size=10)
+        self.table_head_font = font.Font(family=sans, size=10, weight="bold")
 
         # ======================
         # Reusable ttk styles
@@ -254,7 +265,35 @@ class IndraGUI(tb.Window):
                              focuscolor=c["success"], font=self.exploit_font,
                              borderwidth=0, padding=(28, 10))
         self.style.map("Large.Success.TButton", background=[("active", c["success_dim"])])
-        
+
+        # ======================
+        # Data tables (View CSV)
+        # ======================
+        # Plain ttk.Treeview never picks up the darkly theme, so its empty area
+        # (below / beside the rows) used to render white. Every table uses
+        # "Indra.Treeview" so the whole widget is dark.
+        self.style.configure("Indra.Treeview",
+                             background=c["surface"], fieldbackground=c["surface"],
+                             foreground=c["text"], bordercolor=c["border"],
+                             lightcolor=c["surface"], darkcolor=c["surface"],
+                             borderwidth=0, relief="flat",
+                             font=self.table_font, rowheight=26)
+        self.style.map("Indra.Treeview",
+                       background=[("selected", c["accent_dim"])],
+                       foreground=[("selected", "#ffffff")])
+        self.style.configure("Indra.Treeview.Heading",
+                             background=c["surface_alt"], foreground=c["text"],
+                             bordercolor=c["border"], lightcolor=c["surface_alt"],
+                             darkcolor=c["surface_alt"], relief="flat",
+                             font=self.table_head_font, padding=(6, 6))
+        self.style.map("Indra.Treeview.Heading",
+                       background=[("active", c["border"])],
+                       foreground=[("active", c["text"])])
+        # Tooltip shown when hovering a column header.
+        self.style.configure("Tooltip.TLabel", background=c["surface_alt"],
+                             foreground=c["text"], font=self.body_font,
+                             padding=(8, 6), relief="solid", borderwidth=1)
+
     def _init_header(self, row):
         """
         Creates the application header: INDRA wordmark, subtitle, and a
@@ -1113,15 +1152,13 @@ class IndraGUI(tb.Window):
 
         self.sd_card = self._make_analysis_card(
             grid, 3, 1, "SD Card Scan",
-            "Process an extraction session's DJI files (decode .DAT logs, build the media "
-            "telemetry CSV). Leave the session blank to scan an inserted SD card instead.",
+            "Quick look, not hashed: copies a card's DJI files, decodes .DAT logs and builds "
+            "the media telemetry CSV. Type a drive path (e.g. /media/indra/disk) or an "
+            "existing session ID; leave blank to auto-detect the card.",
             "Scan SD Card", self._handle_sd_scan,
-            # View CSV opens the session typed here, else this card's last scan,
-            # else the most recent session.
             extra_buttons=[("View CSV", lambda: self._open_csv_viewer(
-                None, target=self.sd_card["src_var"].get().strip()
-                or getattr(self, "_last_sd_scan_dir", None) or ""))],
-            field_hint="(blank = scan card)")
+                None, target=self._sd_view_target()))],
+            field_label="Drive or session", field_hint="(blank = auto-detect card)")
 
     def _init_acquisition_card(self, parent, row=0, col=0):
         """
@@ -1143,9 +1180,10 @@ class IndraGUI(tb.Window):
         card.grid(row=row, column=col, sticky="nsew", padx=6, pady=6)
 
         tb.Label(card,
-                 text="Extract data off a connected DJI drive over USB. Leave the "
-                      "source blank to auto-detect, or enter an already-mounted "
-                      "path to extract from it directly (useful for testing).",
+                 text="Evidence copy: copies every file off the card or drive, "
+                      "SHA-256 hashes each one and writes a manifest that Integrity "
+                      "and Report can verify. Leave the source blank to auto-detect, "
+                      "or enter an already-mounted path.",
                  style="Muted.TLabel", wraplength=360, justify=tk.LEFT).pack(anchor="w")
 
         # Controls: source entry + run button
@@ -1906,7 +1944,10 @@ class IndraGUI(tb.Window):
             return
 
         text, status = formatter(result["data"])
-        self._set_text(state["results"], text + f"\n\nSaved: {result['out_path']}")
+        session_id = os.path.basename(os.path.dirname(result["out_path"] or ""))
+        self._set_text(state["results"],
+                       f"Session: {session_id}\n\n{text}\n\nSaved: {result['out_path']}")
+        status = f"{status} (session {session_id})" if session_id else status
         state["status"].config(text=f"Status: {status}")
         self._log_slow(f"{label}: {status}.")
 
@@ -1986,11 +2027,48 @@ class IndraGUI(tb.Window):
 
     _CSV_VIEW_MAX_ROWS = 5000
 
-    def _resolve_session_dir(self, target):
-        """Session folder from a path (file or dir), or the newest under data/extracted."""
-        extracted_dir = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "..", "data", "extracted"))
+    def _extracted_root(self):
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..",
+                                            "data", "extracted"))
 
+    def _inside_extracted(self, path):
+        root = self._extracted_root()
+        path = os.path.abspath(path)
+        return path != root and os.path.commonpath([root, path]) == root
+
+    @staticmethod
+    def _session_created(path):
+        # manifest.json (Acquisition) / report.json (SD Card Scan) are written once
+        # when the session is made; the folder's own mtime changes whenever a
+        # CSV, map or report is added, so it can't be used.
+        for marker in ("manifest.json", "report.json"):
+            mp = os.path.join(path, marker)
+            if os.path.isfile(mp):
+                return os.path.getmtime(mp)
+        return os.path.getmtime(path)
+
+    def _sessions_newest_first(self):
+        root = self._extracted_root()
+        if not os.path.isdir(root):
+            return []
+        sessions = [os.path.join(root, n) for n in os.listdir(root)
+                    if os.path.isdir(os.path.join(root, n))]
+        return sorted(sessions, key=self._session_created, reverse=True)
+
+    @staticmethod
+    def _has_viewable_data(path):
+        for _root, _dirs, files in os.walk(path):
+            if any(f.lower().endswith((".csv", ".dat")) for f in files):
+                return True
+        return False
+
+    def _resolve_session_dir(self, target):
+        """
+        Session folder from a session ID, a session folder or a file inside it.
+        Blank = the most recently *created* session - the same rule every card
+        uses, so a blank box always means the same session.
+        """
+        extracted_dir = self._extracted_root()
         if target:
             target = os.path.expanduser(target)
             # Accept a full path, or just a session ID under data/extracted.
@@ -2000,40 +2078,12 @@ class IndraGUI(tb.Window):
                 if os.path.isdir(path):
                     return path
             raise FileNotFoundError(f"Session not found: {target}")
-        sessions = []
-        if os.path.isdir(extracted_dir):
-            sessions = [os.path.join(extracted_dir, n) for n in os.listdir(extracted_dir)
-                        if os.path.isdir(os.path.join(extracted_dir, n))]
+        sessions = self._sessions_newest_first()
         if not sessions:
             raise FileNotFoundError(
                 "No extractions found yet (data/extracted is empty). "
                 "Run an extraction or SD card scan first.")
-
-        # "Most recent" = most recently *created*. manifest.json (USB extraction)
-        # and report.json (SD scan) are written once when the session is made;
-        # the folder's own mtime changes whenever a CSV/map/report is added.
-        def _created(path):
-            for marker in ("manifest.json", "report.json"):
-                mp = os.path.join(path, marker)
-                if os.path.isfile(mp):
-                    return os.path.getmtime(mp)
-            return os.path.getmtime(path)
-
-        # Prefer the newest session that actually holds flight-log data, so an
-        # empty or failed SD-scan folder can't hide the real extraction.
-        def _has_log_data(path):
-            for _root, _dirs, files in os.walk(path):
-                if any(f.lower().endswith((".csv", ".dat")) for f in files):
-                    return True
-            return False
-
-        with_data = [s for s in sessions if _has_log_data(s)]
-        if with_data:
-            return max(with_data, key=_created)
-        # Nothing has logs: fall back to the session Parse Logs would use.
-        manifested = [s for s in sessions
-                      if os.path.isfile(os.path.join(s, "manifest.json"))]
-        return max(manifested or sessions, key=_created)
+        return sessions[0]
 
     def _collect_session_csvs(self, session_dir):
         """
@@ -2050,11 +2100,17 @@ class IndraGUI(tb.Window):
                     csvs.append(os.path.join(root, name))
 
         notes = []
+        # Only sessions under data/extracted are ever written to. A drive or any
+        # other folder is read-only here, so source media is never modified.
+        writable = self._inside_extracted(session_dir)
+        if not writable:
+            notes.append(f"{session_dir} is outside data/extracted, so nothing was decoded "
+                         "or written there. Run an extraction or SD Card Scan first.")
         decoded_stems = {os.path.basename(c)[:-len("_dat.csv")]
                          for c in csvs if c.lower().endswith("_dat.csv")}
         missing = [d for d in dats
                    if os.path.splitext(os.path.basename(d))[0] not in decoded_stems]
-        if missing:
+        if missing and writable:
             parsing_dir = os.path.abspath(os.path.join(
                 os.path.dirname(__file__), "..", "..", "modules",
                 "digital_forensics", "parsing"))
@@ -2093,14 +2149,26 @@ class IndraGUI(tb.Window):
         manifest_path = os.path.join(session_dir, "manifest.json")
         has_media_csv = any(os.path.basename(c).lower().startswith("media_telemetry_")
                             for c in csvs)
-        if not has_media_csv and os.path.isfile(manifest_path):
+        cache = self.__dict__.setdefault("_media_tel_built", {})
+        raw_files = os.path.join(session_dir, "raw_files")   # SD Card Scan layout
+        has_source = os.path.isfile(manifest_path) or os.path.isdir(raw_files)
+        if not has_media_csv and writable and has_source and session_dir not in cache:
             try:
                 from modules.digital_forensics.analysis.media_telemetry import \
-                    analyze_media_telemetry
-                tel = analyze_media_telemetry(manifest_path)
+                    analyze_media_telemetry, manifest_from_folder
+                if os.path.isfile(manifest_path):
+                    tel = analyze_media_telemetry(manifest_path)
+                else:
+                    tel = analyze_media_telemetry(manifest_path, out_dir=session_dir,
+                                                  manifest=manifest_from_folder(raw_files))
                 csvs.extend(tel.get("csv_paths", []))
+                # Remember the result for this run so a session with no geotagged
+                # media isn't rescanned on every View CSV click.
+                cache[session_dir] = len(tel.get("csv_paths", []))
                 if tel.get("csv_error"):
                     notes.append(f"media telemetry CSV: {tel['csv_error']}")
+                for sk in tel.get("skipped", []):
+                    notes.append(f"skipped {sk.get('file')}: {sk.get('reason')}")
             except Exception as ex:
                 notes.append(f"media telemetry CSV failed: {ex}")
 
@@ -2119,6 +2187,10 @@ class IndraGUI(tb.Window):
                 session_dir = self._resolve_session_dir(target)
                 csvs, notes = self._collect_session_csvs(session_dir)
                 result.update(ok=True, session_dir=session_dir, csvs=csvs, notes=notes)
+                if not csvs and not target:
+                    result["alt"] = next((p for p in self._sessions_newest_first()
+                                          if p != session_dir and self._has_viewable_data(p)),
+                                         None)
             except Exception as e:
                 result["error"] = str(e)
             self.after(0, lambda: self._show_csv_viewer(result))
@@ -2142,9 +2214,16 @@ class IndraGUI(tb.Window):
             msg += [
                 "This session has no DJI FLY###.DAT flight log and no geotagged "
                 "photos or videos to build a media telemetry CSV from.",
-                "",
-                "To view a different session, type its ID in the Session box first.",
             ]
+            alt = result.get("alt")
+            if alt:
+                msg += ["", f"Open the newest session that has data instead?\n"
+                            f"{os.path.basename(alt)}"]
+                if messagebox.askyesno("View CSV — nothing to show", "\n".join(msg),
+                                       parent=self):
+                    self._open_csv_viewer(None, target=alt)
+                return
+            msg += ["", "To view a different session, type its ID in the Session box first."]
             messagebox.showwarning("View CSV — nothing to show", "\n".join(msg), parent=self)
             return
 
@@ -2178,7 +2257,7 @@ class IndraGUI(tb.Window):
                 return f"{name[:-len('_dat.csv')]}.DAT  ·  {n} records"
             m = re.fullmatch(r"media_telemetry_(.+)\.csv", name, re.I)
             if m:
-                return f"Media telemetry {m.group(1)}  ·  {n} points"
+                return f"Media telemetry {m.group(1)}  ·  {n} point{'s' if n != 1 else ''}"
             return f"{name}  ·  {n} rows"
 
         labels = [_file_label(p) for p in csvs]
@@ -2208,7 +2287,9 @@ class IndraGUI(tb.Window):
 
         tb.Button(bar, text="Open Folder", bootstyle="info-outline",
                   command=_open_folder).pack(side=tk.RIGHT)
-        export_btn = tb.Button(bar, text="Export Tab as CSV", bootstyle="info-outline")
+        export_btn = tb.Menubutton(bar, text="Export Tab", bootstyle="info-outline")
+        export_menu = tk.Menu(export_btn, tearoff=0)
+        export_btn["menu"] = export_menu
         export_btn.pack(side=tk.RIGHT, padx=(0, 6))
 
         path_lbl = tb.Label(win, text="", style="Muted.TLabel", padding=(10, 0))
@@ -2250,27 +2331,79 @@ class IndraGUI(tb.Window):
         def _v(x, fmt):
             return "—" if x is None else fmt.format(x)
 
+        def _grid_items(items, warn_keys=()):
+            per_col = 4
+            for i, (k, val) in enumerate(items):
+                r, col = i % per_col, (i // per_col) * 2
+                tb.Label(summary, text=k, style="Muted.TLabel").grid(
+                    row=r, column=col, sticky="w", padx=(0 if col == 0 else 24, 8), pady=1)
+                lbl = tb.Label(summary, text=val, font=self.monospace_font)
+                if k in warn_keys:
+                    lbl.configure(foreground=c["warning"])
+                lbl.grid(row=r, column=col + 1, sticky="w", pady=1)
+            return per_col
+
+        def _card_files():
+            """Relative paths of every file on the card, for naming-anomaly flags."""
+            try:
+                with open(os.path.join(session_dir, "manifest.json")) as f:
+                    return [e.get("relative_path") or "" for e in json.load(f).get("files", [])]
+            except (OSError, ValueError):
+                pass
+            raw = os.path.join(session_dir, "raw_files")        # SD Card Scan session
+            return [os.path.relpath(os.path.join(r, n), raw).replace(os.sep, "/")
+                    for r, _d, ns in os.walk(raw) for n in ns] if os.path.isdir(raw) else []
+
+        def _skipped_media():
+            try:
+                with open(os.path.join(session_dir, "media_telemetry_info.json")) as f:
+                    return json.load(f).get("skipped", [])
+            except (OSError, ValueError):
+                return []
+
+        def _fill_media_summary(rows):
+            from modules.digital_forensics.analysis.media_telemetry import summarize_media_rows
+            s = summarize_media_rows(rows, _card_files(), _skipped_media())
+            src_names = {"photo": "photos", "video": "videos", "idx": "IDX records"}
+            sources = ", ".join(f"{n} {src_names.get(k, k)}" for k, n in s["by_source"].items())
+            if s["start"]:
+                window = s["start"].strftime("%Y-%m-%d %H:%M:%S")
+                if s["end"] and s["end"] != s["start"]:
+                    window += s["end"].strftime("  →  %H:%M:%S")
+            else:
+                window = "—"
+            length = "—" if s["length_s"] is None else dd.format_duration(s["length_s"])[:-2]
+            items = [
+                ("Captured",          window),
+                ("Time span",         length),
+                ("Points",            f"{s['points']} ({sources})"),
+                ("Camera",            ", ".join(s["camera_models"]) +
+                                      (" (Phantom 4)" if "FC330" in s["camera_models"] else "")
+                                      if s["camera_models"] else "—"),
+                ("Centre",            _fmt_pt(s["centre"])),
+                ("Spread",            _v(s["spread_m"], "{:.0f} m from centre")),
+                ("Max altitude MSL",  _v(s["max_abs_alt_m"], "{:.1f} m")),
+                ("Max above takeoff", _v(s["max_rel_alt_m"], "{:.1f} m")),
+                ("Max speed",         _v(s["max_hspeed_ms"], "{:.1f} m/s")),
+                ("Clock",             "camera clock, time zone not recorded"),
+                ("Flags",             f"{len(s['flags'])} (listed below)" if s["flags"] else "None"),
+            ]
+            per_col = _grid_items(items, warn_keys=("Flags",) if s["flags"] else ())
+            row = per_col
+            tb.Label(summary, style="Muted.TLabel",
+                     text="Snapshots taken when each photo was shot or recording started, "
+                          "not a continuous flight log.").grid(
+                row=row, column=0, columnspan=8, sticky="w", pady=(6, 0))
+            for flag in s["flags"]:
+                row += 1
+                tb.Label(summary, text=f"⚠  {flag}", foreground=c["warning"],
+                         font=self.body_font).grid(row=row, column=0, columnspan=8, sticky="w")
+
         def _fill_summary(rows, is_dat, is_media=False):
             for w in summary.winfo_children():
                 w.destroy()
             if is_media:
-                kinds = {}
-                for r in rows:
-                    k = dd.format_value("source_type", r.get("source_type"))
-                    kinds[k] = kinds.get(k, 0) + 1
-                times = sorted(r["timestamp"] for r in rows if r.get("timestamp"))
-                heights = [h for h in (dd.to_number(r.get("rel_altitude_m")) for r in rows)
-                           if h is not None]
-                parts = [f"{len(rows)} points ({', '.join(f'{n} {k}' for k, n in kinds.items())})"]
-                if times:
-                    parts.append(f"{times[0]}  →  {times[-1]} (camera clock)")
-                if heights:
-                    parts.append(f"max height above takeoff {max(heights):.1f} m")
-                tb.Label(summary, text="   ·   ".join(parts), font=self.monospace_font).grid(
-                    row=0, column=0, sticky="w")
-                tb.Label(summary, style="Muted.TLabel",
-                         text="Snapshots from photos, video headers and MISC/IDX records - "
-                              "not a continuous flight log.").grid(row=1, column=0, sticky="w")
+                _fill_media_summary(rows)
                 return
             if not is_dat:
                 tb.Label(summary, style="Muted.TLabel",
@@ -2325,33 +2458,84 @@ class IndraGUI(tb.Window):
             tb.Label(summary, text=f"Records: {counts}", style="Muted.TLabel").grid(
                 row=per_col + 1, column=0, columnspan=8, sticky="w")
 
-        # ---- Table tab: pinned Time column, sortable headers, zebra + alert colours ----
-        def _add_table(title, rtype, cols, rows, friendly):
-            frame = tb.Frame(tabs, padding=6)
+        # ---- Header tooltips (one floating label shared by every table) ----
+        tip = {"win": None, "key": None}
+
+        def _hide_tip(_e=None):
+            if tip["win"] is not None:
+                try:
+                    tip["win"].destroy()
+                except tk.TclError:
+                    pass
+            tip.update(win=None, key=None)
+
+        def _show_tip(key, text, x_root, y_root):
+            if tip["key"] == key:
+                return
+            _hide_tip()
+            tw = tk.Toplevel(win)
+            tw.wm_overrideredirect(True)
+            tb.Label(tw, text=text, style="Tooltip.TLabel", wraplength=380,
+                     justify=tk.LEFT).pack()
+            tw.wm_geometry(f"+{x_root + 14}+{y_root + 18}")
+            tip.update(win=tw, key=key)
+
+        win.bind("<Destroy>", lambda e: _hide_tip() if e.widget is win else None, add="+")
+
+        # ---- Table tab ----
+        # Layout per tab (grid rows): 0 = what this tab is + "show all columns",
+        # 1 = table (pinned Time column + the rest), 2 = horizontal scrollbar,
+        # 3 = Details panel for the selected row. Small tables (media telemetry,
+        # Home Point) are only as tall as their rows; the Details panel gets
+        # the rest of the space instead of an empty table.
+        def _add_table(title, rtype, cols, rows, friendly, detail_cols=None, raw_cols=None):
+            frame = tb.Frame(tabs, padding=(8, 6, 8, 8))
             pinned = [p for p in ("time_s", "timestamp") if friendly and p in cols][:1]
             rest = [col for col in cols if col not in pinned]
             shown = rows[:self._CSV_VIEW_MAX_ROWS]
             iid_rows = {f"r{i}": r for i, r in enumerate(shown)}
-            label_of = {col: (dd.column_label(col) if friendly else col) for col in cols}
+            detail_cols = list(detail_cols or cols)
+            label_of = {col: (dd.column_label(col) if friendly else col)
+                        for col in set(cols) | set(detail_cols)}
+            small = len(shown) <= 18
 
             def cell(col, r):
                 return dd.format_value(col, r.get(col)) if friendly else r.get(col, "")
 
+            # Row 0: one line on what this tab is, and the hidden-columns toggle.
+            head = tb.Frame(frame)
+            head.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 6))
+            about = dd.TAB_HELP.get(rtype, "") if friendly else \
+                "Columns exactly as they appear in the file."
+            hideable = [col for col in rest if friendly and dd.is_uninformative(shown, col)]
+            show_all = tk.BooleanVar(value=False)
+            if hideable:
+                tb.Checkbutton(head, text=f"Show all columns ({len(hideable)} hidden: blank or 0 "
+                                          f"in every row)",
+                               variable=show_all, bootstyle="info-round-toggle",
+                               command=lambda: _apply_columns()).pack(side=tk.RIGHT, padx=(12, 0))
+            tb.Label(head, text=about, style="Muted.TLabel", wraplength=760,
+                     justify=tk.LEFT).pack(side=tk.LEFT, anchor="w")
+
+            # Row 1-2: the table.
+            tree_h = max(1, len(shown)) if small else 16
             trees = []
             if pinned:
-                left = ttk.Treeview(frame, show="headings", columns=pinned)
-                left.grid(row=0, column=0, sticky="ns")
+                left = ttk.Treeview(frame, show="headings", columns=pinned,
+                                    style="Indra.Treeview", height=tree_h)
+                left.grid(row=1, column=0, sticky="ns")
                 trees.append(left)
-            right = ttk.Treeview(frame, show="headings", columns=rest)
-            right.grid(row=0, column=1, sticky="nsew")
+            right = ttk.Treeview(frame, show="headings", columns=rest,
+                                 style="Indra.Treeview", height=tree_h)
+            right.grid(row=1, column=1, sticky="nsew")
             trees.append(right)
             vbar = tb.Scrollbar(frame, orient=tk.VERTICAL)
-            vbar.grid(row=0, column=2, sticky="ns")
+            vbar.grid(row=1, column=2, sticky="ns")
             hbar = tb.Scrollbar(frame, orient=tk.HORIZONTAL, command=right.xview)
-            hbar.grid(row=1, column=1, sticky="ew")
+            hbar.grid(row=2, column=1, sticky="ew")
             right.configure(xscrollcommand=hbar.set)
-            frame.grid_rowconfigure(0, weight=1)
             frame.grid_columnconfigure(1, weight=1)
+            frame.grid_rowconfigure(1, weight=0 if small else 3)
 
             # Keep the pinned and scrolling tables in step (scroll + selection).
             vbar.configure(command=lambda *a: [t.yview(*a) for t in trees])
@@ -2372,6 +2556,29 @@ class IndraGUI(tb.Window):
                             t.selection_set(sel)
                 return cb
 
+            def _header_tips(t):
+                def motion(e):
+                    if t.identify_region(e.x, e.y) != "heading":
+                        _hide_tip()
+                        return
+                    try:
+                        idx = int(t.identify_column(e.x).lstrip("#")) - 1
+                    except ValueError:
+                        return
+                    disp = list(t["displaycolumns"])
+                    shown_cols = list(t["columns"]) if not disp or disp[0] == "#all" else disp
+                    if not 0 <= idx < len(shown_cols):
+                        _hide_tip()
+                        return
+                    col = shown_cols[idx]
+                    text = label_of[col]
+                    if friendly and dd.column_help(col):
+                        text += "\n" + dd.column_help(col)
+                    text += "\n(click to sort)"
+                    _show_tip((str(t), col), text, e.x_root, e.y_root)
+                t.bind("<Motion>", motion, add="+")
+                t.bind("<Leave>", _hide_tip, add="+")
+
             for t in trees:
                 t.configure(yscrollcommand=_ysync(t))
                 t.bind("<<TreeviewSelect>>", _selsync(t))
@@ -2379,6 +2586,7 @@ class IndraGUI(tb.Window):
                 t.tag_configure("odd", background=c["surface_alt"])
                 t.tag_configure("alert", foreground="#ff7b72")
                 t.tag_configure("warn", foreground="#e3b341")
+                _header_tips(t)
 
             sort_state = {"col": None, "desc": False}
 
@@ -2410,11 +2618,17 @@ class IndraGUI(tb.Window):
                 for col in t["columns"]:
                     sample = [cell(col, r) for r in shown[:400]]
                     width = max([head_font.measure(label_of[col] + " ▲")] +
-                                [body_font.measure(str(v)) for v in sample]) + 28
+                                [body_font.measure(str(v)) for v in sample]) + 32
                     t.heading(col, text=label_of[col], anchor="center",
                               command=lambda col=col: _sort(col))
-                    t.column(col, width=max(70, min(340, width)), anchor="center",
+                    t.column(col, width=max(80, min(360, width)), anchor="center",
                              stretch=False)
+
+            def _apply_columns():
+                visible = rest if show_all.get() else [x for x in rest if x not in hideable]
+                right["displaycolumns"] = visible or rest
+
+            _apply_columns()
 
             for idx, (iid, r) in enumerate(iid_rows.items()):
                 tags = ("odd" if idx % 2 else "even",)
@@ -2424,6 +2638,57 @@ class IndraGUI(tb.Window):
                 for t in trees:
                     t.insert("", tk.END, iid=iid, values=[cell(col, r) for col in t["columns"]],
                              tags=tags)
+
+            # Row 3: Details panel - every field of the selected row, with its meaning.
+            details = tb.Labelframe(frame, text=" Details for the selected row ",
+                                    bootstyle="secondary", padding=6)
+            details.grid(row=3, column=0, columnspan=3, sticky="nsew", pady=(10, 0))
+            frame.grid_rowconfigure(3, weight=1 if small else 2)
+            dcols = ("field", "value", "meaning")
+            dtree = ttk.Treeview(details, show="headings", columns=dcols,
+                                 style="Indra.Treeview", height=8)
+            dv = tb.Scrollbar(details, orient=tk.VERTICAL, command=dtree.yview)
+            dh = tb.Scrollbar(details, orient=tk.HORIZONTAL, command=dtree.xview)
+            dtree.configure(yscrollcommand=dv.set, xscrollcommand=dh.set)
+            dtree.grid(row=0, column=0, sticky="nsew")
+            dv.grid(row=0, column=1, sticky="ns")
+            dh.grid(row=1, column=0, sticky="ew")
+            details.grid_rowconfigure(0, weight=1)
+            details.grid_columnconfigure(0, weight=1)
+            dtree.tag_configure("even", background=c["surface"])
+            dtree.tag_configure("odd", background=c["surface_alt"])
+            dtree.tag_configure("blank", foreground=c["text_muted"])
+            meanings = [dd.column_help(col) if friendly else "" for col in detail_cols]
+            for col_id, text, w in (("field", "Field", 230), ("value", "Value", 300),
+                                    ("meaning", "What it means", 0)):
+                if col_id == "meaning":
+                    w = max([body_font.measure(m) for m in meanings if m] + [300]) + 24
+                dtree.heading(col_id, text=text, anchor="w")
+                dtree.column(col_id, width=w, anchor="w", stretch=col_id == "meaning")
+
+            def _fill_details(_e=None):
+                sel = right.selection()
+                if not sel or sel[0] not in iid_rows:
+                    return
+                r = iid_rows[sel[0]]
+                dtree.delete(*dtree.get_children())
+                for i, col in enumerate(detail_cols):
+                    raw = r.get(col, "")
+                    if col == "sha256" or not friendly:
+                        val = raw
+                    else:
+                        val = dd.format_value(col, raw)
+                    tags = ("odd" if i % 2 else "even",)
+                    if val in (None, ""):
+                        val, tags = "— (not recorded)", tags + ("blank",)
+                    dtree.insert("", tk.END, values=(label_of.get(col) or dd.column_label(col),
+                                                     val, meanings[i]), tags=tags)
+
+            right.bind("<<TreeviewSelect>>", _fill_details, add="+")
+            if iid_rows:
+                right.selection_set("r0")
+                right.focus("r0")
+                _fill_details()
 
             note = f" (first {self._CSV_VIEW_MAX_ROWS})" if len(rows) > len(shown) else ""
             tabs.add(frame, text=f"  {title} ({len(rows)}){note}  ")
@@ -2435,6 +2700,7 @@ class IndraGUI(tb.Window):
                 return [iid_rows[i] for i in right.get_children()]
 
             tab_tables[str(frame)] = {"rtype": rtype, "cols": cols, "ordered": ordered,
+                                      "raw_cols": list(raw_cols or cols),
                                       "labels": [dd.export_label(col) if friendly else col
                                                  for col in cols]}
 
@@ -2443,7 +2709,7 @@ class IndraGUI(tb.Window):
             if not any(dd.to_number(r.get("latitude")) for r in gps_rows):
                 return
             frame = tb.Frame(tabs, padding=10)
-            msg = tb.Label(frame, text="Drawing flight path...", style="Muted.TLabel")
+            msg = tb.Label(frame, text="Drawing map...", style="Muted.TLabel")
             msg.pack(anchor="w")
             img = tk.Label(frame, background=c["bg"])
             img.pack(fill=tk.BOTH, expand=True, pady=(8, 0))
@@ -2454,13 +2720,13 @@ class IndraGUI(tb.Window):
             if not state["img"].winfo_exists():
                 return
             if not ok:
-                state["msg"].config(text="Could not draw the flight path. Install matplotlib "
-                                         "(offline) or staticmap (needs internet).")
+                state["msg"].config(text="Could not draw the map. Install matplotlib "
+                                         "for the interpreter the app runs under.")
                 return
             try:
                 from PIL import Image, ImageTk
                 im = Image.open(out)
-                im.thumbnail((1100, 470))
+                im.thumbnail((1120, 560))
                 photo = ImageTk.PhotoImage(im)
             except Exception as ex:
                 state["msg"].config(text=f"Could not display map: {ex}")
@@ -2475,10 +2741,9 @@ class IndraGUI(tb.Window):
                 return
             state["started"] = True
             stem = os.path.splitext(os.path.basename(state["path"]))[0]
+            # Always redraw (offline, about a second) so an older-style map saved
+            # by a previous version is never shown.
             out = os.path.join(session_dir, f"{stem}_flight_map.png")
-            if os.path.isfile(out) and os.path.getsize(out) > 0:
-                _show_map(state, out, True)
-                return
 
             def _worker():
                 try:
@@ -2493,33 +2758,55 @@ class IndraGUI(tb.Window):
         tabs.bind("<<NotebookTabChanged>>", _on_tab_changed)
 
         # ---- Export current tab ----
-        def _export():
+        # Saved under data/exports/<session>/ with an "export_" name, so an export
+        # can never be mistaken for (or deleted with) a generated media_telemetry_*
+        # or *_dat.csv file. Two formats:
+        #   readable - on-screen headers, raw values, UTF-8 BOM for Excel
+        #   raw      - the original column names (incl. rec_type / source_type),
+        #              so the file re-opens in View CSV with the same tabs and summary
+        def _export(fmt):
             info = tab_tables.get(tabs.select())
             if not info:
-                self._log("Export: switch to a table tab first (Map can't be exported).")
+                messagebox.showinfo("Export", "Switch to a table tab first; the Map tab "
+                                    "can't be exported as CSV.", parent=win)
                 return
             stem = os.path.splitext(os.path.basename(current["path"]))[0]
             suffix = (info["rtype"] or "rows").lower()
+            exports_dir = os.path.abspath(os.path.join(
+                os.path.dirname(__file__), "..", "..", "data", "exports",
+                os.path.basename(session_dir)))
+            try:
+                os.makedirs(exports_dir, exist_ok=True)
+            except OSError:
+                exports_dir = os.path.expanduser("~")
+            stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             dest = filedialog.asksaveasfilename(
-                parent=win, title="Export table as CSV", initialdir=session_dir,
-                initialfile=f"{stem}_{suffix}.csv", defaultextension=".csv",
-                filetypes=[("CSV files", "*.csv")])
+                parent=win, title=f"Export {suffix} table ({fmt})", initialdir=exports_dir,
+                initialfile=f"export_{stem}_{suffix}_{fmt}_{stamp}.csv",
+                defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
             if not dest:
                 return
             out_rows = info["ordered"]()
             try:
-                # Readable headers (same as on screen); values stay raw so nothing
-                # is rounded or truncated. utf-8-sig so Excel shows "°" correctly.
-                with open(dest, "w", newline="", encoding="utf-8-sig") as f:
-                    w = _csv.writer(f)
-                    w.writerow(info["labels"])
-                    w.writerows([[r.get(col, "") for col in info["cols"]] for r in out_rows])
+                if fmt == "raw":
+                    with open(dest, "w", newline="", encoding="utf-8") as f:
+                        w = _csv.DictWriter(f, fieldnames=info["raw_cols"], extrasaction="ignore")
+                        w.writeheader()
+                        w.writerows(out_rows)
+                else:
+                    with open(dest, "w", newline="", encoding="utf-8-sig") as f:
+                        w = _csv.writer(f)
+                        w.writerow(info["labels"])
+                        w.writerows([[r.get(col, "") for col in info["cols"]] for r in out_rows])
             except OSError as ex:
-                self._log(f"ERROR: export failed: {ex}")
+                messagebox.showerror("Export failed", str(ex), parent=win)
                 return
-            self._log_slow(f"Exported {len(out_rows)} rows to {dest}")
+            self._log_slow(f"Exported {len(out_rows)} rows ({fmt}) to {dest}")
 
-        export_btn.configure(command=_export)
+        export_menu.add_command(label="Readable CSV (for Excel)",
+                                command=lambda: _export("readable"))
+        export_menu.add_command(label="Raw CSV (re-opens in View CSV)",
+                                command=lambda: _export("raw"))
 
         # ---- Load a file ----
         def _load(_event=None):
@@ -2550,12 +2837,13 @@ class IndraGUI(tb.Window):
                 # Readable headers/values; hide columns that are empty in this file.
                 cols = [col for col in header
                         if any(r.get(col) not in (None, "") for r in rows)]
-                _add_table("Media Telemetry", "MEDIA", cols, rows, friendly=True)
+                _add_table("Media Telemetry", "MEDIA", cols, rows, friendly=True,
+                           detail_cols=header, raw_cols=header)
                 _add_map_tab(path, rows)
                 return
 
             if not is_dat:
-                _add_table("All rows", None, header, rows, friendly=False)
+                _add_table("All rows", None, header, rows, friendly=False, raw_cols=header)
                 _add_map_tab(path, rows)
                 return
 
@@ -2571,7 +2859,8 @@ class IndraGUI(tb.Window):
                         and any(r.get(col) not in (None, "") for r in type_rows)]
                 if "tick" in header:
                     cols.append("tick")
-                _add_table(tab_names.get(rtype, rtype), rtype, cols, type_rows, friendly=True)
+                _add_table(tab_names.get(rtype, rtype), rtype, cols, type_rows, friendly=True,
+                           raw_cols=header)
             _add_map_tab(path, by_type.get("GPS", []))
 
         file_box.bind("<<ComboboxSelected>>", _load)
@@ -2686,58 +2975,115 @@ class IndraGUI(tb.Window):
 
     # --- SD Card Scan ---
 
+    def _classify_sd_input(self, value):
+        """
+        What the SD Card Scan box holds: ("drive", path) for an existing folder
+        outside data/extracted (a mounted card), ("session", dir) for a session
+        ID or session folder, ("auto", None) when blank. Raises ValueError.
+        """
+        if not value:
+            return "auto", None
+        path = os.path.abspath(os.path.expanduser(value))
+        if os.path.isdir(path) and not self._inside_extracted(path) \
+                and path != self._extracted_root():
+            return "drive", path
+        try:
+            return "session", self._resolve_session_dir(value)
+        except FileNotFoundError:
+            raise ValueError(
+                f"\"{value}\" is not a folder on this computer and not a session ID in "
+                "data/extracted.\n\nType the card's mount path (e.g. /media/indra/disk), "
+                "an existing session ID, or leave the box blank to auto-detect.")
+
+    def _sd_view_target(self):
+        """View CSV on the SD card opens the session typed there, else the last scan."""
+        value = self.sd_card["src_var"].get().strip()
+        try:
+            mode, target = self._classify_sd_input(value)
+        except ValueError:
+            mode, target = None, None
+        if mode == "session":
+            return target
+        return getattr(self, "_last_sd_scan_dir", None) or ""
+
+    def _pick_drive(self, drives):
+        """Modal chooser when more than one removable drive is attached."""
+        dlg = tb.Toplevel(self)
+        dlg.title("Choose a drive")
+        dlg.transient(self)
+        tb.Label(dlg, text="More than one removable drive is attached. Which one should be "
+                           "scanned?", wraplength=380, justify=tk.LEFT).pack(
+            anchor="w", padx=16, pady=(16, 8))
+        choice = tk.StringVar(value=drives[0])
+        for d in drives:
+            tb.Radiobutton(dlg, text=d, value=d, variable=choice,
+                           bootstyle="info").pack(anchor="w", padx=24, pady=2)
+        picked = {"drive": None}
+        row = tb.Frame(dlg)
+        row.pack(pady=16)
+        tb.Button(row, text="Scan", bootstyle="info",
+                  command=lambda: (picked.update(drive=choice.get()), dlg.destroy())
+                  ).pack(side=tk.LEFT, padx=4)
+        tb.Button(row, text="Cancel", bootstyle="secondary",
+                  command=dlg.destroy).pack(side=tk.LEFT, padx=4)
+        dlg.grab_set()
+        self.wait_window(dlg)
+        return picked["drive"]
+
     def _handle_sd_scan(self):
         if self.sd_card["running"]:
             self._log("SD card scan already in progress.")
             return
 
-        session = self.sd_card["src_var"].get().strip()
+        _df = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "..", "modules", "digital_forensics")
+        for _p in (os.path.join(_df, "telemetry"), os.path.join(_df, "parsing")):
+            if _p not in sys.path:
+                sys.path.append(_p)
+        from scanner import get_usb_drives, scan_drive
+
+        value = self.sd_card["src_var"].get().strip()
+        try:
+            mode, target = self._classify_sd_input(value)
+        except ValueError as ex:
+            messagebox.showerror("SD Card Scan", str(ex), parent=self)
+            return
+
+        if mode == "auto":
+            drives = get_usb_drives()
+            if not drives:
+                messagebox.showerror(
+                    "SD Card Scan",
+                    "No removable drives found. Insert the SD card, or type its mount path "
+                    "or an existing session ID in the box, and try again.", parent=self)
+                return
+            target = drives[0] if len(drives) == 1 else self._pick_drive(drives)
+            if not target:
+                return
+            mode = "drive"
 
         self.sd_card["running"] = True
         self.sd_card["btn"].config(state=tk.DISABLED)
         self.sd_card["status"].config(text="Status: scanning...")
         self._set_text(self.sd_card["results"], "Scanning...")
-
-        if session:
-            self._log_slow(f"Processing session: {session}")
+        if mode == "session":
+            self._log_slow(f"Processing session: {os.path.basename(target)}")
         else:
-            self._log_slow("Starting SD card scan (auto-detect)...")
+            self._log_slow(f"Scanning drive: {target}")
 
         def _worker():
             result = {"ok": False, "summary": None, "error": None}
             try:
-                _df = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   "..", "..", "modules", "digital_forensics")
-                for _p in (os.path.join(_df, "telemetry"),
-                           os.path.join(_df, "parsing")):
-                    if _p not in sys.path:
-                        sys.path.append(_p)
-
-                from scanner import get_usb_drives, scan_drive
-
-                output_dir = os.path.join(
-                    os.path.dirname(os.path.abspath(__file__)),
-                    "..", "..", "data", "extracted"
-                )
-
-                if session:
-                    # Session ID (or session folder): process that extraction in
-                    # place - decode any .DAT and build the media telemetry CSVs.
-                    session_dir = self._resolve_session_dir(session)
-                    csvs, notes = self._collect_session_csvs(session_dir)
-                    result.update(ok=True, session_mode=True, session_dir=session_dir,
+                if mode == "session":
+                    # Existing session: decode any .DAT and build the media telemetry
+                    # CSVs in place (only ever inside data/extracted).
+                    csvs, notes = self._collect_session_csvs(target)
+                    result.update(ok=True, session_mode=True, session_dir=target,
                                   csvs=csvs, notes=notes)
                 else:
-                    drives = get_usb_drives()
-                    if not drives:
-                        raise RuntimeError(
-                            "No removable drives found. Insert the SD card, or type an "
-                            "extraction session ID in the Session box, and try again."
-                        )
-                    summary = scan_drive(drives[0], output_dir, log=self._log)
+                    summary = scan_drive(target, self._extracted_root(), log=self._log)
                     result["ok"]      = True
                     result["summary"] = summary
-
             except Exception as e:
                 result["error"] = str(e)
 
@@ -2767,7 +3113,9 @@ class IndraGUI(tb.Window):
             lines += ["", "Click View CSV to open them." if csvs
                       else "Nothing to view in this session."]
             self._set_text(self.sd_card["results"], "\n".join(lines))
-            self.sd_card["status"].config(text=f"Status: complete — {len(csvs)} CSV(s)")
+            self.sd_card["status"].config(
+                text=f"Status: processed session {os.path.basename(session_dir)} — "
+                     f"{len(csvs)} CSV(s)")
             self._log_slow(f"Session processed: {len(csvs)} CSV(s) in {session_dir}")
             return
 
@@ -2795,7 +3143,8 @@ class IndraGUI(tb.Window):
                 lines.append(f"  {key}: {count}")
 
         self._set_text(self.sd_card["results"], "\n".join(lines))
-        self.sd_card["status"].config(text=f"Status: complete — {total} files")
+        self.sd_card["status"].config(
+            text=f"Status: scanned drive {summary.get('source_drive', '?')} — {total} files")
         self._log_slow(f"SD card scan complete: {total} files. Output: {out_dir}")
 
     # ====================

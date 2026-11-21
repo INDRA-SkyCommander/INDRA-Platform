@@ -35,6 +35,7 @@ Usage:
 """
 
 import csv
+import json
 import math
 import os
 import re
@@ -47,6 +48,10 @@ VIDEO_EXTS = {".mov", ".mp4"}
 CSV_PREFIX = "media_telemetry"
 # Consecutive geotagged points further apart than this start a new capture session.
 SESSION_GAP_KM = 5.0
+# ...and so does a gap in time longer than this (a flight crossing midnight stays whole).
+SESSION_GAP_HOURS = 2.0
+# Sidecar with files that could not be read, written next to the CSVs.
+INFO_FILE = "media_telemetry_info.json"
 
 COLUMNS = [
     "timestamp", "source_type", "source_file",
@@ -55,6 +60,7 @@ COLUMNS = [
     "aircraft_pitch_deg", "aircraft_roll_deg", "aircraft_yaw_deg",
     "gimbal_pitch_deg", "gimbal_roll_deg", "gimbal_yaw_deg",
     "duration_s", "camera_model", "time_source", "indexed_file", "relative_path", "sha256",
+    "notes",
 ]
 
 # XMP drone-dji field -> CSV column
@@ -267,8 +273,8 @@ def _video_row(path):
             row.update(_parse_moov(moov))
         else:
             row["_error"] = "no moov box found"
-    except OSError as ex:
-        row["_error"] = str(ex)
+    except (OSError, struct.error, ValueError, OverflowError) as ex:
+        row["_error"] = f"unreadable video header ({type(ex).__name__}: {ex})"
     return row
 
 
@@ -329,7 +335,7 @@ def extract_media_telemetry(path, entry=None):
     return row
 
 
-def analyze_media_telemetry(manifest_path, out_dir=None):
+def analyze_media_telemetry(manifest_path, out_dir=None, manifest=None):
     """
     Build media telemetry CSVs from every photo, video and MISC/IDX file in an
     extraction session (any category). Rows are sorted by timestamp and split
@@ -348,17 +354,31 @@ def analyze_media_telemetry(manifest_path, out_dir=None):
     """
     from . import load_manifest
 
-    manifest = load_manifest(manifest_path)
-    rows, items = [], []
+    # manifest may be passed in directly (SD Card Scan sessions have no manifest.json;
+    # see manifest_from_folder).
+    manifest = manifest if manifest is not None else load_manifest(manifest_path)
+    rows, items, skipped = [], [], []
+    card_names = {os.path.basename((e.get("relative_path") or e.get("copied_path") or ""))
+                  .upper() for e in manifest.get("files", [])}
 
     for e in manifest.get("files", []):
         path = e.get("copied_path")
         if not path or not os.path.isfile(path):
             continue
-        row = extract_media_telemetry(path, e)
+        # One damaged file must never stop the whole card from being processed.
+        try:
+            row = extract_media_telemetry(path, e)
+        except Exception as ex:      # noqa: BLE001 - recorded, not swallowed
+            reason = f"{type(ex).__name__}: {ex}"
+            skipped.append({"file": e.get("relative_path") or os.path.basename(path),
+                            "reason": reason})
+            items.append({"source_file": os.path.basename(path), "note": reason})
+            continue
         if row is None:
             continue
         err = row.pop("_error", None)
+        if err:
+            skipped.append({"file": row.get("relative_path"), "reason": err})
         indexed = row.get("indexed_file")
         item = {k: row.get(k) for k in ("source_file", "source_type", "timestamp",
                                          "latitude", "longitude")}
@@ -369,8 +389,10 @@ def analyze_media_telemetry(manifest_path, out_dir=None):
         items.append(item)
         if any(row.get(k) is not None for k in COLUMNS
                if k not in ("source_type", "source_file", "indexed_file",
-                            "relative_path", "sha256")):
+                            "relative_path", "sha256", "notes")):
             rows.append(row)
+
+    rows = _merge_idx_rows(rows, card_names)
 
     rows.sort(key=lambda r: (r.get("timestamp") or "~", r.get("source_file") or ""))
     items.sort(key=lambda r: (r.get("timestamp") or "~", r.get("source_file") or ""))
@@ -387,6 +409,9 @@ def analyze_media_telemetry(manifest_path, out_dir=None):
                 w.writeheader()
                 w.writerows(group)
             csv_paths.append(path)
+        with open(os.path.join(out_dir, INFO_FILE), "w", encoding="utf-8") as f:
+            json.dump({"skipped": skipped,
+                       "generated": datetime.now().isoformat(timespec="seconds")}, f, indent=2)
     except OSError as ex:
         csv_error = str(ex)
 
@@ -398,8 +423,21 @@ def analyze_media_telemetry(manifest_path, out_dir=None):
                     "first": g[0].get("timestamp"), "last": g[-1].get("timestamp")}
                    for n, g in groups],
         "csv_error": csv_error,
+        "skipped": skipped,
         "items": items,
     }
+
+
+def manifest_from_folder(folder):
+    """A minimal manifest ({"files": [...]}) for a folder of copied card files,
+    e.g. an SD Card Scan session's raw_files/ (which has no manifest.json)."""
+    files = []
+    for root, _dirs, names in os.walk(folder):
+        for n in names:
+            p = os.path.join(root, n)
+            files.append({"copied_path": p,
+                          "relative_path": os.path.relpath(p, folder).replace(os.sep, "/")})
+    return {"files": files}
 
 
 def media_telemetry_for_session(manifest_path):
@@ -440,18 +478,30 @@ def _distance_km(a, b):
     return 2 * 6371.0 * math.asin(math.sqrt(h))
 
 
+def _parse_ts(text):
+    try:
+        return datetime.strptime((text or "")[:19], "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None
+
+
 def _group_sessions(rows):
     """
-    Split time-sorted rows into capture sessions: a new session starts when the
-    capture date changes or the drone is more than SESSION_GAP_KM from the
-    previous geotagged point. Keeps unrelated sessions from being drawn as one
-    long "flight". Returns [(name, rows)], name = YYYY-MM-DD[_b, _c...] or "undated".
+    Split time-sorted rows into capture sessions: a new session starts after a
+    gap of more than SESSION_GAP_HOURS, or when the drone is more than
+    SESSION_GAP_KM from the previous geotagged point. Keeps unrelated sessions
+    from being drawn as one long "flight" without cutting a flight at midnight.
+    Undated rows form their own group. Returns [(name, rows)], name =
+    YYYY-MM-DD of the session's first point [_b, _c...] or "undated".
     """
-    groups, last_gps = [], None
+    groups, last_gps, last_ts = [], None, None
     for r in rows:
-        day = (r.get("timestamp") or "")[:10] or "undated"
+        ts = _parse_ts(r.get("timestamp"))
+        day = ts.strftime("%Y-%m-%d") if ts else "undated"
         has_gps = r.get("latitude") is not None and r.get("longitude") is not None
-        new = (not groups or groups[-1][0] != day
+        new = (not groups
+               or (ts is None) != (groups[-1][0] == "undated")
+               or (ts and last_ts and (ts - last_ts).total_seconds() > SESSION_GAP_HOURS * 3600)
                or (has_gps and last_gps is not None
                    and _distance_km(last_gps, r) > SESSION_GAP_KM))
         if new:
@@ -460,6 +510,8 @@ def _group_sessions(rows):
         groups[-1][1].append(r)
         if has_gps:
             last_gps = r
+        if ts:
+            last_ts = ts
 
     named, seen = [], {}
     for day, g in groups:
@@ -467,6 +519,124 @@ def _group_sessions(rows):
         seen[day] = n + 1
         named.append((day if n == 0 else f"{day}_{chr(ord('a') + n)}", g))
     return named
+
+
+def _merge_idx_rows(rows, card_names):
+    """
+    An IDX record repeats the moov header of the video it indexes. When that
+    video is on the card, fold the IDX row into the video's row (noted, not
+    drawn twice). When the video is gone, keep the IDX row: it is the only
+    trace of a deleted or moved recording.
+    """
+    videos = {(r.get("source_file") or "").upper(): r
+              for r in rows if r.get("source_type") == "video"}
+    out = []
+    for r in rows:
+        if r.get("source_type") != "idx":
+            out.append(r)
+            continue
+        target = os.path.basename((r.get("indexed_file") or "").replace("\\", "/")).upper()
+        if target and target in videos:
+            v = videos[target]
+            note = f"also indexed by {r.get('source_file')}"
+            v["notes"] = f"{v['notes']}; {note}" if v.get("notes") else note
+            continue
+        if target and target not in card_names:
+            r["notes"] = "indexed video is not on the card (deleted or moved)"
+        elif target:
+            r["notes"] = "indexed video is on the card but its header could not be read"
+        out.append(r)
+    return out
+
+
+# ── Summary for the viewer ────────────────────────────────────────────────────
+
+_DJI_NAME = re.compile(r"DJI_(\d{4})\.(JPG|JPEG|DNG|MOV|MP4)$", re.I)
+_MEDIA_EXTS = PHOTO_EXTS | VIDEO_EXTS
+
+
+def _num_or_none(v):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
+
+
+def summarize_media_rows(rows, card_files=None, skipped=None):
+    """
+    Summary + evidence flags for one media telemetry CSV (rows as read back by
+    csv.DictReader). card_files = relative paths of every file on the card
+    (from manifest.json) so naming anomalies can be flagged.
+    """
+    by_source = {}
+    for r in rows:
+        k = r.get("source_type") or "unknown"
+        by_source[k] = by_source.get(k, 0) + 1
+    times = sorted(t for t in (_parse_ts(r.get("timestamp")) for r in rows) if t)
+    pts = [(la, lo) for la, lo in ((_num_or_none(r.get("latitude")), _num_or_none(r.get("longitude")))
+                                   for r in rows) if la is not None and lo is not None]
+    centre = (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)) if pts else None
+    spread = max((_distance_km({"latitude": centre[0], "longitude": centre[1]},
+                               {"latitude": p[0], "longitude": p[1]}) * 1000 for p in pts),
+                 default=None) if centre else None
+
+    def col_max(key, fn=None):
+        vals = [v for v in ((fn(r) if fn else _num_or_none(r.get(key))) for r in rows) if v is not None]
+        return max(vals) if vals else None
+
+    def hspeed(r):
+        x, y = _num_or_none(r.get("speed_x_ms")), _num_or_none(r.get("speed_y_ms"))
+        return math.hypot(x, y) if x is not None and y is not None else None
+
+    flags = []
+    files = [f.replace("\\", "/") for f in (card_files or [])]
+    dcim = [f for f in files if "DCIM/" in f.upper()]
+    numbers = set()
+    for f in dcim:
+        name = os.path.basename(f)
+        ext = os.path.splitext(name)[1].lower()
+        m = _DJI_NAME.match(name)
+        if m:
+            numbers.add(int(m.group(1)))
+        elif ext in _MEDIA_EXTS:
+            flags.append(f"{name}: photo/video without a DJI_#### name (renamed?)")
+    if numbers:
+        missing = [n for n in range(1, max(numbers) + 1) if n not in numbers]
+        if missing:
+            shown = ", ".join(f"DJI_{n:04d}" for n in missing[:6])
+            more = f" and {len(missing) - 6} more" if len(missing) > 6 else ""
+            flags.append(f"Gap in DJI numbering: {shown}{more} missing (deleted or renamed?)")
+    foreign = sorted({f.split("/")[f.upper().split("/").index("DCIM") + 2]
+                      if len(f.split("/")) > f.upper().split("/").index("DCIM") + 2 else f
+                      for f in dcim
+                      if os.path.splitext(f)[1].lower() not in _MEDIA_EXTS | {".thm"}
+                      and not _DJI_NAME.match(os.path.basename(f))})
+    if foreign:
+        shown = ", ".join(foreign[:5]) + (f" and {len(foreign) - 5} more" if len(foreign) > 5 else "")
+        flags.append(f"Non-camera files in DCIM: {shown}")
+    for r in rows:
+        if "not on the card" in (r.get("notes") or ""):
+            flags.append(f"{r.get('source_file')} indexes "
+                         f"{os.path.basename(r.get('indexed_file') or '?')}, which is not on the card")
+    for s_ in skipped or []:
+        flags.append(f"Could not read {os.path.basename(s_.get('file') or '?')}: {s_.get('reason')}")
+
+    models = sorted({r.get("camera_model") for r in rows if r.get("camera_model")})
+    return {
+        "points": len(rows),
+        "by_source": by_source,
+        "start": times[0] if times else None,
+        "end": times[-1] if times else None,
+        "length_s": (times[-1] - times[0]).total_seconds() if len(times) > 1 else None,
+        "centre": centre,
+        "spread_m": spread,
+        "max_abs_alt_m": col_max("abs_altitude_m"),
+        "max_rel_alt_m": col_max("rel_altitude_m"),
+        "max_hspeed_ms": col_max(None, hspeed),
+        "camera_models": models,
+        "flags": flags,
+    }
 
 
 def _remove_previous_outputs(out_dir):
