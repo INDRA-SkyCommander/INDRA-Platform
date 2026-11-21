@@ -242,16 +242,23 @@ def _photo_row(path):
         row["_error"] = f"EXIF: {ex}"
 
     try:
-        with open(path, "rb") as f:
-            head = f.read(_PHOTO_HEAD_BYTES)
-        for key, val in re.findall(rb'drone-dji:(\w+)="([^"]*)"', head):
-            col = _XMP_MAP.get(key.decode("ascii", "ignore"))
-            v = _num(val.decode("ascii", "ignore"))
+        for key, val in _read_xmp_fields(path).items():
+            col = _XMP_MAP.get(key)
+            v = _num(val)
             if col and v is not None:
                 row[col] = v              # XMP altitude overrides EXIF (more precise)
     except OSError as ex:
         row["_error"] = f"XMP: {ex}"
     return row
+
+
+def _read_xmp_fields(path):
+    """All DJI XMP fields in a photo as {name: text}, e.g. {"RelativeAltitude": "+0.00"}.
+    Raises OSError if the file can't be read."""
+    with open(path, "rb") as f:
+        head = f.read(_PHOTO_HEAD_BYTES)
+    return {k.decode("ascii", "ignore"): v.decode("utf-8", "replace")
+            for k, v in re.findall(rb'drone-dji:(\w+)="([^"]*)"', head)}
 
 
 def _dms_to_dec(dms, ref):

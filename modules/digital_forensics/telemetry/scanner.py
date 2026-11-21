@@ -320,16 +320,16 @@ def _process_images(paths: List[str], out_dir: Path, log: Callable) -> List[Dict
         result = {"file": Path(path).name}
         if ext in ('.jpg', '.jpeg'):
             try:
-                from PIL import Image
-                from PIL.ExifTags import TAGS
-                with Image.open(path) as img:
-                    raw = img.getexif()
-                exif = {TAGS.get(k, str(k)): _safe_str(v) for k, v in raw.items()}
+                exif = _read_photo_metadata(path)
                 exif_path = out_dir / f"{name}_exif.json"
                 with open(exif_path, 'w', encoding='utf-8') as f:
                     json.dump(exif, f, indent=2)
                 result["exif_json"] = str(exif_path.name)
-                log(f"    [✓] EXIF extracted: {exif_path.name}")
+                gps = exif.get("GPS_decoded")
+                if gps:
+                    result["gps"] = gps
+                log(f"    [✓] EXIF extracted: {exif_path.name}"
+                    + (f"  GPS {gps['latitude']}, {gps['longitude']}" if gps else ""))
             except Exception as e:
                 log(f"    [!] EXIF failed for {Path(path).name}: {e}")
                 result["error"] = str(e)
@@ -338,6 +338,74 @@ def _process_images(paths: List[str], out_dir: Path, log: Callable) -> List[Dict
             log(f"    [i] DNG copied: {Path(path).name} (use exiftool for metadata)")
         results.append(result)
     return results
+
+
+_EXIF_IFD = 0x8769   # camera settings, DateTimeOriginal, ...
+_GPS_IFD = 0x8825    # GPS block (top-level EXIF only stores its offset)
+
+
+def _gps_decimal(dms, ref):
+    try:
+        deg, minutes, seconds = (float(x) for x in dms)
+    except (TypeError, ValueError):
+        return None
+    dec = deg + minutes / 60.0 + seconds / 3600.0
+    if str(ref).strip("\x00 ").upper() in ("S", "W"):
+        dec = -dec
+    return round(dec, 7)
+
+
+def _read_photo_metadata(path: str) -> Dict:
+    """
+    EXIF for one photo as a flat, readable dict:
+      - top-level tags (Make, Model, DateTime, Software, ...)
+      - the EXIF sub-IFD (DateTimeOriginal, exposure, ...)
+      - "GPSInfo": the GPS block with named tags (was only an offset before)
+      - "GPS_decoded": decimal latitude/longitude/altitude + Google Maps link
+      - "DJI_XMP": DJI flight data from the XMP block (altitudes, speeds,
+        aircraft/gimbal angles), when present
+    """
+    from PIL import Image
+    from PIL.ExifTags import TAGS, GPSTAGS
+
+    with Image.open(path) as img:
+        raw = img.getexif()
+        exif_ifd = raw.get_ifd(_EXIF_IFD) if raw else {}
+        gps_ifd = raw.get_ifd(_GPS_IFD) if raw else {}
+
+    out: Dict = {TAGS.get(k, str(k)): _safe_str(v) for k, v in raw.items()
+                 if k not in (_EXIF_IFD, _GPS_IFD)}
+    for k, v in (exif_ifd or {}).items():
+        out.setdefault(TAGS.get(k, str(k)), _safe_str(v))
+    if gps_ifd:
+        named = {GPSTAGS.get(k, str(k)): v for k, v in gps_ifd.items()}
+        out["GPSInfo"] = {k: _safe_str(v) for k, v in named.items()}
+        lat = _gps_decimal(named.get("GPSLatitude"), named.get("GPSLatitudeRef"))
+        lon = _gps_decimal(named.get("GPSLongitude"), named.get("GPSLongitudeRef"))
+        if lat is not None and lon is not None:
+            gps = {"latitude": lat, "longitude": lon,
+                   "maps_url": f"https://www.google.com/maps?q={lat},{lon}"}
+            try:
+                alt = float(named.get("GPSAltitude"))
+                if named.get("GPSAltitudeRef") in (1, b"\x01"):
+                    alt = -alt
+                gps["altitude_m"] = round(alt, 1)
+            except (TypeError, ValueError):
+                pass
+            out["GPS_decoded"] = gps
+
+    # DJI flight data (XMP): reuse the media telemetry reader so both agree.
+    try:
+        repo = Path(__file__).resolve().parents[3]
+        if str(repo) not in sys.path:
+            sys.path.insert(0, str(repo))
+        from modules.digital_forensics.analysis.media_telemetry import _read_xmp_fields
+        xmp = _read_xmp_fields(path)
+        if xmp:
+            out["DJI_XMP"] = xmp
+    except Exception:
+        pass
+    return out
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -385,7 +453,14 @@ def _unique_dest(directory: Path, filename: str) -> Path:
 
 def _safe_str(value) -> str:
     try:
-        return str(value)
+        if isinstance(value, bytes):
+            text = value.rstrip(b"\x00")
+            if text and all(32 <= b < 127 for b in text):
+                return text.decode("ascii")          # e.g. b"ASCII\x00" -> "ASCII"
+            if len(value) <= 8:
+                return ".".join(str(b) for b in value)  # e.g. GPSVersionID -> "2.3.0.0"
+            return value.hex()
+        return str(value).strip("\x00 ")
     except Exception:
         return "<unreadable>"
 

@@ -62,7 +62,7 @@ When you click **Scan Drone**, the scanner:
 | Extension | Type | Extraction |
 |-----------|------|-----------|
 | `.csv` | CSV Flight Record | If it has `latitude`/`longitude` columns → generates a PNG flight path map |
-| `.jpg` / `.jpeg` | JPEG Image | EXIF metadata extracted to a `.json` file per image |
+| `.jpg` / `.jpeg` | JPEG Image | EXIF metadata extracted to `<name>_exif.json`: camera tags, capture time, the GPS block with named tags, `GPS_decoded` (decimal lat/lon, altitude, Google Maps link) and `DJI_XMP` (DJI flight data: altitudes, speeds, aircraft/gimbal angles) |
 | `.dng` | DNG Raw Image | Copied; note to use `exiftool` for full metadata |
 | `.srt` | DJI Subtitle | Copied; contains per-frame telemetry (GPS, altitude, speed) — use `parsing` to decode |
 | `.txt` | TXT Flight Log | Copied |
