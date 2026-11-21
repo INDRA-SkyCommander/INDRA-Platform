@@ -563,6 +563,73 @@ def _num_or_none(v):
     return f if math.isfinite(f) else None
 
 
+def card_findings(card_files=None, rows=None, skipped=None):
+    """
+    Things about the card itself worth a closer look, as
+    [{"finding", "files", "why"}]: renamed or missing DJI_#### files, files a
+    drone camera does not create, index records for deleted videos, and files
+    that could not be read. card_files = relative paths of every file on the
+    card; rows = media telemetry rows (any/all days) for the IDX check.
+    """
+    out = []
+    files = [f.replace("\\", "/") for f in (card_files or [])]
+    dcim = [f for f in files if "DCIM/" in f.upper()]
+    numbers, renamed = set(), []
+    for f in dcim:
+        name = os.path.basename(f)
+        ext = os.path.splitext(name)[1].lower()
+        m = _DJI_NAME.match(name)
+        if m:
+            numbers.add(int(m.group(1)))
+        elif ext in _MEDIA_EXTS:
+            renamed.append(name)
+    if renamed:
+        out.append({"finding": "Photo or video not named DJI_####",
+                    "files": ", ".join(sorted(renamed)),
+                    "why": "The camera names every shot DJI_####, so this file was "
+                           "probably renamed after it was taken."})
+    if numbers:
+        missing = [n for n in range(1, max(numbers) + 1) if n not in numbers]
+        if missing:
+            shown = ", ".join(f"DJI_{n:04d}" for n in missing[:6])
+            if len(missing) > 6:
+                shown += f" and {len(missing) - 6} more"
+            out.append({"finding": "Gap in the DJI_#### numbering",
+                        "files": shown,
+                        "why": "The camera numbers shots in order, so a missing number "
+                               "means a file was deleted or renamed."})
+    foreign = set()
+    for f in dcim:
+        parts = f.split("/")
+        i = [x.upper() for x in parts].index("DCIM")
+        if os.path.splitext(f)[1].lower() in _MEDIA_EXTS | {".thm"} or \
+                _DJI_NAME.match(os.path.basename(f)):
+            continue
+        foreign.add(parts[i + 2] if len(parts) > i + 2 else f)
+    if foreign:
+        names = sorted(foreign)
+        why = "A drone camera does not create these, so someone added them to the card."
+        if any("steghide" in n.lower() for n in names):
+            why += " steghide is a tool for hiding data inside image files."
+        out.append({"finding": "Files in the photo folder (DCIM) the camera did not make",
+                    "files": ", ".join(names[:8]) + (f" and {len(names) - 8} more"
+                                                     if len(names) > 8 else ""),
+                    "why": why})
+    for r in rows or []:
+        if "not on the card" in (r.get("notes") or ""):
+            out.append({"finding": "Index lists a video that is not on the card",
+                        "files": f"{r.get('source_file')} → "
+                                 f"{os.path.basename(r.get('indexed_file') or '?')}",
+                        "why": "The camera's index still records this video, so it was "
+                               "deleted or moved after it was recorded."})
+    for s_ in skipped or []:
+        out.append({"finding": "File could not be read",
+                    "files": os.path.basename(s_.get("file") or "?"),
+                    "why": "The file looks damaged or cut short, so it has no row in "
+                           "the media telemetry."})
+    return out
+
+
 def summarize_media_rows(rows, card_files=None, skipped=None):
     """
     Summary + evidence flags for one media telemetry CSV (rows as read back by
@@ -589,38 +656,7 @@ def summarize_media_rows(rows, card_files=None, skipped=None):
         x, y = _num_or_none(r.get("speed_x_ms")), _num_or_none(r.get("speed_y_ms"))
         return math.hypot(x, y) if x is not None and y is not None else None
 
-    flags = []
-    files = [f.replace("\\", "/") for f in (card_files or [])]
-    dcim = [f for f in files if "DCIM/" in f.upper()]
-    numbers = set()
-    for f in dcim:
-        name = os.path.basename(f)
-        ext = os.path.splitext(name)[1].lower()
-        m = _DJI_NAME.match(name)
-        if m:
-            numbers.add(int(m.group(1)))
-        elif ext in _MEDIA_EXTS:
-            flags.append(f"{name}: photo/video without a DJI_#### name (renamed?)")
-    if numbers:
-        missing = [n for n in range(1, max(numbers) + 1) if n not in numbers]
-        if missing:
-            shown = ", ".join(f"DJI_{n:04d}" for n in missing[:6])
-            more = f" and {len(missing) - 6} more" if len(missing) > 6 else ""
-            flags.append(f"Gap in DJI numbering: {shown}{more} missing (deleted or renamed?)")
-    foreign = sorted({f.split("/")[f.upper().split("/").index("DCIM") + 2]
-                      if len(f.split("/")) > f.upper().split("/").index("DCIM") + 2 else f
-                      for f in dcim
-                      if os.path.splitext(f)[1].lower() not in _MEDIA_EXTS | {".thm"}
-                      and not _DJI_NAME.match(os.path.basename(f))})
-    if foreign:
-        shown = ", ".join(foreign[:5]) + (f" and {len(foreign) - 5} more" if len(foreign) > 5 else "")
-        flags.append(f"Non-camera files in DCIM: {shown}")
-    for r in rows:
-        if "not on the card" in (r.get("notes") or ""):
-            flags.append(f"{r.get('source_file')} indexes "
-                         f"{os.path.basename(r.get('indexed_file') or '?')}, which is not on the card")
-    for s_ in skipped or []:
-        flags.append(f"Could not read {os.path.basename(s_.get('file') or '?')}: {s_.get('reason')}")
+    flags = [f"{f['finding']}: {f['files']}" for f in card_findings(card_files, rows, skipped)]
 
     models = sorted({r.get("camera_model") for r in rows if r.get("camera_model")})
     return {

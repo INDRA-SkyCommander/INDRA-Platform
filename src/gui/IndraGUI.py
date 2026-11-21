@@ -1740,6 +1740,12 @@ class IndraGUI(tb.Window):
                 add(f"    [{kind}] {path}")
         add("")
 
+        # Card findings: renamed / missing camera files, files someone added,
+        # deleted recordings (same list as View CSV's Card Findings tab).
+        for line in self._report_card_findings(manifest, manifest_path):
+            add(line)
+        add("")
+
         # Per-category file inventory
         for cat, title in (("flight_logs", "FLIGHT LOGS"),
                            ("media", "MEDIA"),
@@ -1765,6 +1771,46 @@ class IndraGUI(tb.Window):
         add(" END OF REPORT")
         add(bar)
         return "\n".join(lines)
+
+    def _report_card_findings(self, manifest, manifest_path):
+        """Report lines for the CARD FINDINGS section."""
+        import csv as _csv
+        import textwrap
+        from modules.digital_forensics.analysis.media_telemetry import card_findings
+
+        session_dir = os.path.dirname(manifest_path)
+        card_files = [e.get("relative_path") or "" for e in manifest.get("files", [])]
+        rows, have_media = [], False
+        for fn in sorted(os.listdir(session_dir)):
+            if re.fullmatch(r"media_telemetry_[\w-]+\.csv", fn):
+                have_media = True
+                try:
+                    with open(os.path.join(session_dir, fn), newline="",
+                              encoding="utf-8", errors="replace") as f:
+                        rows.extend(_csv.DictReader(f))
+                except OSError:
+                    pass
+        skipped = []
+        try:
+            with open(os.path.join(session_dir, "media_telemetry_info.json")) as f:
+                skipped = json.load(f).get("skipped", [])
+        except (OSError, ValueError):
+            pass
+
+        findings = card_findings(card_files, rows, skipped)
+        out = [f"--- CARD FINDINGS ({len(findings)}) ---",
+               "  Things about the card worth a closer look (not errors)."]
+        for i, fnd in enumerate(findings, start=1):
+            out.append(f"  {i}. {fnd['finding']}")
+            out.append(f"     Files : {fnd['files']}")
+            out += textwrap.wrap(fnd["why"], width=72, initial_indent="     Why   : ",
+                                 subsequent_indent="             ")
+        if not findings:
+            out.append("  (none)")
+        if not have_media:
+            out.append("  Note: the deleted-video check uses the media telemetry CSVs; "
+                       "open View CSV or run Extract Metadata first to include it.")
+        return out
 
     def _handle_generate_report(self):
         """
@@ -2361,9 +2407,56 @@ class IndraGUI(tb.Window):
             except (OSError, ValueError):
                 return []
 
+        def _session_media_rows():
+            """Rows from every media_telemetry_*.csv in this session (all days)."""
+            out = []
+            for pth in csvs:
+                if os.path.basename(pth).lower().startswith("media_telemetry_"):
+                    try:
+                        with open(pth, newline="", encoding="utf-8", errors="replace") as f:
+                            out.extend(_csv.DictReader(f))
+                    except OSError:
+                        pass
+            return out
+
+        def _card_findings():
+            from modules.digital_forensics.analysis.media_telemetry import card_findings
+            return card_findings(_card_files(), _session_media_rows(), _skipped_media())
+
+        def _add_findings_tab(findings):
+            """Card Findings: things about the card itself worth a closer look."""
+            frame = tb.Frame(tabs, padding=(8, 6, 8, 8))
+            tb.Label(frame, style="Muted.TLabel", wraplength=1000, justify=tk.LEFT,
+                     text="Things about the SD card itself worth a closer look: renamed or "
+                          "missing camera files, files someone added, and recordings that "
+                          "were deleted. They apply to the whole card, not one day's "
+                          "points.").grid(row=0, column=0, columnspan=2, sticky="w",
+                                          pady=(0, 8))
+            cols = ("finding", "files", "why")
+            tree = ttk.Treeview(frame, show="headings", columns=cols,
+                                style="Indra.Treeview", height=len(findings))
+            hbar = tb.Scrollbar(frame, orient=tk.HORIZONTAL, command=tree.xview)
+            tree.configure(xscrollcommand=hbar.set)
+            tree.grid(row=1, column=0, sticky="new")
+            hbar.grid(row=2, column=0, sticky="ew")
+            frame.grid_columnconfigure(0, weight=1)
+            tree.tag_configure("even", background=c["surface"])
+            tree.tag_configure("odd", background=c["surface_alt"])
+            for cid, title in (("finding", "Finding"), ("files", "Files"),
+                               ("why", "Why it matters")):
+                width = max([head_font.measure(title)] +
+                            [body_font.measure(f[cid]) for f in findings]) + 32
+                tree.heading(cid, text=title, anchor="w")
+                tree.column(cid, width=min(width, 760), anchor="w", stretch=cid == "why")
+            for i, f in enumerate(findings):
+                tree.insert("", tk.END, values=(f["finding"], f["files"], f["why"]),
+                            tags=("odd" if i % 2 else "even",))
+            tabs.add(frame, text=f"  Card Findings ({len(findings)})  ")
+
         def _fill_media_summary(rows):
             from modules.digital_forensics.analysis.media_telemetry import summarize_media_rows
             s = summarize_media_rows(rows, _card_files(), _skipped_media())
+            findings = _card_findings()
             src_names = {"photo": "photos", "video": "videos", "idx": "IDX records"}
             sources = ", ".join(f"{n} {src_names.get(k, k)}" for k, n in s["by_source"].items())
             if s["start"]:
@@ -2386,18 +2479,10 @@ class IndraGUI(tb.Window):
                 ("Max above takeoff", _v(s["max_rel_alt_m"], "{:.1f} m")),
                 ("Max speed",         _v(s["max_hspeed_ms"], "{:.1f} m/s")),
                 ("Clock",             "camera clock, time zone not recorded"),
-                ("Flags",             f"{len(s['flags'])} (listed below)" if s["flags"] else "None"),
+                ("Card findings",     f"{len(findings)} (see Card Findings tab)"
+                                      if findings else "None"),
             ]
-            per_col = _grid_items(items, warn_keys=("Flags",) if s["flags"] else ())
-            row = per_col
-            tb.Label(summary, style="Muted.TLabel",
-                     text="Snapshots taken when each photo was shot or recording started, "
-                          "not a continuous flight log.").grid(
-                row=row, column=0, columnspan=8, sticky="w", pady=(6, 0))
-            for flag in s["flags"]:
-                row += 1
-                tb.Label(summary, text=f"⚠  {flag}", foreground=c["warning"],
-                         font=self.body_font).grid(row=row, column=0, columnspan=8, sticky="w")
+            _grid_items(items)
 
         def _fill_summary(rows, is_dat, is_media=False):
             for w in summary.winfo_children():
@@ -2839,6 +2924,9 @@ class IndraGUI(tb.Window):
                         if any(r.get(col) not in (None, "") for r in rows)]
                 _add_table("Media Telemetry", "MEDIA", cols, rows, friendly=True,
                            detail_cols=header, raw_cols=header)
+                findings = _card_findings()
+                if findings:
+                    _add_findings_tab(findings)
                 _add_map_tab(path, rows)
                 return
 
