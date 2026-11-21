@@ -131,12 +131,13 @@ def scan_drive(
     dict
         Summary of everything found and extracted.
     """
+    if not drive_path or not os.path.isdir(drive_path):
+        raise ValueError(f"Drive path not found or not a directory: {drive_path!r}")
+
     timestamp   = datetime.now().strftime("%Y%m%d_%H%M%S")
     session_dir = Path(output_dir) / f"forensic_{timestamp}"
-    session_dir.mkdir(parents=True, exist_ok=True)
 
     log(f"[+] Scan started:  {drive_path}")
-    log(f"[+] Output folder: {session_dir}")
 
     # ── 1. Discover files ─────────────────────────────────────────────────────
     log("[*] Scanning for DJI files...")
@@ -163,9 +164,14 @@ def scan_drive(
     }
 
     if total == 0:
-        log("[!] No DJI files found on this drive.")
-        _write_report(summary, session_dir)
+        # Don't leave an empty session folder behind - it would be picked up
+        # as the "most recent" session by the viewers.
+        log("[!] No DJI files found on this drive. No output folder created.")
+        summary["output_dir"] = None
         return summary
+
+    session_dir.mkdir(parents=True, exist_ok=True)
+    log(f"[+] Output folder: {session_dir}")
 
     # ── 2. Copy all files ─────────────────────────────────────────────────────
     raw_dir = session_dir / "raw_files"

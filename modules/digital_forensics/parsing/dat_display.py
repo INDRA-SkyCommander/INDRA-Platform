@@ -70,7 +70,35 @@ COLUMN_LABELS = {
     # Home point
     "home_latitude":   "Home Latitude",
     "home_longitude":  "Home Longitude",
+    # Media telemetry (media_telemetry_<date>.csv from photos/videos/IDX)
+    "timestamp":          "Time",
+    "source_type":        "Source",
+    "source_file":        "File",
+    "abs_altitude_m":     "Altitude MSL (m)",
+    "rel_altitude_m":     "Height Above Takeoff (m)",
+    "speed_x_ms":         "Speed X (m/s)",
+    "speed_y_ms":         "Speed Y (m/s)",
+    "speed_z_ms":         "Speed Z (m/s)",
+    "aircraft_pitch_deg": "Aircraft Pitch (°)",
+    "aircraft_roll_deg":  "Aircraft Roll (°)",
+    "aircraft_yaw_deg":   "Aircraft Heading (°)",
+    "gimbal_pitch_deg":   "Gimbal Pitch (°)",
+    "gimbal_roll_deg":    "Gimbal Roll (°)",
+    "gimbal_yaw_deg":     "Gimbal Heading (°)",
+    "duration_s":         "Clip Length",
+    "camera_model":       "Camera",
+    "time_source":        "Clock Source",
+    "indexed_file":       "Indexed Video",
+    "relative_path":      "Path on Card",
+    "sha256":             "SHA-256",
 }
+
+# Media telemetry source_type -> display text
+SOURCE_TYPES = {"photo": "Photo", "video": "Video", "idx": "IDX record"}
+# Media telemetry time_source prefix -> short display text
+_TIME_SOURCES = (("photo EXIF", "Photo EXIF (camera clock)"),
+                 ("video header", "Video header (camera clock)"),
+                 ("IDX record", "IDX date (camera clock)"))
 
 _DECIMALS = {
     "time_s": 2,
@@ -80,6 +108,10 @@ _DECIMALS = {
     "vel_n_ms": 2, "vel_e_ms": 2, "vel_d_ms": 2,
     "batt_volts": 2, "batt_amps": 2,
     "cell1_v": 3, "cell2_v": 3, "cell3_v": 3, "cell4_v": 3,
+    "abs_altitude_m": 1, "rel_altitude_m": 1,
+    "speed_x_ms": 1, "speed_y_ms": 1, "speed_z_ms": 1,
+    "aircraft_pitch_deg": 1, "aircraft_roll_deg": 1, "aircraft_yaw_deg": 1,
+    "gimbal_pitch_deg": 1, "gimbal_roll_deg": 1, "gimbal_yaw_deg": 1,
 }
 _INTEGERS = {"tick", "satnum", "batt_remcap_mah", "batt_percent", "batt_temp_c",
              "aileron", "elevator", "throttle", "rudder"}
@@ -87,6 +119,23 @@ _INTEGERS = {"tick", "satnum", "batt_remcap_mah", "batt_percent", "batt_temp_c",
 
 def column_label(col: str) -> str:
     return COLUMN_LABELS.get(col) or col.replace("_", " ").title()
+
+
+# Exports keep raw values, so columns whose on-screen text differs from the raw
+# value get a header that says what the raw value is.
+_EXPORT_LABELS = {
+    "duration_s":      "Clip Length (s)",
+    "flight_time_ms":  "Flight Time (ms)",
+    "flyc_state":      "Flight Mode (code)",
+    "connected_to_rc": "RC Connected (1=yes, 0=no)",
+    "failure":         "Failure (code, 0=none)",
+    "non_gps_error":   "GPS Status (code, 0=OK)",
+}
+
+
+def export_label(col: str) -> str:
+    """Readable header for an exported (raw-valued) column."""
+    return _EXPORT_LABELS.get(col) or column_label(col)
 
 
 def to_number(v):
@@ -107,6 +156,15 @@ def format_value(col: str, raw) -> str:
     """Human-readable cell text for a raw CSV value."""
     if raw is None or raw == "":
         return ""
+    if col == "source_type":
+        return SOURCE_TYPES.get(str(raw), str(raw))
+    if col == "sha256":
+        return f"{raw[:16]}…" if len(str(raw)) > 16 else str(raw)
+    if col == "time_source":
+        for prefix, text in _TIME_SOURCES:
+            if str(raw).startswith(prefix):
+                return text
+        return str(raw)
     v = to_number(raw)
     if v is None:
         return str(raw)
@@ -120,6 +178,8 @@ def format_value(col: str, raw) -> str:
         return GPS_STATUS.get(int(v), f"Code {int(v)}")
     if col == "flight_time_ms":
         return format_duration(v / 1000.0)
+    if col == "duration_s":
+        return format_duration(v)
     if col in _INTEGERS:
         return str(int(round(v)))
     if col in _DECIMALS:

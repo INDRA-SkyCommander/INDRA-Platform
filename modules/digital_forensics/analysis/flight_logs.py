@@ -13,6 +13,7 @@ Parses flight-log files from an extraction session:
 import contextlib
 import io
 import os
+import re
 import sys
 
 
@@ -71,14 +72,61 @@ def _fmt_dat_result(result: dict, csv_path: str) -> str:
     return "\n".join(lines)
 
 
+_DJI_RECORD_TXT = re.compile(r"^DJIFlightRecord", re.I)
+_DJI_DAT_NAME = re.compile(r"^FLY\d+\.DAT$", re.I)
+
+
+def _has_dji_dat_header(path: str) -> bool:
+    """Phantom 3 style DJI .DAT: ASCII 'BUILD' at byte 16."""
+    try:
+        with open(path, "rb") as f:
+            return f.read(21)[16:21] == b"BUILD"
+    except OSError:
+        return False
+
+
+def _first_line(path: str, limit: int = 70) -> str:
+    """First non-blank line of a text file, shortened - shown for skipped files."""
+    try:
+        with open(path, "r", errors="replace") as f:
+            for i, line in enumerate(f):
+                line = line.strip()
+                if line:
+                    return line if len(line) <= limit else line[:limit - 1] + "…"
+                if i > 50:
+                    break
+    except OSError:
+        pass
+    return ""
+
+
+def _skip(entry: dict, reason: str, preview: str = "") -> dict:
+    entry["status"] = "skipped"
+    entry["skip_reason"] = reason
+    if preview:
+        entry["preview_line"] = preview
+    return entry
+
+
 def analyze_flight_logs(manifest_path: str) -> dict:
     """
     Analyze the flight_logs files listed in a session manifest.
 
+    The extractor files every .txt/.dat under flight_logs by extension alone, so
+    each file is checked first: real DJI flight logs (FLY###.DAT / DAT with the
+    DJI header, DJIFlightRecord*.txt, .csv/.kml/.gpx) are parsed; anything else
+    is reported as "skipped" with a reason instead of being dumped as a log.
+    The session's media telemetry CSVs (GPS from photos/videos) are attached
+    under "media_telemetry", since on a camera SD card they are the only
+    flight data there is.
+
     Returns:
         {
-            "log_count": int,
+            "log_count": int,          # real flight logs found
+            "files_checked": int,      # files in the flight_logs category
+            "skipped_count": int,
             "items": [ {per-file details} ],
+            "media_telemetry": {csv_paths, groups, rows, with_gps, csv_error},
             "output_file": str | None   # path to saved flight_logs_parsed.txt
         }
     """
@@ -136,8 +184,14 @@ def analyze_flight_logs(manifest_path: str) -> dict:
             except Exception as ex:
                 entry["status"] = f"error: {ex}"
 
-        # ── Existing stub behaviour for TXT / DAT ─────────────────────────
+        # ── TXT: only DJI GO flight records are flight logs ───────────────
+        elif ext == ".txt" and not _DJI_RECORD_TXT.match(os.path.basename(path)):
+            _skip(entry, "text file, not a DJI flight record", _first_line(path))
+
         elif ext == ".txt":
+            entry["dji_flight_record"] = True
+            entry["note"] = ("DJI GO flight record - not decoded yet "
+                             "(needs a decoder such as dji-log-parser)")
             try:
                 with open(path, "r", errors="replace") as f:
                     content = f.read()
@@ -154,6 +208,13 @@ def analyze_flight_logs(manifest_path: str) -> dict:
                     entry["format_guess"] = "plain text"
             except Exception as ex:
                 entry["status"] = f"error: {ex}"
+
+        elif ext == ".dat" and not (_has_dji_dat_header(path)
+                                    or _DJI_DAT_NAME.match(os.path.basename(path))):
+            rel = (e.get("relative_path") or "").lower()
+            _skip(entry, "Windows system file, not a DJI log"
+                  if "system volume information" in rel
+                  else "no DJI header (BUILD at byte 16), not a DJI flight log")
 
         elif ext == ".dat":
             # Parse the binary .dat directly with our Python parser.
@@ -197,5 +258,14 @@ def analyze_flight_logs(manifest_path: str) -> dict:
             output_file = None
             output_file_error = str(exc)
 
-    return {"log_count": len(logs), "items": items, "output_file": output_file,
-            "output_file_error": output_file_error}
+    # ── Media telemetry (GPS/attitude snapshots from photos and videos) ───
+    try:
+        from .media_telemetry import media_telemetry_for_session
+        media = media_telemetry_for_session(manifest_path)
+    except Exception as ex:
+        media = {"csv_paths": [], "groups": [], "csv_error": str(ex)}
+
+    skipped = sum(1 for it in items if it.get("status") == "skipped")
+    return {"log_count": len(items) - skipped, "files_checked": len(logs),
+            "skipped_count": skipped, "items": items, "media_telemetry": media,
+            "output_file": output_file, "output_file_error": output_file_error}

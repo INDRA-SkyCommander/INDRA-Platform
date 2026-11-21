@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 # Tkinter
 import tkinter as tk
-from tkinter import font
+from tkinter import font, messagebox
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *  # pyright: ignore[reportWildcardImportFromLibrary]
 
@@ -1113,10 +1113,15 @@ class IndraGUI(tb.Window):
 
         self.sd_card = self._make_analysis_card(
             grid, 3, 1, "SD Card Scan",
-            "Detect and extract all DJI files from an inserted SD card or removable drive. "
-            "Leave the drive path blank to auto-detect.",
+            "Process an extraction session's DJI files (decode .DAT logs, build the media "
+            "telemetry CSV). Leave the session blank to scan an inserted SD card instead.",
             "Scan SD Card", self._handle_sd_scan,
-            extra_buttons=[("View CSV", lambda: self._open_csv_viewer(None))])
+            # View CSV opens the session typed here, else this card's last scan,
+            # else the most recent session.
+            extra_buttons=[("View CSV", lambda: self._open_csv_viewer(
+                None, target=self.sd_card["src_var"].get().strip()
+                or getattr(self, "_last_sd_scan_dir", None) or ""))],
+            field_hint="(blank = scan card)")
 
     def _init_acquisition_card(self, parent, row=0, col=0):
         """
@@ -1790,7 +1795,8 @@ class IndraGUI(tb.Window):
     # single helper and driven by a small per-card state dict.
 
     def _make_analysis_card(self, parent, row, col, title, desc, button_text, command,
-                            extra_buttons=()):
+                            extra_buttons=(), field_label="Session",
+                            field_hint="(blank = most recent)"):
         """
         Build one interactive analysis card and return its state dict:
             {"src_var", "btn", "status", "results", "running"}.
@@ -1803,21 +1809,25 @@ class IndraGUI(tb.Window):
 
         controls = tb.Frame(card)
         controls.pack(fill=tk.X, pady=(10, 8))
-        tb.Label(controls, text="Session",
-                 style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
 
+        # Pack the buttons first (right-aligned) so they always keep their full
+        # width; the entry is packed last and shrinks when the card is narrow.
+        # Tk squeezes whatever was packed last, which used to cut "View CSV"
+        # down to "View C".
+        for extra_text, extra_cmd in reversed(extra_buttons):
+            tb.Button(controls, text=extra_text, bootstyle="info-outline",
+                      command=extra_cmd).pack(side=tk.RIGHT, padx=(4, 0))
+        btn = tb.Button(controls, text=button_text, bootstyle="info", command=command)
+        btn.pack(side=tk.RIGHT)
+        tb.Label(controls, text=field_hint,
+                 style="Muted.TLabel").pack(side=tk.RIGHT, padx=(0, 8))
+
+        tb.Label(controls, text=field_label,
+                 style="CardHeading.TLabel").pack(side=tk.LEFT, padx=(0, 6))
         src_var = tk.StringVar(value="")
         entry = tb.Entry(controls, bootstyle="info", font=self.label_font,
-                         textvariable=src_var)
+                         textvariable=src_var, width=8)
         entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
-        tb.Label(controls, text="(blank = most recent)",
-                 style="Muted.TLabel").pack(side=tk.LEFT, padx=(0, 8))
-
-        btn = tb.Button(controls, text=button_text, bootstyle="info", command=command)
-        btn.pack(side=tk.LEFT)
-        for extra_text, extra_cmd in extra_buttons:
-            tb.Button(controls, text=extra_text, bootstyle="info-outline",
-                      command=extra_cmd).pack(side=tk.LEFT, padx=(4, 0))
 
         status = tb.Label(card, text="Status: idle", style="Muted.TLabel")
         status.pack(anchor="w", pady=(0, 6))
@@ -1910,39 +1920,67 @@ class IndraGUI(tb.Window):
                            "flight_logs.json", self._fmt_flight_logs)
 
     def _fmt_flight_logs(self, data):
-        n = data.get("log_count", 0)
-        lines = [f"Flight logs: {n}", ""]
+        items = data.get("items", [])
+        logs = [it for it in items if it.get("status") != "skipped"]
+        skipped = [it for it in items if it.get("status") == "skipped"]
+        media = data.get("media_telemetry") or {}
+        n_csv = len(media.get("csv_paths") or [])
+        lines = []
 
-        output_file = data.get("output_file")
-        if output_file:
-            lines.append(f"Full parsed output saved to:")
-            lines.append(f"  {output_file}")
-            lines.append("")
-
-        for it in data.get("items", []):
-            lines.append(f"[{it.get('file_type')}] {it.get('relative_path')} "
-                         f"({it.get('size_bytes')}b)")
+        # ---- Real DJI flight logs ----
+        lines.append(f"DJI FLIGHT LOGS ({len(logs)})")
+        if not logs:
+            lines.append("  None in this session. FLY###.DAT logs are stored on the aircraft,")
+            lines.append("  DJIFlightRecord .txt logs on the pilot's phone - not on the camera SD card.")
+        for it in logs:
+            lines.append(f"  {os.path.basename(it.get('relative_path') or '?')}  "
+                         f"({it.get('size_bytes')} bytes)")
             st = it.get("status")
+            if it.get("csv_path"):
+                lines.append(f"    decoded: {it.get('records_parsed')} records -> "
+                             f"{os.path.basename(it['csv_path'])}")
+            elif "parsed_output" in it:
+                for pl in it["parsed_output"].splitlines()[:6]:
+                    lines.append(f"    {pl}")
+            elif it.get("note"):
+                lines.append(f"    {it['note']}")
+            if st and st != "parsed":
+                lines.append(f"    status: {st}")
+        if data.get("output_file"):
+            lines.append(f"  Full parser output: {data['output_file']}")
+        lines.append("")
 
-            if "parsed_output" in it:
-                all_lines = it["parsed_output"].splitlines()
-                for pl in all_lines[:8]:
-                    lines.append(f"   {pl}")
-                if len(all_lines) > 8:
-                    lines.append(f"   ... (see saved file for full output)")
+        # ---- Media telemetry (the flight data a camera card does have) ----
+        lines.append(f"MEDIA TELEMETRY CSV ({n_csv})")
+        if n_csv:
+            lines.append(f"  {media.get('rows', 0)} GPS points from photos, video headers "
+                         f"and MISC/IDX, one CSV per capture session:")
+            for g, path in zip(media.get("groups", []), media["csv_paths"]):
+                span = g.get("first") or "?"
+                if g.get("last") and g.get("last") != g.get("first"):
+                    span += f" -> {g['last'][11:] if g['last'][:10] == span[:10] else g['last']}"
+                lines.append(f"  {os.path.basename(path)}  ({g.get('rows')} points, {span})")
+            lines.append("  Open with View CSV, or Generate Map for the flight-path maps.")
+        elif media.get("csv_error"):
+            lines.append(f"  Could not build: {media['csv_error']}")
+        else:
+            lines.append("  No geotagged photos or videos in this session.")
+        lines.append("")
 
-            elif st == "parsed":
-                lines.append(f"   lines: {it.get('line_count')}  "
-                             f"{it.get('format_guess', '')}")
-                for pl in it.get("preview", [])[:5]:
-                    lines.append(f"   | {pl}")
+        # ---- Files the extractor filed as flight logs that aren't ----
+        if skipped:
+            lines.append(f"SKIPPED - NOT FLIGHT LOGS ({len(skipped)})")
+            lines.append("  Filed under flight_logs/ only because they end in .txt/.dat:")
+            for it in skipped:
+                name = os.path.basename(it.get("relative_path") or "?")
+                lines.append(f"  {name:<20} {it.get('skip_reason', '')}")
+                if it.get("preview_line"):
+                    lines.append(f"  {'':<20} \"{it['preview_line']}\"")
 
-            else:
-                lines.append(f"   status: {st}")
-
-            lines.append("")
-
-        return "\n".join(lines), f"{n} log(s) parsed"
+        status = f"{len(logs)} flight log(s), {n_csv} telemetry CSV(s)"
+        if skipped:
+            status += f", {len(skipped)} skipped"
+        return "\n".join(lines).rstrip(), status
 
     # --- Decoded .DAT CSV viewer ---
 
@@ -1981,7 +2019,21 @@ class IndraGUI(tb.Window):
                     return os.path.getmtime(mp)
             return os.path.getmtime(path)
 
-        return max(sessions, key=_created)
+        # Prefer the newest session that actually holds flight-log data, so an
+        # empty or failed SD-scan folder can't hide the real extraction.
+        def _has_log_data(path):
+            for _root, _dirs, files in os.walk(path):
+                if any(f.lower().endswith((".csv", ".dat")) for f in files):
+                    return True
+            return False
+
+        with_data = [s for s in sessions if _has_log_data(s)]
+        if with_data:
+            return max(with_data, key=_created)
+        # Nothing has logs: fall back to the session Parse Logs would use.
+        manifested = [s for s in sessions
+                      if os.path.isfile(os.path.join(s, "manifest.json"))]
+        return max(manifested or sessions, key=_created)
 
     def _collect_session_csvs(self, session_dir):
         """
@@ -2035,12 +2087,30 @@ class IndraGUI(tb.Window):
                     notes.append(f"{os.path.basename(dat)}: "
                                  f"{res.get('error') or 'no decodable records'}")
 
+        # Build the media telemetry CSVs (GPS/attitude from photos, videos and
+        # MISC/IDX) if this session doesn't have them yet, so View CSV works
+        # without running Extract Metadata first.
+        manifest_path = os.path.join(session_dir, "manifest.json")
+        has_media_csv = any(os.path.basename(c).lower().startswith("media_telemetry_")
+                            for c in csvs)
+        if not has_media_csv and os.path.isfile(manifest_path):
+            try:
+                from modules.digital_forensics.analysis.media_telemetry import \
+                    analyze_media_telemetry
+                tel = analyze_media_telemetry(manifest_path)
+                csvs.extend(tel.get("csv_paths", []))
+                if tel.get("csv_error"):
+                    notes.append(f"media telemetry CSV: {tel['csv_error']}")
+            except Exception as ex:
+                notes.append(f"media telemetry CSV failed: {ex}")
+
         csvs = sorted(set(csvs), key=lambda p: (not p.lower().endswith("_dat.csv"),
                                                 os.path.basename(p).lower()))
         return csvs, notes
 
-    def _open_csv_viewer(self, card):
-        target = card["src_var"].get().strip() if card else ""
+    def _open_csv_viewer(self, card, target=None):
+        if target is None:
+            target = card["src_var"].get().strip() if card else ""
         self._log_slow("CSV viewer: locating decoded flight-log CSVs...")
 
         def _worker():
@@ -2058,12 +2128,24 @@ class IndraGUI(tb.Window):
     def _show_csv_viewer(self, result):
         if not result["ok"]:
             self._log(f"ERROR: CSV viewer: {result['error']}")
+            messagebox.showerror("View CSV", f"Could not open the CSV viewer:\n\n{result['error']}",
+                                 parent=self)
             return
         session_dir, csvs, notes = result["session_dir"], result["csvs"], result["notes"]
         for n in notes:
             self._log(f"CSV viewer: {n}")
         if not csvs:
             self._log(f"CSV viewer: no CSVs (or decodable .DAT files) in {session_dir}")
+            msg = [f"No CSV could be built for session:\n{os.path.basename(session_dir)}", ""]
+            if notes:
+                msg += ["Details:"] + [f"  • {n}" for n in notes] + [""]
+            msg += [
+                "This session has no DJI FLY###.DAT flight log and no geotagged "
+                "photos or videos to build a media telemetry CSV from.",
+                "",
+                "To view a different session, type its ID in the Session box first.",
+            ]
+            messagebox.showwarning("View CSV — nothing to show", "\n".join(msg), parent=self)
             return
 
         import csv as _csv
@@ -2094,6 +2176,9 @@ class IndraGUI(tb.Window):
             name, n = os.path.basename(path), _row_count(path)
             if name.lower().endswith("_dat.csv"):
                 return f"{name[:-len('_dat.csv')]}.DAT  ·  {n} records"
+            m = re.fullmatch(r"media_telemetry_(.+)\.csv", name, re.I)
+            if m:
+                return f"Media telemetry {m.group(1)}  ·  {n} points"
             return f"{name}  ·  {n} rows"
 
         labels = [_file_label(p) for p in csvs]
@@ -2165,9 +2250,28 @@ class IndraGUI(tb.Window):
         def _v(x, fmt):
             return "—" if x is None else fmt.format(x)
 
-        def _fill_summary(rows, is_dat):
+        def _fill_summary(rows, is_dat, is_media=False):
             for w in summary.winfo_children():
                 w.destroy()
+            if is_media:
+                kinds = {}
+                for r in rows:
+                    k = dd.format_value("source_type", r.get("source_type"))
+                    kinds[k] = kinds.get(k, 0) + 1
+                times = sorted(r["timestamp"] for r in rows if r.get("timestamp"))
+                heights = [h for h in (dd.to_number(r.get("rel_altitude_m")) for r in rows)
+                           if h is not None]
+                parts = [f"{len(rows)} points ({', '.join(f'{n} {k}' for k, n in kinds.items())})"]
+                if times:
+                    parts.append(f"{times[0]}  →  {times[-1]} (camera clock)")
+                if heights:
+                    parts.append(f"max height above takeoff {max(heights):.1f} m")
+                tb.Label(summary, text="   ·   ".join(parts), font=self.monospace_font).grid(
+                    row=0, column=0, sticky="w")
+                tb.Label(summary, style="Muted.TLabel",
+                         text="Snapshots from photos, video headers and MISC/IDX records - "
+                              "not a continuous flight log.").grid(row=1, column=0, sticky="w")
+                return
             if not is_dat:
                 tb.Label(summary, style="Muted.TLabel",
                          text=f"{len(rows)} rows. Flight summary is available for decoded "
@@ -2224,7 +2328,7 @@ class IndraGUI(tb.Window):
         # ---- Table tab: pinned Time column, sortable headers, zebra + alert colours ----
         def _add_table(title, rtype, cols, rows, friendly):
             frame = tb.Frame(tabs, padding=6)
-            pinned = ["time_s"] if friendly and "time_s" in cols else []
+            pinned = [p for p in ("time_s", "timestamp") if friendly and p in cols][:1]
             rest = [col for col in cols if col not in pinned]
             shown = rows[:self._CSV_VIEW_MAX_ROWS]
             iid_rows = {f"r{i}": r for i, r in enumerate(shown)}
@@ -2330,7 +2434,9 @@ class IndraGUI(tb.Window):
                     return rows
                 return [iid_rows[i] for i in right.get_children()]
 
-            tab_tables[str(frame)] = {"rtype": rtype, "cols": cols, "ordered": ordered}
+            tab_tables[str(frame)] = {"rtype": rtype, "cols": cols, "ordered": ordered,
+                                      "labels": [dd.export_label(col) if friendly else col
+                                                 for col in cols]}
 
         # ---- Map tab (rendered the first time it's opened) ----
         def _add_map_tab(path, gps_rows):
@@ -2402,10 +2508,12 @@ class IndraGUI(tb.Window):
                 return
             out_rows = info["ordered"]()
             try:
-                with open(dest, "w", newline="", encoding="utf-8") as f:
-                    w = _csv.DictWriter(f, fieldnames=info["cols"], extrasaction="ignore")
-                    w.writeheader()
-                    w.writerows(out_rows)
+                # Readable headers (same as on screen); values stay raw so nothing
+                # is rounded or truncated. utf-8-sig so Excel shows "°" correctly.
+                with open(dest, "w", newline="", encoding="utf-8-sig") as f:
+                    w = _csv.writer(f)
+                    w.writerow(info["labels"])
+                    w.writerows([[r.get(col, "") for col in info["cols"]] for r in out_rows])
             except OSError as ex:
                 self._log(f"ERROR: export failed: {ex}")
                 return
@@ -2434,7 +2542,17 @@ class IndraGUI(tb.Window):
             map_tabs.clear()
 
             is_dat = "rec_type" in header
-            _fill_summary(rows, is_dat)
+            is_media = not is_dat and {"source_type", "timestamp", "latitude"} <= set(header)
+            _fill_summary(rows, is_dat, is_media)
+            legend.config(text=dd.ALERT_LEGEND if is_dat else "")   # alerts are DAT-only
+
+            if is_media:
+                # Readable headers/values; hide columns that are empty in this file.
+                cols = [col for col in header
+                        if any(r.get(col) not in (None, "") for r in rows)]
+                _add_table("Media Telemetry", "MEDIA", cols, rows, friendly=True)
+                _add_map_tab(path, rows)
+                return
 
             if not is_dat:
                 _add_table("All rows", None, header, rows, friendly=False)
@@ -2464,8 +2582,16 @@ class IndraGUI(tb.Window):
 
     def _handle_media_metadata(self):
         def fn(manifest_path):
-            from modules.digital_forensics.analysis import analyze_media
-            return analyze_media(manifest_path)
+            from modules.digital_forensics.analysis import (analyze_media,
+                                                            analyze_media_telemetry)
+            data = analyze_media(manifest_path)
+            # Also build media_telemetry_<date>.csv (GPS/attitude snapshots from
+            # photos, videos and MISC/IDX) for View CSV and Generate Map.
+            try:
+                data["telemetry"] = analyze_media_telemetry(manifest_path)
+            except Exception as ex:
+                data["telemetry"] = {"csv_paths": [], "csv_error": str(ex)}
+            return data
         self._run_analysis(self.mm_card, "Media metadata", fn,
                            "media_metadata.json", self._fmt_media)
 
@@ -2498,6 +2624,22 @@ class IndraGUI(tb.Window):
         status = f"{n} media analyzed"
         if gps_hits:
             status += f", {gps_hits} geotagged"
+
+        tel = data.get("telemetry")
+        if tel is not None:
+            if tel.get("csv_paths"):
+                lines.append(f"Media telemetry CSV: {tel.get('rows', 0)} points "
+                             f"({tel.get('with_gps', 0)} with GPS) from photos, videos "
+                             f"and MISC/IDX, split by capture session:")
+                for g, path in zip(tel.get("groups", []), tel["csv_paths"]):
+                    lines.append(f"  {os.path.basename(path)}  ({g['rows']} points, "
+                                 f"{g['first']} → {g['last']})")
+                lines.append("  Open with View CSV (Flight Logs card) or Generate Map.")
+                status += f", {len(tel['csv_paths'])} telemetry CSV(s)"
+            elif tel.get("csv_error"):
+                lines.append(f"Media telemetry CSV failed: {tel['csv_error']}")
+            else:
+                lines.append("Media telemetry CSV: no GPS/attitude data found in media.")
         return "\n".join(lines), status
 
     # --- Steganography ---
@@ -2549,15 +2691,15 @@ class IndraGUI(tb.Window):
             self._log("SD card scan already in progress.")
             return
 
-        drive_path = self.sd_card["src_var"].get().strip()
+        session = self.sd_card["src_var"].get().strip()
 
         self.sd_card["running"] = True
         self.sd_card["btn"].config(state=tk.DISABLED)
         self.sd_card["status"].config(text="Status: scanning...")
-        self._set_text(self.sd_card["results"], "Scanning SD card...")
+        self._set_text(self.sd_card["results"], "Scanning...")
 
-        if drive_path:
-            self._log_slow(f"Starting SD card scan from: {drive_path}")
+        if session:
+            self._log_slow(f"Processing session: {session}")
         else:
             self._log_slow("Starting SD card scan (auto-detect)...")
 
@@ -2578,19 +2720,23 @@ class IndraGUI(tb.Window):
                     "..", "..", "data", "extracted"
                 )
 
-                drive = drive_path if drive_path else None
-                if drive is None:
+                if session:
+                    # Session ID (or session folder): process that extraction in
+                    # place - decode any .DAT and build the media telemetry CSVs.
+                    session_dir = self._resolve_session_dir(session)
+                    csvs, notes = self._collect_session_csvs(session_dir)
+                    result.update(ok=True, session_mode=True, session_dir=session_dir,
+                                  csvs=csvs, notes=notes)
+                else:
                     drives = get_usb_drives()
                     if not drives:
                         raise RuntimeError(
-                            "No removable drives found. "
-                            "Insert the SD card (or enter a path above) and try again."
+                            "No removable drives found. Insert the SD card, or type an "
+                            "extraction session ID in the Session box, and try again."
                         )
-                    drive = drives[0]
-
-                summary = scan_drive(drive, output_dir, log=self._log)
-                result["ok"]      = True
-                result["summary"] = summary
+                    summary = scan_drive(drives[0], output_dir, log=self._log)
+                    result["ok"]      = True
+                    result["summary"] = summary
 
             except Exception as e:
                 result["error"] = str(e)
@@ -2610,9 +2756,26 @@ class IndraGUI(tb.Window):
             self._log(f"ERROR: SD card scan failed: {err}")
             return
 
+        if result.get("session_mode"):
+            session_dir, csvs = result["session_dir"], result["csvs"]
+            self._last_sd_scan_dir = session_dir
+            lines = [f"Session : {os.path.basename(session_dir)}",
+                     f"CSVs    : {len(csvs)}", ""]
+            lines += [f"  {os.path.relpath(c, session_dir)}" for c in csvs]
+            if result["notes"]:
+                lines += ["", "Notes:"] + [f"  {n}" for n in result["notes"]]
+            lines += ["", "Click View CSV to open them." if csvs
+                      else "Nothing to view in this session."]
+            self._set_text(self.sd_card["results"], "\n".join(lines))
+            self.sd_card["status"].config(text=f"Status: complete — {len(csvs)} CSV(s)")
+            self._log_slow(f"Session processed: {len(csvs)} CSV(s) in {session_dir}")
+            return
+
         summary  = result["summary"] or {}
         total    = sum(len(v) for v in summary.get("files_found", {}).values())
-        out_dir  = summary.get("output_dir", "?")
+        out_dir  = summary.get("output_dir") or "(none — nothing found)"
+        if summary.get("output_dir"):
+            self._last_sd_scan_dir = summary["output_dir"]
 
         lines = [
             f"Drive      : {summary.get('source_drive', '?')}",
