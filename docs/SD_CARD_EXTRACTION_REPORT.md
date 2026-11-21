@@ -5,6 +5,16 @@ Purpose: explain exactly how the platform pulls files off the drone's SD card, h
 
 Companion doc: `VIEW_CSV_REPORT.md` (why "View CSV" shows nothing, and the fixes already made).
 
+> **Current status (2026-11-21, branch `datFileTest`, commits `41be33f`, `801f077`, `3cbd844`).** Everything below was written on 2026-11-20 and is kept as the investigation record; where it differs from this box, this box is right.
+> - **View CSV:** dark tables sized to their rows, a Details panel with a short meaning per field, header tooltips, and a toggle for columns that are blank/0 in every row. Media files get a summary grid; `.DAT` files keep theirs.
+> - **Card Findings tab** (and a CARD FINDINGS section in `report.txt`): renamed files (`image.JPG`), gaps in `DJI_####` (`DJI_0001`), files the camera did not make in DCIM (`secret.txt`, steghide), IDX records for deleted videos, unreadable files.
+> - **SD Card Scan box** takes **either** a drive path (scans it) **or** a session ID (processes it in place); blank auto-detects, with a picker if several drives are attached. Nothing is ever written outside `data/extracted`.
+> - **Blank Session** means the most recently created session on every card; each card's status shows the session it used. If that session has nothing to view, View CSV offers the newest one that does.
+> - **Media telemetry:** a damaged file is skipped and listed instead of stopping the run; an IDX record that repeats a video on the card is merged into that video's row; groups split on a >2 h gap or a >5 km jump, not on the calendar date.
+> - **Map:** offline by default (OpenStreetMap only with `INDRA_ONLINE_MAPS=1`); snapshots are numbered points with a key, `.DAT` logs a path; axes in metres.
+> - **Exports** go to `data/exports/<session>/` as `export_…csv`, in Readable (Excel) or Raw (re-opens in View CSV) form.
+> - **Still open:** file sorting by extension in `usb_extractor.categorize`, no TXT/Phantom 4 DAT decoder, `psutil` on the VM, SD Card Scan has no hashes/manifest, real `FLY###.DAT` data.
+
 ---
 
 ## 1. Key findings (read first)
@@ -63,10 +73,10 @@ This is the pipeline that created the session folder ending in `…6e7b40`.
 9. If no source is found, a manifest with 0 files is still written. That's what produced the empty `20261120_183740_6eaed5/`.
 
 ### 3.2 Pipeline B — "SD Card Scan" card → `modules/digital_forensics/telemetry/scanner.py::scan_drive`
-1. Detects drives with `psutil.disk_partitions()` + `/sys/block/<dev>/removable` (needs `psutil`; not installed for the normal user's python3). If a session ID is typed in the box instead, the card processes that existing session in place (decodes any .DAT, builds the media telemetry CSVs) and does not scan a drive.
+1. Detects drives with `psutil.disk_partitions()` + `/sys/block/<dev>/removable` (needs `psutil`; not installed for the normal user's python3). The box takes a drive path (scanned) or a session ID (processed in place: decodes any .DAT, builds the media telemetry CSVs); blank auto-detects.
 2. Walks the drive, **skipping** `System Volume Information`, `$RECYCLE.BIN`, `FOUND.000`, `.Spotlight-V100`, `.Trashes` and dot-folders. It only picks up `.srt .jpg .jpeg .dng .csv .txt .dat .mp4 .mov .gpx .kml`.
 3. Output: `data/extracted/forensic_YYYYMMDD_HHMMSS/` containing `raw_files/` (flat copies, renamed if names collide), `extracted/` (`<stem>_exif.json` per JPG, `<stem>_dat.csv` per decoded DAT, flight maps for CSVs), and `report.json`. It writes **no hashes and no manifest**, so the analysis cards and the integrity check can't use these sessions.
-4. *Fixed this session:* a typed session ID is now handled as a session (it used to be walked as a drive path), and `scan_drive` no longer creates an empty folder when 0 files are found. The two existing `forensic_20261120_1857xx/` folders are leftovers from before this fix.
+4. *Fixed:* a typed session ID is handled as a session and a typed folder as a drive (it used to walk any text as a drive path), and `scan_drive` no longer creates an empty folder when 0 files are found. The two existing `forensic_20261120_1857xx/` folders are leftovers from before this fix.
 
 ### 3.3 Post-extraction analysis (operates on Pipeline A sessions via `manifest.json`)
 GUI buttons → functions in `modules/digital_forensics/analysis/` → JSON written into the session folder:

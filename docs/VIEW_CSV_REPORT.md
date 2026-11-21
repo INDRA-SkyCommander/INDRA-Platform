@@ -3,7 +3,15 @@
 Date: 2026-11-20  ·  Branch: `datFileTest` (HEAD `1c7b68a`)
 Scope: how DJI Phantom 3 SD-card data flows into `data/extracted/`, and why the **View CSV** buttons in the Forensics tab do not open a CSV.
 
-> **Update (fixes applied):** §4.1 (visible popup when nothing is found), §4.2 (blank Session now picks the newest session that has .csv/.dat data, else the newest with a manifest.json), §4.3 (the SD Card Scan box stays "Session": a typed session ID is processed in place, decoding any .DAT and building the media telemetry CSVs; blank scans an inserted card; `scan_drive` no longer creates empty `forensic_*` folders) and §4.4 (the SD card View CSV opens the session typed in its box, else its last scan) are fixed. View CSV also builds the media telemetry CSVs itself when a session has none, so it no longer depends on Extract Metadata. Files: `src/gui/IndraGUI.py`, `modules/digital_forensics/telemetry/scanner.py`. Still open: §4.5, §4.6, §4.7, and the lack of real `FLY###.DAT` data.
+> **Current status (2026-11-21, branch `datFileTest`, commits `41be33f`, `801f077`, `3cbd844`).** Everything below was written on 2026-11-20 and is kept as the investigation record; where it differs from this box, this box is right.
+> - **View CSV:** dark tables sized to their rows, a Details panel with a short meaning per field, header tooltips, and a toggle for columns that are blank/0 in every row. Media files get a summary grid; `.DAT` files keep theirs.
+> - **Card Findings tab** (and a CARD FINDINGS section in `report.txt`): renamed files (`image.JPG`), gaps in `DJI_####` (`DJI_0001`), files the camera did not make in DCIM (`secret.txt`, steghide), IDX records for deleted videos, unreadable files.
+> - **SD Card Scan box** takes **either** a drive path (scans it) **or** a session ID (processes it in place); blank auto-detects, with a picker if several drives are attached. Nothing is ever written outside `data/extracted`.
+> - **Blank Session** means the most recently created session on every card; each card's status shows the session it used. If that session has nothing to view, View CSV offers the newest one that does.
+> - **Media telemetry:** a damaged file is skipped and listed instead of stopping the run; an IDX record that repeats a video on the card is merged into that video's row; groups split on a >2 h gap or a >5 km jump, not on the calendar date.
+> - **Map:** offline by default (OpenStreetMap only with `INDRA_ONLINE_MAPS=1`); snapshots are numbered points with a key, `.DAT` logs a path; axes in metres.
+> - **Exports** go to `data/exports/<session>/` as `export_…csv`, in Readable (Excel) or Raw (re-opens in View CSV) form.
+> - **Still open:** file sorting by extension in `usb_extractor.categorize`, no TXT/Phantom 4 DAT decoder, `psutil` on the VM, SD Card Scan has no hashes/manifest, real `FLY###.DAT` data.
 
 ---
 
@@ -131,7 +139,7 @@ Considers *every* subfolder of `data/extracted`, including empty `forensic_*` sc
 
 ### 4.3 SD Card Scan accepts an invalid drive path and creates empty sessions — `_handle_sd_scan` (~2547) + `scanner.scan_drive`
 - The card's text box is labelled **"Session"** (shared `_make_analysis_card` template) but the SD scan uses it as a **drive path**. Someone typed the session ID `20261120_185559_6e7b40`; `scan_drive` did `os.walk("20261120_185559_6e7b40")` relative to CWD → nonexistent → 0 files, but still created `forensic_…/report.json`. Those empty folders then hijack §4.2.
-- **Fix (applied):** the box is a session ID: Scan SD Card processes that existing session in place; blank still scans an inserted card. `scan_drive` no longer creates a folder when 0 files are found.
+- **Fix (applied, revised 2026-11-21):** the box takes a drive path **or** a session ID: a folder outside `data/extracted` is scanned as a drive, a session ID is processed in place, anything else shows an error. Blank auto-detects the card. `scan_drive` no longer creates a folder when 0 files are found.
 
 ### 4.4 SD card's "View CSV" ignores its own text box
 `extra_buttons=[("View CSV", lambda: self._open_csv_viewer(None))]` (~line 1119) → always "most recent". Should pass `self.sd_card` or the scan's `output_dir`.

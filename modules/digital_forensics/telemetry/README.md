@@ -66,7 +66,7 @@ When you click **Scan Drone**, the scanner:
 | `.dng` | DNG Raw Image | Copied; note to use `exiftool` for full metadata |
 | `.srt` | DJI Subtitle | Copied; contains per-frame telemetry (GPS, altitude, speed) — use `parsing` to decode |
 | `.txt` | TXT Flight Log | Copied |
-| `.dat` | Internal Log | Copied; requires DatCon or `dji-log-parser` for binary decoding |
+| `.dat` | Internal Log | Copied and decoded to `extracted/<name>_dat.csv` by `parsing/dat_parser.py` (Phantom 3 format; Phantom 4 DATs are usually encrypted and need DatCon) |
 | `.gpx` | GPX Track | Copied — use `parsing` to parse |
 | `.kml` | KML Track | Copied — use `parsing` to parse |
 | `.mp4` / `.mov` | Video | Copied |
@@ -95,7 +95,7 @@ DJI drones plugged in via USB normally expose only the **SD card** as a removabl
 - The drone mounts its internal storage as a second drive (model-dependent), or
 - You use **DJI Assistant 2**, which uses a proprietary USB protocol
 
-If internal logs are present, the scanner copies them and notes them in the report. Decoding requires [DatCon](https://datfile.net/) (Java) or [dji-log-parser](https://github.com/o-gs/dji-firmware-tools).
+If internal logs are present, the scanner copies them and decodes Phantom 3 format logs with `parsing/dat_parser.py` into `extracted/<name>_dat.csv` (open them with **View CSV**). Phantom 4 and newer logs are usually encrypted; those need [DatCon](https://datfile.net/) (Java) or a similar decoder, which INDRA does not include yet.
 
 ---
 

@@ -1936,12 +1936,38 @@ class IndraGUI(tb.Window):
                                 "then run this analysis.")
         return state
 
+    _URL_RE = re.compile(r"https?://[^\s<>\"']+")
+
     def _set_text(self, widget, text):
-        """Replace a read-only Text widget's contents."""
+        """
+        Replace a read-only Text widget's contents. Any http(s) link in the text
+        (e.g. the Media Metadata card's Google Maps links) becomes clickable and
+        opens in the default browser.
+        """
         widget.config(state=tk.NORMAL)
         widget.delete("1.0", tk.END)
         widget.insert(tk.END, text)
+        widget.tag_remove("link", "1.0", tk.END)
+        for n, line in enumerate(text.split("\n"), start=1):
+            for m in self._URL_RE.finditer(line):
+                widget.tag_add("link", f"{n}.{m.start()}", f"{n}.{m.end()}")
+        if not getattr(widget, "_links_bound", False):
+            widget.tag_configure("link", foreground=self.colors["accent"], underline=True)
+            widget.tag_bind("link", "<Enter>", lambda e: widget.config(cursor="hand2"))
+            widget.tag_bind("link", "<Leave>", lambda e: widget.config(cursor=""))
+            widget.tag_bind("link", "<Button-1>", lambda e: self._open_link(widget, e))
+            widget._links_bound = True
         widget.config(state=tk.DISABLED)
+
+    def _open_link(self, widget, event):
+        """Open the link under the mouse in the default web browser."""
+        import webbrowser
+        idx = widget.index(f"@{event.x},{event.y}")
+        rng = widget.tag_prevrange("link", f"{idx}+1c")
+        if rng and widget.compare(rng[0], "<=", idx) and widget.compare(idx, "<", rng[1]):
+            url = widget.get(*rng)
+            self._log(f"Opening in browser: {url}")
+            webbrowser.open(url, new=2)
 
     def _run_analysis(self, state, label, analyze_fn, out_name, formatter):
         """
