@@ -8,10 +8,9 @@ try:
     BLUE = Fore.BLUE
     RED = Fore.RED
     CYAN = Fore.CYAN
-    GREEN = Fore.GREEN
     RESET = Style.RESET_ALL
 except ImportError:
-    BLUE = RED = CYAN = GREEN = RESET = ""
+    BLUE = RED = CYAN = RESET = ""
 
 
 def file_input_string() -> str:
@@ -85,22 +84,3 @@ def print_error(message: str):
 def print_error_log(message: str, err: Exception):
     print(RED + message + RESET)
     logging.error("[ERROR] %s", str(err))
-
-
-def print_valid_log(message: str):
-    print(GREEN + message + RESET)
-
-
-def print_invalid_log(message: str):
-    print(RED + message + RESET)
-
-
-def execute_parser(index: int):
-    from parsers import DJI_CSV_Parser, DJI_KML_Parser, DJI_GPX_Parser
-    file_path = file_input_string()
-    if index == 1:
-        DJI_CSV_Parser(file_path).parse_contents()
-    elif index == 2:
-        DJI_KML_Parser(file_path).parse_contents()
-    elif index == 3:
-        DJI_GPX_Parser(file_path).parse_contents()
