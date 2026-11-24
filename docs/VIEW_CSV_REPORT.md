@@ -11,7 +11,8 @@ Scope: how DJI Phantom 3 SD-card data flows into `data/extracted/`, and why the 
 > - **Media telemetry:** a damaged file is skipped and listed instead of stopping the run; an IDX record that repeats a video on the card is merged into that video's row; groups split on a >2 h gap or a >5 km jump, not on the calendar date.
 > - **Map:** offline by default (OpenStreetMap only with `INDRA_ONLINE_MAPS=1`); snapshots are numbered points with a key, `.DAT` logs a path; axes in metres.
 > - **Exports** go to `data/exports/<session>/` as `export_…csv`, in Readable (Excel) or Raw (re-opens in View CSV) form.
-> - **Still open:** file sorting by extension in `usb_extractor.categorize`, no TXT/Phantom 4 DAT decoder, `psutil` on the VM, SD Card Scan has no hashes/manifest, real `FLY###.DAT` data.
+> - **File sorting fixed:** `usb_extractor.categorize` now files `.dat`/`.txt` as flight logs only when they are DJI logs (`FLY###…DAT` / DJI header / `DJIFlightRecord*.txt`) and routes `.csv .kml .gpx .srt` to `flight_logs`; Windows `.dat` and stray `.txt` go to `other`.
+> - **Still open:** no TXT/Phantom 4 DAT decoder, `psutil` on the VM, SD Card Scan has no hashes/manifest, real `FLY###.DAT` data.
 
 ---
 

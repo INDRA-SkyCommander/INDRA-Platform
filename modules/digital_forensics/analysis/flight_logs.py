@@ -240,6 +240,19 @@ def analyze_flight_logs(manifest_path: str) -> dict:
             except Exception as ex:
                 entry["status"] = f"error: {ex}"
 
+        elif ext == ".srt":
+            # DJI video subtitle: per-frame GPS / altitude / camera settings.
+            entry["note"] = ("DJI video subtitle telemetry (per-frame GPS and altitude) "
+                             "- not decoded yet")
+            try:
+                with open(path, "r", errors="replace") as f:
+                    lines = f.read().splitlines()
+                entry["status"]     = "parsed"
+                entry["line_count"] = len(lines)
+                entry["preview"]    = lines[:15]
+            except Exception as ex:
+                entry["status"] = f"error: {ex}"
+
         else:
             entry["status"] = "unrecognized flight-log type"
 

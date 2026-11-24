@@ -20,9 +20,10 @@ session's `manifest.json`, inspects the extracted files, and returns structured
 findings (also saved as JSON in the session folder).
 
 ### `analysis/` modules
-- **`flight_logs.py`** — `.TXT` flight records parsed (line count, preview,
-  delimiter guess); `.DAT` reported as binary with a hex header. Full `.DAT`
-  decryption needs DROP-style tooling (open-source-tools / future task).
+- **`flight_logs.py`** — decodes Phantom 3 `.DAT` logs to CSV, parses
+  `.CSV/.KML/.GPX`, lists `DJIFlightRecord*.txt` and `.SRT` (not decoded yet),
+  and reports anything that is not a real DJI log as skipped. Phantom 4+ `.DAT`
+  decryption needs DatCon-style tooling (future task).
 - **`media_metadata.py`** — EXIF via Pillow: format, dimensions, camera
   make/model, capture timestamp, and decoded GPS latitude/longitude with a
   Google Maps link.
@@ -42,10 +43,13 @@ cares about.
 2. **List** the available data sources (each mounted volume = one source).
 3. **Copy** every accessible file to local disk, preserving original filenames
    and directory structure.
-4. **Categorize** for downstream use:
-   - `flight_logs/` — `.DAT`, `.TXT`
+4. **Categorize** for downstream use (by name and header, not extension alone):
+   - `flight_logs/` — DJI `.DAT` logs (named `FLY###…DAT` or with the DJI
+     `BUILD` header), `DJIFlightRecord*.txt`, and `.csv .kml .gpx .srt`
+     telemetry records
    - `media/` — images & video (`.jpg .png .dng .mp4 .mov .lrv ...`)
-   - `other/` — everything else
+   - `other/` — everything else, including Windows `.dat` files and `.txt`
+     files that are not DJI flight records (every file is still copied and hashed)
 5. **Hash** every copied file with **SHA-256** and record a JSON manifest.
 6. **Fail gracefully** — drone not detected, volume not mounted, permission
    errors, or an interrupted copy are logged and recorded, never crash.

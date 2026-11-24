@@ -48,6 +48,7 @@ Usage (import, e.g. from the Forensics tab later):
 """
 
 import os
+import re
 import sys
 import json
 import uuid
@@ -86,8 +87,17 @@ def log_err(msg):
 DJI_USB_VENDOR_ID = "2ca3"
 
 # Flight logs the parsing module will consume. .DAT = binary (often encrypted,
-# richer); .TXT = human-readable flight record.
+# richer); .TXT = DJI GO app flight record. Extension alone is not enough: a
+# camera card also holds Windows .dat files and unrelated .txt files, so
+# categorize() checks the name / DJI header for these two (see below).
 FLIGHT_LOG_EXTS = {".dat", ".txt"}
+# Other flight/telemetry records: DJI CSV/KML/GPX exports and .srt video
+# subtitles (per-frame GPS). Always filed as flight logs.
+TELEMETRY_EXTS = {".csv", ".kml", ".gpx", ".srt"}
+# Aircraft log name (FLY010.DAT; also renamed copies like FLY012_corrupt.DAT, so a
+# damaged log is still filed - and reported - as a flight log rather than hidden).
+_DJI_DAT_NAME = re.compile(r"^FLY\d+.*\.DAT$", re.I)
+_DJI_RECORD_TXT = re.compile(r"^DJIFlightRecord", re.I)     # DJI GO app log name
 
 # Media for the metadata + steganography modules. Includes DJI-specific types:
 # .dng (raw stills), .lrv/.lrf (low-res proxy video), .srt (telemetry subtitles).
@@ -107,14 +117,38 @@ SYSTEM_MOUNTS = {"/", "/boot", "/boot/efi", "/home", "/var", "/usr"}
 HASH_CHUNK_BYTES = 1024 * 1024
 
 
-def categorize(filename):
+def _has_dji_dat_header(path):
+    """DJI .DAT flight log: ASCII 'BUILD' at byte 16. Never raises."""
+    try:
+        with open(path, "rb") as f:
+            return f.read(21)[16:21] == b"BUILD"
+    except OSError:
+        return False
+
+
+def categorize(filename, path=None):
     """
-    Map a filename to (category, extension) for the downstream modules.
+    Map a file to (category, extension) for the downstream modules.
 
     Returns one of CAT_FLIGHT / CAT_MEDIA / CAT_OTHER and the lowercase ext.
+      .dat  -> flight_logs only if named FLY###...DAT or it has the DJI header
+               (path needed for the header check); otherwise other
+               (e.g. Windows System Volume Information/WPSettings.dat)
+      .txt  -> flight_logs only if it is a DJIFlightRecord*.txt; otherwise other
+               (e.g. secret.txt, a tool's README)
+      .csv/.kml/.gpx/.srt -> flight_logs (telemetry records)
+      images/videos -> media; anything else -> other
+    Every file is still copied and hashed; this only decides its folder.
     """
-    ext = os.path.splitext(filename)[1].lower()
-    if ext in FLIGHT_LOG_EXTS:
+    name = os.path.basename(filename)
+    ext = os.path.splitext(name)[1].lower()
+    if ext == ".dat":
+        if _DJI_DAT_NAME.match(name) or (path and _has_dji_dat_header(path)):
+            return CAT_FLIGHT, ext
+        return CAT_OTHER, ext
+    if ext == ".txt":
+        return (CAT_FLIGHT if _DJI_RECORD_TXT.match(name) else CAT_OTHER), ext
+    if ext in TELEMETRY_EXTS:
         return CAT_FLIGHT, ext
     if ext in MEDIA_EXTS:
         return CAT_MEDIA, ext
@@ -376,7 +410,7 @@ class USBExtractor:
                 src_file = os.path.join(dirpath, fn)
                 try:
                     rel = os.path.relpath(src_file, root)
-                    category, ext = categorize(fn)
+                    category, ext = categorize(fn, src_file)
 
                     dest_dir = os.path.join(self.output_root, category, label,
                                             os.path.dirname(rel))

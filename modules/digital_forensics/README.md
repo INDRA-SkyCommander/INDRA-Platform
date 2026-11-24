@@ -137,13 +137,14 @@ result = analyze_flight_logs("data/extracted/<session>/manifest.json")
 
 ### `analyze_flight_logs(manifest_path)`
 
-The extractor puts every `.dat` and `.txt` file in `flight_logs` based on the extension alone, so this function checks each file before decoding it:
+The extractor files only real DJI logs and telemetry records in `flight_logs` (by name and header). Older extractions sorted by extension alone, so this function still checks each file before decoding it:
 
 | File | Treated as a flight log when… | What happens |
 |------|-------------------------------|--------------|
 | `.dat` | `BUILD` at byte 16, or named `FLY###.DAT` | Decoded by `dat_parser` → `<name>_dat.csv` next to the `.dat` |
 | `.txt` | Named `DJIFlightRecord*` | Line count, first 15 lines, format guess (not decoded yet) |
 | `.csv` / `.kml` / `.gpx` | Always | DroneXtract parser output captured as text |
+| `.srt` | Always | Line count and first 15 lines (DJI video subtitle telemetry, not decoded yet) |
 | anything else | — | `status: "skipped"` with a reason (e.g. *"Windows system file, not a DJI log"*) |
 
 Returns `log_count`, `files_checked`, `skipped_count`, `items` (one per file), `media_telemetry` (see below), and `output_file` (`flight_logs_parsed.txt`, all parser output combined).
@@ -331,7 +332,6 @@ The `.DAT` decoder, stego scan and media-telemetry parsing of videos and IDX fil
 
 - **Only Phantom 3 `.DAT` logs decode.** Phantom 4 and newer logs are usually encrypted. They are copied and flagged but produce no CSV. [DatCon](https://datfile.net/) can decode them; INDRA does not run it yet (`tools/DatCon/` is git-ignored).
 - **`DJIFlightRecord*.txt` (DJI GO app logs) are only previewed**, not decoded. They need a decoder such as `dji-log-parser`.
-- **`.csv`, `.kml` and `.gpx` from a hashed extraction are not parsed by Parse Logs.** `usb_extractor.py` puts only `.dat` and `.txt` in `flight_logs`, so those files land in `other`, which `analyze_flight_logs` never reads. The SD Card Scan and `drone_pipeline run` do handle them.
 - **`.srt` subtitle telemetry** (per-frame GPS in DJI video subtitles) is copied but not decoded.
 - **Drive detection is Linux only** (`/sys/block`). On macOS or Windows, type the card's path into the SD Card Scan box.
 - **Stego screening** finds appended or embedded files only, not LSB or steghide payloads.

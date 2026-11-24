@@ -2083,7 +2083,8 @@ class IndraGUI(tb.Window):
         # ---- Files the extractor filed as flight logs that aren't ----
         if skipped:
             lines.append(f"SKIPPED - NOT FLIGHT LOGS ({len(skipped)})")
-            lines.append("  Filed under flight_logs/ only because they end in .txt/.dat:")
+            lines.append("  An older extraction filed these under flight_logs/ by extension only")
+            lines.append("  (new extractions sort them into other/):")
             for it in skipped:
                 name = os.path.basename(it.get("relative_path") or "?")
                 lines.append(f"  {name:<20} {it.get('skip_reason', '')}")
